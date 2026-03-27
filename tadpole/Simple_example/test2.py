@@ -42,10 +42,10 @@ A = 1+2
 from lark import Lark
 parser = Lark(grammar, start="start")  # Scannerless Earley is the default
 
-#tokens = parser.lex(text)
-#print("Tokens (lexer output):")
-#for t in tokens:
-#    print(t)
+tokens = parser.lex(text)
+print("Tokens (lexer output):")
+for t in tokens:
+    print(t)
 
 #tree = parser.parse(text)
 #print(tree.pretty())
@@ -58,5 +58,5 @@ def parse(tree):
     return MyTrans().transform(tree)
     
 result = parse(tree)
-print(tree.pretty())
+print(tree)
 print(result)

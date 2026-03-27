@@ -4,58 +4,58 @@ start: program
 program: (stmt | def)*
 
 stmt: IDENT stmt_suffix ";"
-    | "while" "(" expr ")" "do" "{" stmt* "}"
-    | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?
-    | "stop" ";"
-    | "skip" ";"
-    | "return" expr ";"
+    | WHILE "(" expr ")" DO "{" stmt* "}"
+    | IF "(" expr ")" THEN "{" stmt* "}" (ELSE "{" stmt* "}")?
+    | STOP ";"
+    | SKIP ";"
+    | RETURN expr ";"
 
-stmt_suffix: "." call
-           | "=" rvalue
+stmt_suffix: DOT call
+           | ASSIGN rvalue
            | "(" (expr ("," expr)*)? ")"
 
 rvalue: "[" (expr ("," expr)*)? "]"
       | expr
 
 ?type: "bool"
-    | "float" -> float
-    | "int" -> int
-    | "string" -> hejsa
-    | "table"
-    | "column"
+    | "float"
+    | "int"
+    | "string"
     | "[" type "]"
 
 call: IDENT "(" (expr ("," expr)*)? ")"
 
-param: (type IDENT ("," type IDENT)*)?
+param: (type IDENT ("," param_item)*)?
+param_item: type IDENT
 
-def: "function" IDENT "(" param ")" ret
+def: FUNCTION IDENT "(" param ")" ret
 
-ret: "returns" type "{" stmt* "}"
+ret: RETURNS type "{" stmt* "}"
    | "{" stmt* "}"
 
-?expr: and_expr ("or" and_expr)*
+?expr: and_expr (OR and_expr)*
 
-?and_expr: not_expr ("and" not_expr)*
+?and_expr: not_expr (AND not_expr)*
 
-?not_expr: ("not")* eq_expr
+?not_expr: (NOT)* eq_expr
 
-?eq_expr: plus_expr (("==" | "/=" | "<" | "<=" | ">" | ">=") plus_expr)?
+?eq_expr: plus_expr ((EQUAL | INEQUAL | LESS | LESSEQ | GREAT | GREATEQ) plus_expr)?
 
 ?plus_expr: mult_expr ((ADD | SUB) mult_expr)*
 
-?mult_expr: exp_expr (("*" | "/" | "mod") exp_expr)*
+?mult_expr: exp_expr ((MULT | DIVIDE | MOD) exp_expr)*
 
-?exp_expr: unary_expr ("^" unary_expr)*
+?exp_expr: unary_expr (EXPO unary_expr)*
 
-?unary_expr: ("-")* term
+?unary_expr: (SUB)* term
 
 ?term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")?
-     | "." call
+     | DOT call
      | FLOAT
      | NUM
      | STRING
-     | BOOL
+     | TRUE
+     | FALSE
      | NA
      | "(" expr ")"
 
@@ -85,12 +85,15 @@ LESS: "<"
 GREAT: ">"
 ADD: "+"
 SUB: "-"
+EXPO: "^"
 MULT: "*"
 DIVIDE: "/"
 ASSIGN: "="
+DOT: "."
 
 // --- Literals ---
-BOOL: "true" | "false"
+TRUE: "true"
+FALSE: "false"
 NA: "NA"
 
 // --- Identifiers ---
@@ -112,140 +115,14 @@ code = """
 x = 5 + 2 - 1;
 """
 
-import sys
-from typing import List, Optional, Any
-from dataclasses import dataclass
-from lark import Lark, ast_utils, Transformer, v_args
-from lark.tree import Meta
+
+import sys 
+from typing import List, Optional, Any 
+from dataclasses import dataclass 
+from lark import Lark, ast_utils, Transformer, v_args 
+from lark.tree import Meta 
 
 this_module = sys.modules[__name__]
-
-#
-#   Base AST
-#
-class _Ast(ast_utils.Ast):
-    pass
-
-
-class _Statement(_Ast):
-    pass
-
-
-#
-#   Program structure
-#
-@dataclass
-class Program(_Ast, ast_utils.AsList):
-    items: List[_Ast]   # stmt | def
-
-
-@dataclass
-class CodeBlock(_Ast, ast_utils.AsList):
-    statements: List[_Statement]
-
-
-#
-#   Statements
-#
-@dataclass
-class Assign(_Statement):
-    name: str
-    value: _Ast
-
-
-@dataclass
-class CallStmt(_Statement):
-    name: str
-    args: List[_Ast]
-
-
-@dataclass
-class MethodCall(_Statement):
-    obj: str
-    name: str
-    args: List[_Ast]
-
-
-@dataclass
-class While(_Statement):
-    cond: _Ast
-    body: CodeBlock
-
-
-@dataclass
-class If(_Statement):
-    cond: _Ast
-    then: CodeBlock
-    otherwise: Optional[CodeBlock]
-
-
-@dataclass
-class Stop(_Statement):
-    pass
-
-
-@dataclass
-class Skip(_Statement):
-    pass
-
-
-@dataclass
-class Return(_Statement):
-    value: _Ast
-
-
-#
-#   Function definitions
-#
-@dataclass
-class FunctionDef(_Ast):
-    name: str
-    params: List[Any]
-    return_type: Optional[Any]
-    body: CodeBlock
-
-
-#
-#   Expressions (generic but structured)
-#
-@dataclass
-class Name(_Ast):
-    name: str
-
-
-@dataclass
-class Literal(_Ast):
-    value: Any
-
-
-@dataclass
-class CallExpr(_Ast):
-    name: str
-    args: List[_Ast]
-
-
-@dataclass
-class Index(_Ast):
-    value: _Ast
-    index: _Ast
-
-
-@dataclass
-class BinOp(_Ast):
-    left: _Ast
-    op: str
-    right: _Ast
-
-
-@dataclass
-class UnaryOp(_Ast):
-    op: str
-    value: _Ast
-
-
-@dataclass
-class ListLiteral(_Ast):
-    items: List[_Ast]
 
 class ToAst(Transformer):
     #
@@ -263,14 +140,17 @@ class ToAst(Transformer):
     def FLOAT(self, n):
         return Literal(value=float(n))
 
-    def BOOL(self, b):
-        return Literal(value=(b == "true"))
+    def TRUE(self, _):
+        return Literal(value=True)
+
+    def FALSE(self, _):
+        return Literal(value=False)
 
     def NA(self, _):
         return Literal(value=None)
 
     def start(self, items):
-        return items
+        return items[0]
 
     #
     # Program
@@ -282,36 +162,37 @@ class ToAst(Transformer):
     # Statements
     #
     def stmt(self, items):
-        # IDENT stmt_suffix case
+        # IDENT stmt_suffix
         if len(items) == 2 and isinstance(items[0], str):
             name = items[0]
             suffix = items[1]
 
-            if isinstance(suffix, tuple) and suffix[0] == "assign":
+            if suffix[0] == "assign":
                 return Assign(name, suffix[1])
 
-            if isinstance(suffix, tuple) and suffix[0] == "call":
+            if suffix[0] == "call":
                 return CallStmt(name, suffix[1])
 
-            if isinstance(suffix, tuple) and suffix[0] == "method":
+            if suffix[0] == "method":
                 return MethodCall(name, suffix[1], suffix[2])
 
-        # everything else → already transformed
+        # already transformed (if, while, return, etc.)
         if len(items) == 1:
             return items[0]
 
         return items
 
     def stmt_suffix(self, items):
-        # "=" rvalue
-        if len(items) == 2:
+        # DOT call
+        if len(items) == 2 and items[0].type == "DOT":
+            call = items[1]
+            return ("method", call.name, call.args)
+
+        # ASSIGN rvalue
+        if len(items) == 2 and items[0].type == "ASSIGN":
             return ("assign", items[1])
 
-        # "." call
-        if isinstance(items[0], tuple) and items[0][0] == "call":
-            return ("method", items[0][1], items[0][2])
-
-        # "(" args ")"
+        # function call ( ... )
         return ("call", items)
 
     #
@@ -343,8 +224,8 @@ class ToAst(Transformer):
     def def_(self, items):
         name = items[0]
         params = items[1]
-        ret = items[2]
-        return FunctionDef(name, params, ret[0], ret[1])
+        ret_type, body = items[2]
+        return FunctionDef(name, params, ret_type, body)
 
     def ret(self, items):
         if len(items) == 2:
@@ -352,12 +233,26 @@ class ToAst(Transformer):
         return (None, CodeBlock(items[0]))
 
     #
-    # Expressions (generic folding)
+    # Calls
     #
-    def eq_expr(self, items):
+    def call(self, items):
+        name = items[0]
+        args = items[1:]
+        return CallExpr(name, args)
+
+    #
+    # rvalue
+    #
+    def rvalue(self, items):
         if len(items) == 1:
             return items[0]
-        return BinOp(items[0], "eq", items[1])
+        return ListLiteral(items)
+
+    #
+    # Expressions
+    #
+    def eq_expr(self, items):
+        return self._fold_binop(items)
 
     def plus_expr(self, items):
         return self._fold_binop(items)
@@ -374,6 +269,17 @@ class ToAst(Transformer):
     def expr(self, items):
         return self._fold_binop(items)
 
+    def unary_expr(self, items):
+        # multiple SUB tokens → unary minus chain
+        if len(items) == 1:
+            return items[0]
+
+        value = items[-1]
+        for _ in items[:-1]:
+            value = UnaryOp("-", value)
+
+        return value
+
     def _fold_binop(self, items):
         if len(items) == 1:
             return items[0]
@@ -382,16 +288,11 @@ class ToAst(Transformer):
 
         i = 1
         while i < len(items):
-            op = items[i]
-
-            # safety check
-            if i + 1 >= len(items):
-                break
-
+            op = items[i].value   # IMPORTANT FIX
             right = items[i + 1]
-            left = BinOp(left, str(op), right)
-
+            left = BinOp(left, op, right)
             i += 2
+
         return left
 
 parser = Lark(grammar)
