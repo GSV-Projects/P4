@@ -1,4 +1,0 @@
-# Indsæt de dependencies vi bruger i koden. Først navn på dependency efterfulgt af "=" og derefter versionen. 
-# Man kan finde versionen ved at skrive i terminal "pip show <name>"
-
-lark=1.3.1
