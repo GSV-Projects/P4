@@ -133,4 +133,4 @@ parser = Lark(grammar)
 
 print(parser.parse(code).pretty())
 tree = parser.parse(code)
-pydot__tree_to_png(tree, "tree.png")
+#pydot__tree_to_png(tree, "tree.png")
