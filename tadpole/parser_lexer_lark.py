@@ -15,7 +15,8 @@ stmt_suffix: "." call
            | "(" (expr ("," expr)*)? ")"
 
 rvalue: "[" (expr ("," expr)*)? "]"
-      | expr
+      | expr | "{" IDENT ("," IDENT)* ":" term ("," term)* "}"
+
 
 ?type: "bool"
     | "float" -> float
@@ -110,27 +111,9 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 x = 5;
-
-result = x + 5;
-
-function hej (string x) returns int {
-    return 15;
-}
-
-hej(x);
-
-if (result == 10) then {
-    return 1;
-} else {
-    return 0;
-}
-
 """
 
 from lark import Lark
-from lark.tree import pydot__tree_to_png
-parser = Lark(grammar)
+parser = Lark(grammar, parser="lalr")
 
 print(parser.parse(code).pretty())
-tree = parser.parse(code)
-#pydot__tree_to_png(tree, "tree.png")
