@@ -11,14 +11,14 @@ stmt: IDENT stmt_suffix ";"
     | "return" expr ";"
 
 stmt_suffix: "." call
-           | "=" rvalue
+           | "=" rvalue -> assign
            | "(" (expr ("," expr)*)? ")"
 
 rvalue: "[" (expr ("," expr)*)? "]"
       | expr | "{" IDENT ("," IDENT)* ":" term ("," term)* "}"
 
 
-?type: "bool"
+type: "bool"
     | "float" -> float
     | "int" -> int
     | "string" -> hejsa
@@ -35,23 +35,23 @@ def: "function" IDENT "(" param ")" ret
 ret: "returns" type "{" stmt* "}"
    | "{" stmt* "}"
 
-?expr: and_expr ("or" and_expr)*
+expr: and_expr ("or" and_expr)*
 
-?and_expr: not_expr ("and" not_expr)*
+and_expr: not_expr ("and" not_expr)*
 
-?not_expr: ("not")* eq_expr
+not_expr: ("not")* eq_expr
 
-?eq_expr: plus_expr (("==" | "/=" | "<" | "<=" | ">" | ">=") plus_expr)?
+eq_expr: plus_expr (("==" | "/=" | "<" | "<=" | ">" | ">=") plus_expr)?
 
-?plus_expr: mult_expr (("+" | "-") mult_expr)*
+plus_expr: mult_expr (("+" | "-") mult_expr)* -> add
 
-?mult_expr: exp_expr (("*" | "/" | "mod") exp_expr)*
+mult_expr: exp_expr (("*" | "/" | "mod") exp_expr)*
 
-?exp_expr: unary_expr ("^" unary_expr)*
+exp_expr: unary_expr ("^" unary_expr)*
 
-?unary_expr: ("-")* term
+unary_expr: ("-")* term
 
-?term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")?
+term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")?
      | "." call
      | FLOAT
      | NUM
@@ -95,7 +95,7 @@ BOOL: "true" | "false"
 NA: "NA"
 
 // --- Identifiers ---
-IDENT: /[A-Za-z_][A-Za-z0-9_]*/
+IDENT: /(?!true|false)[A-Za-z_][A-Za-z0-9_]*/
 
 // --- Numbers ---
 FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
@@ -110,10 +110,14 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-x = 5;
+var1 = 1+1;
 """
 
 from lark import Lark
-parser = Lark(grammar, parser="lalr")
+from parsertransformer import MyTrans
 
-print(parser.parse(code).pretty())
+parser = Lark(grammar, parser="lalr", strict=True)
+
+
+tree = parser.parse(code)
+print(tree.pretty())

@@ -1,4 +1,4 @@
-from test3 import MyTrans
+from test3 import MyTranss
 import time
 from lark import Lark, ast_utils, Transformer, v_args
 
@@ -8,16 +8,16 @@ start = time.process_time()
 grammar = r"""
 start: stmt+
 
-?expr: expr "+" term -> add
+expr: expr "+" term -> add
     | expr "-" term -> subtract
     | term
 
-?term: NUMBER
+term: NUMBER
     | IDENT
     | BOOL 
 
 
-?stmt: assign 
+stmt: assign 
 | defi
 
 defi: IDENT param "=" expr 
@@ -36,7 +36,7 @@ WHITESPACE: (" " | "\n")+
 """
 
 text = """
-A = 1+2
+A = 5
 """
 
 from lark import Lark
@@ -55,8 +55,8 @@ parser = Lark(grammar, start="start")  # Scannerless Earley is the default
 tree = parser.parse(text)
 
 def parse(tree):
-    return MyTrans().transform(tree)
+    return MyTranss().transform(tree)
     
 result = parse(tree)
 print(tree.pretty())
-print(result)
+print(result.pretty())
