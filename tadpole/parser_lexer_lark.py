@@ -267,7 +267,7 @@ class ToAst(Transformer):
         return self._fold_binop(items)
 
     def expr(self, items):
-        return self._fold_binop(items)
+        return self.BinOp(items)
 
     def unary_expr(self, items):
         # multiple SUB tokens → unary minus chain
@@ -288,7 +288,7 @@ class ToAst(Transformer):
 
         i = 1
         while i < len(items):
-            op = items[i].value   # IMPORTANT FIX
+            op = items[i].value
             right = items[i + 1]
             left = BinOp(left, op, right)
             i += 2
