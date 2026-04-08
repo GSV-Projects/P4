@@ -1,66 +1,77 @@
 grammar = r"""
-start: program
+?start: program
 
-program: (stmt | def)*
+?program: (stmt | def)*
 
-stmt: IDENT "." call ";"    -> method_call 
-    | IDENT "=" rvalue ";"  -> assign
-    | IDENT "(" (expr ("," expr)*)? ")" ";"     -> call
-    | "while" "(" expr ")" "do" "{" stmt* "}"
-    | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> ifs #
-    | "stop" ";"    -> stop #
-    | "skip" ";"    -> skip #
-    | "return" expr ";"
+?stmt: IDENT "." call ";"                       -> method_call
+     | IDENT "=" rvalue ";"                      -> assign
+     | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
+     | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
+     | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
+     | STOP ";"                                  -> stop
+     | SKIP ";"                                  -> skip
+     | RETURN expr ";" -> return_stmt
 
+?rvalue: "[" (expr ("," expr)*)? "]" -> array
+       | expr
 
-rvalue: "[" (expr ("," expr)*)? "]"
-    | expr
-    | "{" IDENT ("," IDENT)* ":" term ("," term)* "}"
+?type: "bool"
+     | "float"
+     | "int"
+     | "string"
+     | "[" type "]"
 
+?call: IDENT "(" (expr ("," expr)*)? ")"
 
-type: "bool"
-    | "float"
-    | "int"
-    | "string"
-    | "table"
-    | "column"
-    | "[" type "]"
+?param: (param_item ("," param_item)*)?
 
-call: IDENT "(" (expr ("," expr)*)? ")"
+?param_item: type IDENT
 
-param: (type IDENT ("," type IDENT)*)?
+?def: "function" IDENT "(" param ")" body
+    | "function" IDENT "(" param ")" "returns" type body
 
-def: "function" IDENT "(" param ")" ret
+?body: "{" stmt* "}"
 
-ret: "returns" type "{" stmt* "}"
-   | "{" stmt* "}"
+?expr: and_expr "or" expr
+     | and_expr
 
-expr: and_expr ("or" and_expr)*     -> expr
+?and_expr: not_expr "and" and_expr
+         | not_expr
 
-and_expr: not_expr ("and" not_expr)*    -> and_expr
+?not_expr: "not" not_expr 
+         | eq_expr
 
-not_expr: ("not")* eq_expr  -> not_expr
+?eq_expr: eq_expr "==" plus_expr        -> equal
+        | eq_expr "/=" plus_expr        -> not_equal
+        | eq_expr "<" plus_expr         -> less
+        | eq_expr "<=" plus_expr        -> less_eq
+        | eq_expr ">" plus_expr         -> greater
+        | eq_expr ">=" plus_expr        -> greater_eq
+        | plus_expr
 
-eq_expr: additive_expr (("==" | "/=" | "<" | "<=" | ">" | ">=") additive_expr)? -> eq_expr
+?plus_expr: plus_expr "+" mult_expr     -> add
+          | plus_expr "-" mult_expr     -> sub
+          | mult_expr
 
-additive_expr: multiplicative_expr (("+" | "-") multiplicative_expr)* -> additive_expr
+?mult_expr: mult_expr "*" exp_expr      -> mult
+          | mult_expr "/" exp_expr      -> divide
+          | mult_expr "mod" exp_expr    -> mod
+          | exp_expr
+?exp_expr: unary_expr ("^" unary_expr)*
 
-multiplicative_expr: expo_expr (("*" | "/" | "mod") expo_expr)* -> multiplicative_expr
+?unary_expr: NEG unary_expr
+           | term
 
-expo_expr: unary_expr ("^" unary_expr)* -> expo_expr
+?term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")?
+     | DOT call
+     | FLOAT
+     | NUM
+     | STRING
+     | TRUE
+     | FALSE
+     | NA
+     | "(" expr ")"
 
-unary_expr: ("-")* term -> unary_expr
-
-term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")?
-    | "." call
-    | FLOAT
-    | NUM
-    | STRING
-    | BOOL
-    | NA
-    | "(" expr ")"
-
-# Token specification 
 // --- Keywords ---
 WHILE: "while"
 DO: "do"
@@ -72,6 +83,7 @@ SKIP: "skip"
 RETURN: "return"
 FUNCTION: "function"
 RETURNS: "returns"
+
 AND: "and"
 OR: "or"
 NOT: "not"
@@ -85,18 +97,20 @@ GREATEQ: ">="
 LESS: "<"
 GREAT: ">"
 ADD: "+"
-SUB: "-"    # subtraction
-#NEG: "-"    # unary negative
+NEG: "-"
+EXPO: "^"
 MULT: "*"
 DIVIDE: "/"
 ASSIGN: "="
+DOT: "."
 
 // --- Literals ---
-BOOL: "true" | "false"
+TRUE: "true"
+FALSE: "false"
 NA: "NA"
 
 // --- Identifiers ---
-IDENT: /(?!true|false)[A-Za-z_][A-Za-z0-9_]*/
+IDENT: /[A-Za-z_][A-Za-z0-9_]*/
 
 // --- Numbers ---
 FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
@@ -106,12 +120,15 @@ STRING: /"([^"\\]|\\.)*"/
 
 // --- Whitespace ---
 %import common.WS
-%import common.INT -> NUM
+%import common.INT  -> NUM
 %ignore WS
 """
 
 code = """
-a = 5 + 5 + 5;
+function myfunc() returns int {
+    a = 2; 
+    b = 1;
+}
 """
 
 from lark import Lark
@@ -122,8 +139,7 @@ def transformtree(tree):
 
 parser = Lark(grammar, parser="lalr", strict=True)
 
-
 parsetree = parser.parse(code)
-#result = transformtree(parsetree)
+result = transformtree(parsetree)
 print("Parse \n", parsetree.pretty())
-#print("AST \n", result.pretty())
+print("AST \n", result.pretty())

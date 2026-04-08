@@ -1,94 +1,113 @@
-from lark import Lark, Transformer, v_args, Tree
-
+from lark import Lark, Transformer, v_args, Tree, Token
 
 class MyTrans(Transformer):
+
     # Terminals for types
-    def NUMBER(self, children):
-        return int(children.value)
+    def NUM(self, c):
+        return Tree(str(c.value), [])
 
-    def IDENT(self, children):
-        return str(children.value)
+    def IDENT(self, c):
+        return Tree(str(c.value), [])
     
-    def FLOAT(self, children):
-        return float(children.value)
+    def FLOAT(self, c):
+        return Tree(str(c.value), [])
 
-    def BOOL(self, children):
-        return bool(children.value) 
+    def BOOL(self, c):
+        return Tree(str(c.value), [])
     
-    def STRING(self, children):
-        return str(children.value)
+    def STRING(self, c):
+        return Tree(str(c.value), [])
     
-    def NA(self, children):
-        return str(children.value)
-    
-    # Starting node needed to create the tree
-    def start(self, c):
-        return c[0]
-    
-    def program(self, children):
-        return children[0]
-    
+    def NA(self, c):
+        return Tree(str(c.value), [])
+
+# Statements
+
     def method_call(self, c):
         return Tree(".", c)    
-
+    
     def assign(self, c):
         return Tree("=", c)
     
-    def call(self, c):
+    def func_call(self, c):
         return Tree("call", c)
     
-    def rvalue(self, c):
-        return c[0]
-    
+# Expressions
+
+    # Logical expressions
     def expr(self, c):
-        if (len(c) == 1):
-            return c[0]
         return Tree("or", c)
     
     def and_expr(self, c):
-        if (len(c)==1):
-            return c[0]
         return Tree("and", c)
     
     def not_expr(self, c):
-        if (len(c)==1):
-            return c[0]
-        return Tree("not", c)
-
+        return Tree("not", [c[1]])
+    
     # Equal expressions
-    def eq_expr(self, c):
-        return c[0]
+    def equal(self, c):
+        return Tree("==", c)
     
-    # Additive expressions
-    def additive_expr(self, c):
-        return self.fold_left(c)
+    def not_equal(self, c):
+        return Tree("/=", c)
     
-    # Multiplicative expressions
-    def multiplicative_expr(self, c):
-        return self.fold_left(c)
+    def less(self, c):
+        return Tree("<", c)
 
-    # Exponential expression
-    def expo_expr(self, c):
-        if (len(c)==1):
-            return c[0]
+    def less_eq(self, c):
+        return Tree("<=", c)
+
+    def greater(self, c):
+        return Tree(">", c)
+
+    def greater_eq(self, c):
+        c = self.fold(c)
+        return Tree(">=", c)
+
+    # Plus expressions
+    def add(self, c):
+        return Tree("+", c)
+    
+    def sub(self, c):
+        return Tree("-", c)
+
+    # Mult expressions
+    def mult(self, c):
+        return Tree("*", c)
+
+    def divide(self, c):
+        return Tree("/", c)
+
+    def mod(self, c):
+        return Tree("mod", c)
+    
+    # Misc expressions
+    def exp_expr(self, c):
         return Tree("^", c)
     
     def unary_expr(self, c):
-        return c[0]
+        return Tree("-", [c[1]])
+
+# Functions
+    def call(self, c):
+        print(len(c))
+        return Tree("det her er call", c)
+
+    def while_stmt(self, c):
+        return Tree("while", c)
+
+    def if_stmt(self, c):
+        return Tree("if", c)
     
-    def term(self, c):
-        return c[0]
+    def param(self, c):
+        return Tree("param", c)
+    
+    def array(self, c):
+        return Tree("[]", c)
 
-    def fold_left(self, items):
-        if len(items) == 1:
-            return items[0]
+    def return_stmt(self, c):
+        return Tree("", c)
 
-        left = items[0]
-        i = 1
-        while i < len(items):
-            op = items[i]
-            right = items[i+1]
-            left = Tree(op.value, [left, right])
-            i += 2
-
-        return left
+    def body(self, c):
+        return Tree("body", c)
+    
