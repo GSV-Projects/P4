@@ -146,7 +146,7 @@ a = [6, 2];
 """
 
 from lark import Lark
-from parsertransformer import MyTrans
+from .parsertransformer import MyTrans
 
 def transformtree(tree):
     return MyTrans().transform(tree)
