@@ -3,34 +3,34 @@ grammar = r"""
 
 ?program: (stmt | def)*
 
-?stmt: IDENT "." call ";"                       -> method_call
-     | IDENT "=" rvalue ";"                      -> assign
+?stmt: IDENT "=" rvalue ";"                      -> assign
      | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
      | STOP ";"                                  -> stop
      | SKIP ";"                                  -> skip
-     | RETURN expr ";" -> return_stmt
+     | "return" expr ";" -> return_stmt
 
-?rvalue: "[" (expr ("," expr)*)? "]" -> array
+?rvalue: "[" (expr ("," expr)*)? "]"         -> array
+       | IDENT "." call ("." call)*          -> method_call
        | expr
 
-?type: "bool"
-     | "float"
-     | "int"
-     | "string"
-     | "[" type "]"
-
 ?call: IDENT "(" (expr ("," expr)*)? ")"
-
-?param: (param_item ("," param_item)*)?
-
-?param_item: type IDENT
 
 ?def: "function" IDENT "(" param ")" body
     | "function" IDENT "(" param ")" "returns" type body
 
 ?body: "{" stmt* "}"
+
+?type: TYPE_BOOL
+     | TYPE_FLOAT
+     | TYPE_INT
+     | TYPE_STRING
+     | "[" type "]"
+
+?param: (param_item ("," param_item)*)?
+
+?param_item: type IDENT
 
 ?expr: and_expr "or" expr
      | and_expr
@@ -38,7 +38,7 @@ grammar = r"""
 ?and_expr: not_expr "and" and_expr
          | not_expr
 
-?not_expr: "not" not_expr 
+?not_expr: NOT not_expr 
          | eq_expr
 
 ?eq_expr: eq_expr "==" plus_expr        -> equal
@@ -57,22 +57,22 @@ grammar = r"""
           | mult_expr "/" exp_expr      -> divide
           | mult_expr "mod" exp_expr    -> mod
           | exp_expr
+
 ?exp_expr: unary_expr ("^" unary_expr)*
 
 ?unary_expr: NEG unary_expr
            | term
 
-?term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")?
-     | DOT call
+?term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")? -> array_indexing
      | FLOAT
-     | NUM
+     | INT
      | STRING
      | TRUE
      | FALSE
      | NA
      | "(" expr ")"
 
-// --- Keywords ---
+// --- Keywords ----
 WHILE: "while"
 DO: "do"
 IF: "if"
@@ -88,6 +88,11 @@ AND: "and"
 OR: "or"
 NOT: "not"
 MOD: "mod"
+
+TYPE_BOOL: "bool"
+TYPE_FLOAT: "float"
+TYPE_INT: "int"
+TYPE_STRING: "string"
 
 // --- Operators ---
 EQUAL: "=="
@@ -114,21 +119,18 @@ IDENT: /[A-Za-z_][A-Za-z0-9_]*/
 
 // --- Numbers ---
 FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
+%import common.INT
 
 // --- Strings ---
 STRING: /"([^"\\]|\\.)*"/
 
 // --- Whitespace ---
 %import common.WS
-%import common.INT  -> NUM
 %ignore WS
 """
 
 code = """
-function myfunc() returns int {
-    a = 2; 
-    b = 1;
-}
+a = not 2;
 """
 
 from lark import Lark

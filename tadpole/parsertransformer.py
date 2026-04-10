@@ -89,9 +89,6 @@ class MyTrans(Transformer):
         return Tree("-", [c[1]])
 
 # Functions
-    def call(self, c):
-        print(len(c))
-        return Tree("det her er call", c)
 
     def while_stmt(self, c):
         return Tree("while", c)
@@ -104,10 +101,13 @@ class MyTrans(Transformer):
     
     def array(self, c):
         return Tree("[]", c)
-
+    
     def return_stmt(self, c):
-        return Tree("", c)
+        return Tree("return", c)
 
     def body(self, c):
         return Tree("body", c)
+    
+    def array_indexing(self, c):
+        return Tree("index", c)
     
