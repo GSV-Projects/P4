@@ -11,9 +11,12 @@ grammar = r"""
      | SKIP ";"                                  -> skip
      | "return" expr ";" -> return_stmt
 
-?rvalue: "[" (expr ("," expr)*)? "]"         -> array
-       | IDENT "." call ("." call)*          -> method_call
+?rvalue: "[" (expr ("," expr)*)? "]"              -> array
+       | IDENT "." call ("." call)*               -> method_call
+       | "{" column* "}"                          -> table
        | expr
+
+?column: ( IDENT ":" "["(expr ("," expr)*)?"]" ";" )      -> column
 
 ?call: IDENT "(" (expr ("," expr)*)? ")"
 
@@ -130,7 +133,11 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-a = not 2;
+mytab = {
+     age : [23, 24];
+     name: ["jens", "lars"];
+     col3: [5, 6];
+};
 """
 
 from lark import Lark

@@ -111,3 +111,8 @@ class MyTrans(Transformer):
     def array_indexing(self, c):
         return Tree("index", c)
     
+    def table(self, c):
+        return Tree("table", c)
+    
+    def column(self, c):
+        return Tree("column", c)
