@@ -1,6 +1,6 @@
-from lark import Lark, Transformer, v_args
+from lark import Lark, Transformer, v_args, Tree
 
-class MyTrans(Transformer):
+class MyTranss(Transformer):
     def NUMBER(self, n):
         return int(n.value)
 
@@ -8,16 +8,30 @@ class MyTrans(Transformer):
         return str(i.value)
 
     def add(self, children):
+        print("child", children)
         left, right = children
-        return {"op": "+", "left": left, "right": right}
+        return Tree("+", children)
 
-
+    def subtract(self, children):
+        left, right = children
+        return Tree("-", children)
+    
     def assign(self, children):
         name, value = children
-        return {"op": "=", "left": name, "right": value}
+        return Tree("=", children)
+    
+    def term(self, children):
+        return children[0]
+
+    def expr(self, children):
+        return children[0]
+
+    def stmt(self, children):
+        return children[0]
+
 
     def start(self, children):
-        return children
+        return Tree("start", children)
     
 
    

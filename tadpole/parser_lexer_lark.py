@@ -1,65 +1,78 @@
 grammar = r"""
-start: program
+?start: program
 
-program: (stmt | def)*
+?program: (stmt | def)*
 
-stmt: IDENT stmt_suffix ";"
-    | "while" "(" expr ")" "do" "{" stmt* "}"
-    | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?
-    | "stop" ";"
-    | "skip" ";"
-    | "return" expr ";"
+?stmt: IDENT "=" rvalue ";"                      -> assign
+     | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
+     | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
+     | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
+     | STOP ";"                                  -> stop
+     | SKIP ";"                                  -> skip
+     | "return" expr ";" -> return_stmt
 
-stmt_suffix: "." call
-           | "=" rvalue
-           | "(" (expr ("," expr)*)? ")"
+?rvalue: "[" (expr ("," expr)*)? "]"         -> array
+       | IDENT "." call ("." call)*          -> method_call
+       | expr
 
-rvalue: "[" (expr ("," expr)*)? "]"
-      | expr
+?call: IDENT "(" (expr ("," expr)*)? ")"
 
-?type: "bool"
-    | "float" -> float
-    | "int" -> int
-    | "string" -> hejsa
-    | "table"
-    | "column"
-    | "[" type "]"
+?def: "function" IDENT "(" param ")" body
+    | "function" IDENT "(" param ")" "returns" type body
 
-call: IDENT "(" (expr ("," expr)*)? ")"
+?body: "{" stmt* "}"
 
-param: (type IDENT ("," type IDENT)*)?
+?type: TYPE_BOOL
+     | TYPE_FLOAT
+     | TYPE_INT
+     | TYPE_STRING
+     | "[" type "]"
 
-def: "function" IDENT "(" param ")" ret
+?param: (param_item ("," param_item)*)?
 
-ret: "returns" type "{" stmt* "}"
-   | "{" stmt* "}"
+?param_item: type IDENT
 
-?expr: and_expr ("or" and_expr)*
+?expr: and_expr "or" expr
+     | and_expr
 
-?and_expr: not_expr ("and" not_expr)*
+?and_expr: not_expr "and" and_expr
+         | not_expr
 
-?not_expr: ("not")* eq_expr
+?not_expr: NOT not_expr 
+         | eq_expr
 
-?eq_expr: plus_expr (("==" | "/=" | "<" | "<=" | ">" | ">=") plus_expr)?
+?eq_expr: eq_expr "==" plus_expr        -> equal
+        | eq_expr "/=" plus_expr        -> not_equal
+        | eq_expr "<" plus_expr         -> less
+        | eq_expr "<=" plus_expr        -> less_eq
+        | eq_expr ">" plus_expr         -> greater
+        | eq_expr ">=" plus_expr        -> greater_eq
+        | plus_expr
 
-?plus_expr: mult_expr ((ADD | SUB) mult_expr)*
+?plus_expr: plus_expr "+" mult_expr     -> add
+          | plus_expr "-" mult_expr     -> sub
+          | mult_expr
 
-?mult_expr: exp_expr (("*" | "/" | "mod") exp_expr)*
+?mult_expr: mult_expr "*" exp_expr      -> mult
+          | mult_expr "/" exp_expr      -> divide
+          | mult_expr "mod" exp_expr    -> mod
+          | exp_expr
 
 ?exp_expr: unary_expr ("^" unary_expr)*
 
-?unary_expr: ("-")* term
+?unary_expr: NEG unary_expr
+           | term
 
-?term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")?
-     | "." call
+?term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")? -> array_indexing
      | FLOAT
-     | NUM
+     | INT
      | STRING
-     | BOOL
+     | TRUE
+     | FALSE
      | NA
      | "(" expr ")"
 
-// --- Keywords ---
+// --- Keywords ----
 WHILE: "while"
 DO: "do"
 IF: "if"
@@ -76,6 +89,11 @@ OR: "or"
 NOT: "not"
 MOD: "mod"
 
+TYPE_BOOL: "bool"
+TYPE_FLOAT: "float"
+TYPE_INT: "int"
+TYPE_STRING: "string"
+
 // --- Operators ---
 EQUAL: "=="
 INEQUAL: "/="
@@ -84,13 +102,16 @@ GREATEQ: ">="
 LESS: "<"
 GREAT: ">"
 ADD: "+"
-SUB: "-"
+NEG: "-"
+EXPO: "^"
 MULT: "*"
 DIVIDE: "/"
 ASSIGN: "="
+DOT: "."
 
 // --- Literals ---
-BOOL: "true" | "false"
+TRUE: "true"
+FALSE: "false"
 NA: "NA"
 
 // --- Identifiers ---
@@ -98,316 +119,28 @@ IDENT: /[A-Za-z_][A-Za-z0-9_]*/
 
 // --- Numbers ---
 FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
+%import common.INT
 
 // --- Strings ---
 STRING: /"([^"\\]|\\.)*"/
 
 // --- Whitespace ---
 %import common.WS
-%import common.INT -> NUM
 %ignore WS
 """
 
 code = """
-x = 5 + 2 - 1;
 """
 
-import sys
-from typing import List, Optional, Any
-from dataclasses import dataclass
-from lark import Lark, ast_utils, Transformer, v_args
-from lark.tree import Meta
+from lark import Lark
+from parsertransformer import MyTrans
 
-this_module = sys.modules[__name__]
+def transformtree(tree):
+    return MyTrans().transform(tree)
 
-#
-#   Base AST
-#
-class _Ast(ast_utils.Ast):
-    pass
+parser = Lark(grammar, parser="lalr", strict=True)
 
-
-class _Statement(_Ast):
-    pass
-
-
-#
-#   Program structure
-#
-@dataclass
-class Program(_Ast, ast_utils.AsList):
-    items: List[_Ast]   # stmt | def
-
-
-@dataclass
-class CodeBlock(_Ast, ast_utils.AsList):
-    statements: List[_Statement]
-
-
-#
-#   Statements
-#
-@dataclass
-class Assign(_Statement):
-    name: str
-    value: _Ast
-
-
-@dataclass
-class CallStmt(_Statement):
-    name: str
-    args: List[_Ast]
-
-
-@dataclass
-class MethodCall(_Statement):
-    obj: str
-    name: str
-    args: List[_Ast]
-
-
-@dataclass
-class While(_Statement):
-    cond: _Ast
-    body: CodeBlock
-
-
-@dataclass
-class If(_Statement):
-    cond: _Ast
-    then: CodeBlock
-    otherwise: Optional[CodeBlock]
-
-
-@dataclass
-class Stop(_Statement):
-    pass
-
-
-@dataclass
-class Skip(_Statement):
-    pass
-
-
-@dataclass
-class Return(_Statement):
-    value: _Ast
-
-
-#
-#   Function definitions
-#
-@dataclass
-class FunctionDef(_Ast):
-    name: str
-    params: List[Any]
-    return_type: Optional[Any]
-    body: CodeBlock
-
-
-#
-#   Expressions (generic but structured)
-#
-@dataclass
-class Name(_Ast):
-    name: str
-
-
-@dataclass
-class Literal(_Ast):
-    value: Any
-
-
-@dataclass
-class CallExpr(_Ast):
-    name: str
-    args: List[_Ast]
-
-
-@dataclass
-class Index(_Ast):
-    value: _Ast
-    index: _Ast
-
-
-@dataclass
-class BinOp(_Ast):
-    left: _Ast
-    op: str
-    right: _Ast
-
-
-@dataclass
-class UnaryOp(_Ast):
-    op: str
-    value: _Ast
-
-
-@dataclass
-class ListLiteral(_Ast):
-    items: List[_Ast]
-
-class ToAst(Transformer):
-    #
-    # Terminals
-    #
-    def IDENT(self, t):
-        return str(t)
-
-    def STRING(self, s):
-        return Literal(value=s[1:-1])
-
-    def NUM(self, n):
-        return Literal(value=int(n))
-
-    def FLOAT(self, n):
-        return Literal(value=float(n))
-
-    def BOOL(self, b):
-        return Literal(value=(b == "true"))
-
-    def NA(self, _):
-        return Literal(value=None)
-
-    def start(self, items):
-        return items
-
-    #
-    # Program
-    #
-    def program(self, items):
-        return Program(items)
-
-    #
-    # Statements
-    #
-    def stmt(self, items):
-        # IDENT stmt_suffix case
-        if len(items) == 2 and isinstance(items[0], str):
-            name = items[0]
-            suffix = items[1]
-
-            if isinstance(suffix, tuple) and suffix[0] == "assign":
-                return Assign(name, suffix[1])
-
-            if isinstance(suffix, tuple) and suffix[0] == "call":
-                return CallStmt(name, suffix[1])
-
-            if isinstance(suffix, tuple) and suffix[0] == "method":
-                return MethodCall(name, suffix[1], suffix[2])
-
-        # everything else → already transformed
-        if len(items) == 1:
-            return items[0]
-
-        return items
-
-    def stmt_suffix(self, items):
-        # "=" rvalue
-        if len(items) == 2:
-            return ("assign", items[1])
-
-        # "." call
-        if isinstance(items[0], tuple) and items[0][0] == "call":
-            return ("method", items[0][1], items[0][2])
-
-        # "(" args ")"
-        return ("call", items)
-
-    #
-    # Control flow
-    #
-    def while_(self, items):
-        cond = items[0]
-        body = CodeBlock(items[1:])
-        return While(cond, body)
-
-    def if_(self, items):
-        cond = items[0]
-        then_block = CodeBlock(items[1])
-        else_block = CodeBlock(items[2]) if len(items) > 2 else None
-        return If(cond, then_block, else_block)
-
-    def return_(self, items):
-        return Return(items[0])
-
-    def stop(self, _):
-        return Stop()
-
-    def skip(self, _):
-        return Skip()
-
-    #
-    # Function definition
-    #
-    def def_(self, items):
-        name = items[0]
-        params = items[1]
-        ret = items[2]
-        return FunctionDef(name, params, ret[0], ret[1])
-
-    def ret(self, items):
-        if len(items) == 2:
-            return (items[0], CodeBlock(items[1]))
-        return (None, CodeBlock(items[0]))
-
-    #
-    # Expressions (generic folding)
-    #
-    def eq_expr(self, items):
-        if len(items) == 1:
-            return items[0]
-        return BinOp(items[0], "eq", items[1])
-
-    def plus_expr(self, items):
-        return self._fold_binop(items)
-
-    def mult_expr(self, items):
-        return self._fold_binop(items)
-
-    def exp_expr(self, items):
-        return self._fold_binop(items)
-
-    def and_expr(self, items):
-        return self._fold_binop(items)
-
-    def expr(self, items):
-        return self._fold_binop(items)
-
-    def _fold_binop(self, items):
-        if len(items) == 1:
-            return items[0]
-
-        left = items[0]
-
-        i = 1
-        while i < len(items):
-            op = items[i]
-
-            # safety check
-            if i + 1 >= len(items):
-                break
-
-            right = items[i + 1]
-            left = BinOp(left, str(op), right)
-
-            i += 2
-        return left
-
-parser = Lark(grammar)
-
-transformer = ast_utils.create_transformer(this_module, ToAst())
-
-def parse(text):
-    tree = (parser.parse(text))
-    return transformer.transform(tree)
-
-if __name__ == '__main__':
-              print(parser.parse(code).pretty()) # parse træ
-              print(parse(code)) # AST mby?
-
-
-# Gammel kode
-# from lark.tree import pydot__tree_to_png
-# tree = parser.parse(code)
-# pydot__tree_to_png(tree, "tree.png")
+parsetree = parser.parse(code)
+result = transformtree(parsetree)
+print("Parse \n", parsetree.pretty())
+print("AST \n", result.pretty())
