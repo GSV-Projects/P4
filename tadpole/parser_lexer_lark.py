@@ -16,7 +16,9 @@ grammar = r"""
        | "{" column* "}"                          -> table
        | expr
 
-?column: ( IDENT ":" "["(expr ("," expr)*)?"]" ";" )      -> column
+?column: ( IDENT ":" "[" column_content "]" ";" )      -> column
+
+?column_content: (expr ("," expr)*)?                   -> array
 
 ?call: IDENT "(" (expr ("," expr)*)? ")"
 
@@ -134,10 +136,13 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 mytab = {
-     age : [23, 24];
+     age: [23, 24];
      name: ["jens", "lars"];
      col3: [5, 6];
 };
+
+a = [6, 2];
+
 """
 
 from lark import Lark
