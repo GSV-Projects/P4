@@ -130,7 +130,6 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-a = not 2;
 """
 
 from lark import Lark
