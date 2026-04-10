@@ -26,6 +26,6 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run pytest
-        run: Python -m pytest
+        run: python -m pytest
         env:
           PYTHONPATH: .
