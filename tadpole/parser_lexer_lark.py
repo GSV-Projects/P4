@@ -1,7 +1,7 @@
 grammar = r"""
 ?start: program
 
-?program: (stmt | def)*
+program: (stmt | def)*
 
 ?stmt: IDENT "=" rvalue ";"                      -> assign
      | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
@@ -25,7 +25,7 @@ grammar = r"""
 ?def: "function" IDENT "(" param ")" body
     | "function" IDENT "(" param ")" "returns" type body
 
-?body: "{" stmt* "}"
+body: "{" stmt* "}"
 
 ?type: TYPE_BOOL
      | TYPE_FLOAT
@@ -33,7 +33,7 @@ grammar = r"""
      | TYPE_STRING
      | "[" type "]"
 
-?param: (param_item ("," param_item)*)?
+param: (param_item ("," param_item)*)?
 
 ?param_item: type IDENT
 
@@ -135,18 +135,23 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytab = {
-     age: [23, 24];
-     name: ["jens", "lars"];
-     col3: [5, 6];
-};
+b = 5;
+function a() returns int{
+return b
+}
 
-a = [6, 2];
 
 """
 
 from lark import Lark
-from .parsertransformer import MyTrans
+# Dårlig løsning på at vi gerne skulle kunne køre de forskellige filer fra forskellige stedet
+try:
+    from .parsertransformer import MyTrans
+    #from .typechecker import Typechecker
+except ImportError:
+    from parsertransformer import MyTrans
+    #from typechecker import Typechecker
+
 
 def transformtree(tree):
     return MyTrans().transform(tree)
@@ -154,6 +159,14 @@ def transformtree(tree):
 parser = Lark(grammar, parser="lalr", strict=True)
 
 parsetree = parser.parse(code)
+
 result = transformtree(parsetree)
-print("Parse \n", parsetree.pretty())
+#Typechecker().transform(result)
+#print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
+
+
+
+
+
+

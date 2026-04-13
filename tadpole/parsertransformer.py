@@ -10,7 +10,7 @@ class MyTrans(Transformer):
         return Tree(str(c.value), [])
     
     def FLOAT(self, c):
-        return Tree(str(c.value), [])
+        return c
 
     def BOOL(self, c):
         return Tree(str(c.value), [])
@@ -27,7 +27,7 @@ class MyTrans(Transformer):
         return Tree(".", c)    
     
     def assign(self, c):
-        return Tree("=", c)
+        return Tree("assign", c)
     
     def func_call(self, c):
         return Tree("call", c)
@@ -66,17 +66,17 @@ class MyTrans(Transformer):
 
     # Plus expressions
     def add(self, c):
-        return Tree("+", c)
+        return Tree("add", c)
     
     def sub(self, c):
         return Tree("-", c)
 
     # Mult expressions
     def mult(self, c):
-        return Tree("*", c)
+        return Tree("mult", c)
 
     def divide(self, c):
-        return Tree("/", c)
+        return Tree("divide", c)
 
     def mod(self, c):
         return Tree("mod", c)
@@ -97,7 +97,7 @@ class MyTrans(Transformer):
         return Tree("if", c)
     
     def param(self, c):
-        return Tree("param", c)
+        return Tree("params", c)
     
     def array(self, c):
         return Tree("[]", c)
