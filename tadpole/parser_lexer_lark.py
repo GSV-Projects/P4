@@ -68,7 +68,9 @@ grammar = r"""
 ?unary_expr: NEG unary_expr
            | term
 
-?term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")? -> array_indexing
+?term: IDENT "(" (expr ("," expr)*)? ")"   -> func_call
+     | IDENT "[" expr "]"                  -> array_indexing
+     | IDENT
      | FLOAT
      | INT
      | STRING
@@ -135,18 +137,23 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytab = {
-     age: [23, 24];
-     name: ["jens", "lars"];
-     col3: [5, 6];
-};
+function myFunc() {
+     a = 2;
+}
 
-a = [6, 2];
+function myfunc2() returns int {
 
+     return 1;
+}
+
+myfunc();
+variable = myfunc2();
+y = 2;
+h = y;
 """
 
 from lark import Lark
-from .parsertransformer import MyTrans
+from parsertransformer import MyTrans
 
 def transformtree(tree):
     return MyTrans().transform(tree)
