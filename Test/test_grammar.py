@@ -1,5 +1,7 @@
 from tadpole.parser_lexer_lark import parser
 
+
+# Testing grammar if its parseable
 def test_assign():
     input = '''
         b = 2+2;
