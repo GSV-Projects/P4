@@ -68,7 +68,9 @@ param: (param_item ("," param_item)*)?
 ?unary_expr: NEG unary_expr
            | term
 
-?term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")? -> array_indexing
+?term: IDENT "(" (expr ("," expr)*)? ")"   -> func_call
+     | IDENT "[" expr "]"                  -> array_indexing
+     | IDENT
      | FLOAT
      | INT
      | STRING
@@ -135,11 +137,14 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-b = 5;
-function a() returns int{
-return b
+b = 5.5;
+function a(int c, float d, float b) returns float{
+return b;
 }
 
+function h(float c, string d) returns float{
+return b;
+}
 
 """
 
@@ -163,6 +168,7 @@ parsetree = parser.parse(code)
 result = transformtree(parsetree)
 #Typechecker().transform(result)
 #print("Parse \n", parsetree.pretty())
+
 print("AST \n", result.pretty())
 
 

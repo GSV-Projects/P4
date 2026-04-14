@@ -7,7 +7,9 @@ class Typechecker():
         self.vtable = {}
         self.ftable = {}
 
-    def read_token(self, token):
+    def read_token(self, token,env):
+        if token.type == 'IDENT':
+            return self.check_IDENT(token, env)
         if token.type == 'TYPE_INT' or token.type == 'INT':
             return int
         if token.type == 'TYPE_FLOAT' or token.type == 'FLOAT':
@@ -35,12 +37,17 @@ class Typechecker():
 
         # Tilføj parametre til vtable
         for child in node.children:
-            vtable[child.children[1].data] = self.check(child.children[0],env)
+            #print("built_vt, child:", child)
+            #print("built_vt, child0:", child.children[0])
+            #print("built_vt, child1:", child.children[1])
+            vtable[child.children[1].value] = self.check(child.children[0],env)
         return vtable
 
     def get_fun(self, node, env):
-        func_name = node.children[0].data
+        func_name = node.children[0].value
+        #print("func_name", func_name)
         paramsnode = node.children[1]
+        #print("params", paramsnode)
         if len(node.children) == 4:
             return_type = self.check(node.children[2], env)
         else:
@@ -59,14 +66,13 @@ class Typechecker():
         for child in c.children:
             if isinstance(child, Tree) and child.data == 'def':
                 self.build_ft(child, self.vtable)
-                self.check_f(child, self.vtable)
 
         for statement in c.children:
             # print(statement)
             self.check(statement, self.vtable)
 
-        print(self.ftable)
-        print(self.vtable)
+        print("ftable:", self.ftable)
+        print("global:", self.vtable)
         
     def check_f(self, node, env):
         paramsnode = node.children[1]
@@ -79,8 +85,12 @@ class Typechecker():
         
         vtable_local = self.build_vt(paramsnode, env)
         print("local", vtable_local)
+        #print("return type:", return_type)
 
+        #print("body", body)
         t = self.check(body, vtable_local)
+
+        #print("t", t)
 
         if (t == return_type) or (return_type == None):
             pass
@@ -89,7 +99,7 @@ class Typechecker():
 
     def check(self, node, env):
         if isinstance(node, Token):
-            return self.read_token(node)
+            return self.read_token(node, env)
         
 
         method_name = f'check_{node.data}'
@@ -103,16 +113,37 @@ class Typechecker():
     def check_add(self, node, env):  return self.check_additive(node, env)
     def check_sub(self, node, env):  return self.check_additive(node, env)
     def check_mod(self, node, env):  return self.check_additive(node, env)
+    def check_mult(self, node, env): return self.check_additive(node, env)
+
     def check_div(self, node, env):  return self.check_div_mult(node, env)
-    def check_mult(self, node, env): return self.check_div_mult(node, env)
+
+    def check_less(self, node, env): return self.check_comparison(node, env)
+    def check_greater(self, node, env): return self.check_comparison(node, env)
+    def check_leq(self, node, env): return self.check_comparison(node, env)
+    def check_geq(self, node, env): return self.check_comparison(node, env)
+    def check_equal(self, node, env): return self.check_comparison(node, env)
+    def check_neq(self, node, env): return self.check_comparison(node, env)
+
+    def check_or(self, node, env): return self.check_logical(node, env)
+    def check_and(self, node, env): return self.check_logical(node, env)
     
     # --- check implements ---
+    def check_IDENT(self, node, env):
+        #print("IDENTnode", node)
+        if (node.value in env):
+            #print("env ident", env[node.value])
+            return env[node.value]
+
     def check_assign(self, node ,env):
         left = node.children[0]
+        #print("assign_left", left.value)
         right = node.children[1]
+        #print("assign_right", right)
 
         t1 = self.check(right, env)
-        self.vtable[left.data] = t1
+        #print("check_assign:", t1)
+        env[left.value] = t1
+        #print("vtable efter assign", env)
 
     def check_additive(self, node, env):
         left = node.children[0]
@@ -138,16 +169,48 @@ class Typechecker():
         if t1 in (int, float) and t2 in (int, float):
             return float
         else:
-            return (TypeError)
+            raise Exception(f'{node.children[0]} or {node.children[1]} is not an int or float')
         
     def check_comparison(self, node, env):
+        left = node.children[0]
+        right = node.children[1]
+
+        t1 = self.check(left, env)
+        t2 = self.check(right, env)
+
+        # er intereseret i, om left og right bare er typern
+        #print("comparison left, right:", left, right)
+
+        if (t1 == int and t2 == int) or (t1 == float and t2 == float):
+            return bool
+        else: 
+            raise Exception(f'different types shi in comparison')
+
+    def check_logical(self, node, env):
         pass
 
     def check_def(self, node, env):
-        pass
+        # Check function body and return type matches with return when we declare the function
+        self.check_f(node, env)
 
     def check_body(self, node, env):
-        return node
+        check_same_type = []
+        for child in node.children:
+            #print("child", child)
+            if (child.data == "return"):
+                check_same_type.append(self.check(child, env))
+            else:
+                self.check(child, env)
+
+            if (all(x == check_same_type[0] for x in check_same_type)):
+                return check_same_type[0]
+        
+    
+    def check_return(self, node, env):
+        #print("hejnode", node)
+        #print("hejnode2", node.children[0])
+        #print("hej", node.children[0])
+        return self.check(node.children[0], env)
 
 Typechecker().check_p(result)
 

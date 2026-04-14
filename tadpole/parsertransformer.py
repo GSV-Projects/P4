@@ -7,7 +7,7 @@ class MyTrans(Transformer):
         return Tree(str(c.value), [])
 
     def IDENT(self, c):
-        return Tree(str(c.value), [])
+        return c
     
     def FLOAT(self, c):
         return c
