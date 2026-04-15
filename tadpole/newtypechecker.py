@@ -3,6 +3,7 @@ from parser_lexer_lark import result
 
 # Test comment
 
+
 class Typechecker():
     def __init__(self):
         self.vtable = {}
@@ -69,11 +70,11 @@ class Typechecker():
                 self.build_ft(child, self.vtable)
 
         for statement in c.children:
-            # print(statement)
+            #print(statement)
             self.check(statement, self.vtable)
 
         print("ftable:", self.ftable)
-        print("global:", self.vtable)
+        print("global vtable:", self.vtable)
         
     def check_f(self, node, env):
         paramsnode = node.children[1]
@@ -85,7 +86,7 @@ class Typechecker():
             body = node.children[2]
         
         vtable_local = self.build_vt(paramsnode, env)
-        print("local", vtable_local)
+        print("local vtable", vtable_local)
         #print("return type:", return_type)
 
         #print("body", body)
@@ -143,6 +144,8 @@ class Typechecker():
 
         t1 = self.check(right, env)
         #print("check_assign:", t1)
+
+        ## TODO Hvis env = self.vtable -> check om env(left.value) er tom -> hvis ikke -> chekc om samme type -> hvis ikke -> error
         env[left.value] = t1
         #print("vtable efter assign", env)
 
@@ -179,7 +182,7 @@ class Typechecker():
         t1 = self.check(left, env)
         t2 = self.check(right, env)
 
-        # er intereseret i, om left og right bare er typern
+        # TODO er intereseret i, om left og right bare er typern
         #print("comparison left, right:", left, right)
 
         if (t1 == int and t2 == int) or (t1 == float and t2 == float):
@@ -211,7 +214,20 @@ class Typechecker():
         #print("hejnode", node)
         #print("hejnode2", node.children[0])
         #print("hej", node.children[0])
+
+        # TODO: Check om inde i funktion
+        # TODO: hvis nej raise exception
+
         return self.check(node.children[0], env)
+    
+    def check_array(self, node, env):
+        for x in node.children:
+            print("no", x)
+
+        # TODO Lav så vi ikke returner "Tree('array', [Token('FALSE', 'false'), Token('FALSE', 'false')"
+        if (all(self.check(x,env) == self.check(node.children[0],env) for x in node.children)):
+            return node
+
 
 Typechecker().check_p(result)
 

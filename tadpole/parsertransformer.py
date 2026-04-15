@@ -11,12 +11,13 @@ class MyTrans(Transformer):
     
     def FLOAT(self, c):
         return c
+        
 
     def BOOL(self, c):
         return Tree(str(c.value), [])
     
     def STRING(self, c):
-        return Tree(str(c.value), [])
+        return c
     
     def NA(self, c):
         return Tree(str(c.value), [])
@@ -100,7 +101,7 @@ class MyTrans(Transformer):
         return Tree("params", c)
     
     def array(self, c):
-        return Tree("[]", c)
+        return Tree("array", c)
     
     def return_stmt(self, c):
         return Tree("return", c)

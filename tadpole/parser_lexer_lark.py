@@ -101,6 +101,7 @@ TYPE_FLOAT: "float"
 TYPE_INT: "int"
 TYPE_STRING: "string"
 
+
 // --- Operators ---
 EQUAL: "=="
 INEQUAL: "/="
@@ -129,7 +130,7 @@ FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
 %import common.INT
 
 // --- Strings ---
-STRING: /"([^"\\]|\\.)*"/
+STRING: /"([^"\\]|\\.)*"/ 
 
 // --- Whitespace ---
 %import common.WS
@@ -137,14 +138,13 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-b = 5.5;
+e = [false, false, true];
+d = "hej";
+b = 3;
 function a(int c, float d, float b) returns float{
 return b;
 }
 
-function h(float c, string d) returns float{
-return b;
-}
 
 """
 
