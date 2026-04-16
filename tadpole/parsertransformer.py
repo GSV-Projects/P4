@@ -2,9 +2,7 @@ from lark import Lark, Transformer, v_args, Tree, Token
 
 class MyTrans(Transformer):
 
-    # Terminals for types
-    def NUM(self, c):
-        return Tree(str(c.value), [])
+# Terminals for types
 
     def IDENT(self, c):
         return Tree(str(c.value), [])
@@ -20,6 +18,25 @@ class MyTrans(Transformer):
     
     def NA(self, c):
         return Tree(str(c.value), [])
+    
+    def type_int(self, c):
+        return Tree("int", [])
+
+    def type_float(self, c):
+        return Tree("float", [])
+
+    def type_bool(self, c):
+        return Tree("bool", [])
+
+    def type_string(self, c):
+        return Tree("string", [])
+
+    def type_array(self, c):
+        return Tree("array_type", c)  # c[0] will be the inner type
+
+    def param_item(self, c):
+        return Tree("param_item", c)  # c[0] = type, c[1] = ident
+
 
 # Statements
 
@@ -90,6 +107,12 @@ class MyTrans(Transformer):
 
 # Functions
 
+    def func_def(self, c):
+        return Tree("func_def", c)
+
+    def func_def_ret(self, c):
+        return Tree("func_def_ret", c)
+
     def while_stmt(self, c):
         return Tree("while", c)
 
@@ -116,3 +139,6 @@ class MyTrans(Transformer):
     
     def column(self, c):
         return Tree("column", c)
+    
+    def array_assign(self, c):
+        return Tree("assign_index", c)

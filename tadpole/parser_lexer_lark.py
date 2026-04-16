@@ -3,13 +3,16 @@ grammar = r"""
 
 ?program: (stmt | def)*
 
-?stmt: IDENT "=" rvalue ";"                      -> assign
+?stmt: lvalue "=" rvalue ";"                     -> assign
      | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
      | STOP ";"                                  -> stop
      | SKIP ";"                                  -> skip
-     | "return" expr ";" -> return_stmt
+     | "return" expr ";"                         -> return_stmt
+
+?lvalue: IDENT
+       | IDENT "[" expr "]"                       -> array_assign
 
 ?rvalue: "[" (expr ("," expr)*)? "]"              -> array
        | IDENT "." call ("." call)*               -> method_call
@@ -22,16 +25,16 @@ grammar = r"""
 
 ?call: IDENT "(" (expr ("," expr)*)? ")"
 
-?def: "function" IDENT "(" param ")" body
-    | "function" IDENT "(" param ")" "returns" type body
+?def: "function" IDENT "(" param ")" body                   -> func_def
+    | "function" IDENT "(" param ")" "returns" type body    -> func_def_ret
 
 ?body: "{" stmt* "}"
 
-?type: TYPE_BOOL
-     | TYPE_FLOAT
-     | TYPE_INT
-     | TYPE_STRING
-     | "[" type "]"
+?type: TYPE_BOOL                                -> type_bool
+     | TYPE_FLOAT                               -> type_float
+     | TYPE_INT                                 -> type_int
+     | TYPE_STRING                              -> type_string
+     | "[" type "]"                             -> type_array
 
 ?param: (param_item ("," param_item)*)?
 
@@ -68,7 +71,9 @@ grammar = r"""
 ?unary_expr: NEG unary_expr
            | term
 
-?term: IDENT ("(" (expr ("," expr)*)? ")" | "[" expr "]")? -> array_indexing
+?term: IDENT "(" (expr ("," expr)*)? ")"   -> func_call
+     | IDENT "[" expr "]"                  -> array_indexing
+     | IDENT
      | FLOAT
      | INT
      | STRING
@@ -135,18 +140,10 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytab = {
-     age: [23, 24];
-     name: ["jens", "lars"];
-     col3: [5, 6];
-};
-
-a = [6, 2];
-
 """
 
 from lark import Lark
-from .parsertransformer import MyTrans
+from parsertransformer import MyTrans
 
 def transformtree(tree):
     return MyTrans().transform(tree)
