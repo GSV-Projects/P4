@@ -69,7 +69,7 @@ class Typechecker():
                 self.build_ft(child, self.vtable)
 
         for statement in c.children:
-            #print(statement)
+            print("yes", statement)
             self.check(statement, self.vtable)
 
         print("ftable:", self.ftable)
@@ -86,12 +86,8 @@ class Typechecker():
         
         vtable_local = self.build_vt(paramsnode, env)
         print("local vtable", vtable_local)
-        #print("return type:", return_type)
 
-        #print("body", body)
         t = self.check(body, vtable_local)
-
-        #print("t", t)
 
         if (t == return_type) or (return_type == None):
             pass
@@ -112,6 +108,7 @@ class Typechecker():
         Otherwise, a string literal containing 'check_' followed by the type is run and returned.
     """
     def check(self, node, env):
+        print("node", node)
         if isinstance(node, Token):
             return self.read_token(node, env)
         
@@ -213,7 +210,6 @@ class Typechecker():
     def check_body(self, node, env):
         check_same_type = []
         for child in node.children:
-            #print("child", child)
             if (child.data == "return"):
                 check_same_type.append(self.check(child, env))
             else:
@@ -224,9 +220,9 @@ class Typechecker():
         
     
     def check_return(self, node, env):
-        #print("hejnode", node)
-        #print("hejnode2", node.children[0])
-        #print("hej", node.children[0])
+        print("hejnode", node)
+        print("hejnode2", node.children[0])
+        print("hej", node.children[0])
 
         # TODO: Check om inde i funktion
         # TODO: hvis nej raise exception
@@ -241,11 +237,15 @@ class Typechecker():
         type_first_elem = self.check(node.children[0], env)
         print("array type: ", type_first_elem)
 
-        # TODO: Lav så vi ikke returner "Tree('array', [Token('FALSE', 'false'), Token('FALSE', 'false')"
         if (all(self.check(x,env) == type_first_elem for x in node.children)):
             return [type_first_elem] # return as ARRAY of type T - [T], NOT simply T
         else: 
             raise Exception("Not all elems of array are the same")
+        
+    def check_array_type(self, node, env):
+        # Check function for [type] used in parameters and returns
+        array_type = self.check(node.children[0], env)
+        return [array_type]
         
     # if x is an array of type T, and e is an Int, then x[e] has type T
     def check_index(self, node, env):
@@ -277,11 +277,6 @@ class Typechecker():
 
         
         
-    
-
-
-
-
 
 
 Typechecker().check_p(result)

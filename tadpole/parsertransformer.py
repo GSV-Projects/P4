@@ -2,30 +2,46 @@ from lark import Lark, Transformer, v_args, Tree, Token
 
 class MyTrans(Transformer):
 
-    # Terminals for types
-    def NUM(self, c):
-        return Tree(str(c.value), [])
+# Terminals for types
 
     def IDENT(self, c):
         return c
     
     def FLOAT(self, c):
         return c
-        
 
     def BOOL(self, c):
-        return Tree(str(c.value), [])
+        return c
     
     def STRING(self, c):
         return c
     
     def NA(self, c):
-        return Tree(str(c.value), [])
+        return c
+    
+    def type_int(self, c):
+        return c[0]
+
+    def type_float(self, c):
+        return c[0]
+
+    def type_bool(self, c):
+        return c[0]
+
+    def type_string(self, c):
+        return c[0]
+
+    def type_array(self, c):
+        return Tree("array_type", c)
+
+    def param_item(self, c):
+        return Tree("param_item", c)  # c[0] = type, c[1] = ident
+
 
 # Statements
 
     def method_call(self, c):
-        return Tree(".", c)    
+        return Tree("dot", c)    
     
     def assign(self, c):
         return Tree("assign", c)
@@ -47,37 +63,37 @@ class MyTrans(Transformer):
     
     # Equal expressions
     def equal(self, c):
-        return Tree("==", c)
+        return Tree("equal", c)
     
     def not_equal(self, c):
-        return Tree("/=", c)
+        return Tree("neq", c)
     
     def less(self, c):
-        return Tree("<", c)
+        return Tree("less", c)
 
     def less_eq(self, c):
-        return Tree("<=", c)
+        return Tree("leq", c)
 
     def greater(self, c):
-        return Tree(">", c)
+        return Tree("greater", c)
 
     def greater_eq(self, c):
         c = self.fold(c)
-        return Tree(">=", c)
+        return Tree("geq", c)
 
     # Plus expressions
     def add(self, c):
         return Tree("add", c)
     
     def sub(self, c):
-        return Tree("-", c)
+        return Tree("sub", c)
 
     # Mult expressions
     def mult(self, c):
         return Tree("mult", c)
 
     def divide(self, c):
-        return Tree("divide", c)
+        return Tree("div", c)
 
     def mod(self, c):
         return Tree("mod", c)
@@ -91,6 +107,12 @@ class MyTrans(Transformer):
 
 # Functions
 
+    def func_def(self, c):
+        return Tree("def", c)
+
+    def func_def_ret(self, c):
+        return Tree("def", c)
+
     def while_stmt(self, c):
         return Tree("while", c)
 
@@ -98,7 +120,7 @@ class MyTrans(Transformer):
         return Tree("if", c)
     
     def param(self, c):
-        return Tree("params", c)
+        return Tree("param", c)
     
     def array(self, c):
         return Tree("array", c)
@@ -117,3 +139,6 @@ class MyTrans(Transformer):
     
     def column(self, c):
         return Tree("column", c)
+    
+    def array_assign(self, c):
+        return Tree("assign_index", c)

@@ -3,38 +3,40 @@ grammar = r"""
 
 program: (stmt | def)*
 
-?stmt: IDENT "=" rvalue ";"                         -> assign
-     | IDENT "(" (expr ("," expr)*)? ")" ";"        -> func_call
-     | IDENT "[" expr "]" ";"                       -> array_indexing
-     | "while" "(" expr ")" "do" "{" stmt* "}"      -> while_stmt
+?stmt: lvalue "=" rvalue ";"                     -> assign
+     | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
+     | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
-     | STOP ";"                                     -> stop
-     | SKIP ";"                                     -> skip
-     | "return" expr ";" -> return_stmt
+     | STOP ";"                                  -> stop
+     | SKIP ";"                                  -> skip
+     | "return" expr ";"                         -> return_stmt
 
-?rvalue: "[" (expr ("," expr)*)? "]"                -> array
-       | IDENT "." call ("." call)*                 -> method_call
-       | "{" column* "}"                            -> table
+?lvalue: IDENT
+       | IDENT "[" expr "]"                       -> array_assign
+
+?rvalue: "[" (expr ("," expr)*)? "]"              -> array
+       | IDENT "." call ("." call)*               -> method_call
+       | "{" column* "}"                          -> table
        | expr
 
-?column: ( IDENT ":" "[" column_content "]" ";" )   -> column
+?column: ( IDENT ":" "[" column_content "]" ";" )      -> column
 
-?column_content: (expr ("," expr)*)?                -> array
+?column_content: (expr ("," expr)*)?                   -> array
 
 ?call: IDENT "(" (expr ("," expr)*)? ")"
 
-?def: "function" IDENT "(" param ")" body
-    | "function" IDENT "(" param ")" "returns" type body
+?def: "function" IDENT "(" param ")" body                   -> func_def
+    | "function" IDENT "(" param ")" "returns" type body    -> func_def_ret
 
-body: "{" stmt* "}"
+?body: "{" stmt* "}"
 
-?type: TYPE_BOOL
-     | TYPE_FLOAT
-     | TYPE_INT
-     | TYPE_STRING
-     | "[" type "]"
+?type: TYPE_BOOL                                -> type_bool
+     | TYPE_FLOAT                               -> type_float
+     | TYPE_INT                                 -> type_int
+     | TYPE_STRING                              -> type_string
+     | "[" type "]"                             -> type_array
 
-param: (param_item ("," param_item)*)?
+?param: (param_item ("," param_item)*)?
 
 ?param_item: type IDENT
 
@@ -70,7 +72,7 @@ param: (param_item ("," param_item)*)?
            | term
 
 ?term: IDENT "(" (expr ("," expr)*)? ")"   -> func_call
-     | IDENT "[" expr "]" ";"              -> array_indexing
+     | IDENT "[" expr "]"                  -> array_indexing
      | IDENT
      | FLOAT
      | INT
@@ -102,7 +104,6 @@ TYPE_FLOAT: "float"
 TYPE_INT: "int"
 TYPE_STRING: "string"
 
-
 // --- Operators ---
 EQUAL: "=="
 INEQUAL: "/="
@@ -131,7 +132,7 @@ FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
 %import common.INT
 
 // --- Strings ---
-STRING: /"([^"\\]|\\.)*"/ 
+STRING: /"([^"\\]|\\.)*"/
 
 // --- Whitespace ---
 %import common.WS
@@ -139,21 +140,15 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-tappel = {
-col1: [1, 2];
-col2: ["hej", "hvad"];
-};
+a = [1.2,2.1,3];
+function f([float] d, string c) returns [float]{
+return [3.2,1.2];
+}
+
 """
 
 from lark import Lark
-# Dårlig løsning på at vi gerne skulle kunne køre de forskellige filer fra forskellige stedet
-try:
-    from .parsertransformer import MyTrans
-    #from .typechecker import Typechecker
-except ImportError:
-    from parsertransformer import MyTrans
-    #from typechecker import Typechecker
-
+from parsertransformer import MyTrans
 
 def transformtree(tree):
     return MyTrans().transform(tree)
@@ -161,15 +156,6 @@ def transformtree(tree):
 parser = Lark(grammar, parser="lalr", strict=True)
 
 parsetree = parser.parse(code)
-
 result = transformtree(parsetree)
-#Typechecker().transform(result)
-#print("Parse \n", parsetree.pretty())
-
+print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
-
-
-
-
-
-
