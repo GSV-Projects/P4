@@ -3,22 +3,23 @@ grammar = r"""
 
 program: (stmt | def)*
 
-?stmt: IDENT "=" rvalue ";"                      -> assign
-     | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
-     | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
+?stmt: IDENT "=" rvalue ";"                         -> assign
+     | IDENT "(" (expr ("," expr)*)? ")" ";"        -> func_call
+     | IDENT "[" expr "]" ";"                       -> array_indexing
+     | "while" "(" expr ")" "do" "{" stmt* "}"      -> while_stmt
      | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
-     | STOP ";"                                  -> stop
-     | SKIP ";"                                  -> skip
+     | STOP ";"                                     -> stop
+     | SKIP ";"                                     -> skip
      | "return" expr ";" -> return_stmt
 
-?rvalue: "[" (expr ("," expr)*)? "]"              -> array
-       | IDENT "." call ("." call)*               -> method_call
-       | "{" column* "}"                          -> table
+?rvalue: "[" (expr ("," expr)*)? "]"                -> array
+       | IDENT "." call ("." call)*                 -> method_call
+       | "{" column* "}"                            -> table
        | expr
 
-?column: ( IDENT ":" "[" column_content "]" ";" )      -> column
+?column: ( IDENT ":" "[" column_content "]" ";" )   -> column
 
-?column_content: (expr ("," expr)*)?                   -> array
+?column_content: (expr ("," expr)*)?                -> array
 
 ?call: IDENT "(" (expr ("," expr)*)? ")"
 
@@ -69,7 +70,7 @@ param: (param_item ("," param_item)*)?
            | term
 
 ?term: IDENT "(" (expr ("," expr)*)? ")"   -> func_call
-     | IDENT "[" expr "]"                  -> array_indexing
+     | IDENT "[" expr "]" ";"              -> array_indexing
      | IDENT
      | FLOAT
      | INT
@@ -138,14 +139,10 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-e = [false, false, true];
-d = "hej";
-b = 3;
-function a(int c, float d, float b) returns float{
-return b;
-}
-
-
+tappel = {
+col1: [1, 2];
+col2: ["hej", "hvad"];
+};
 """
 
 from lark import Lark

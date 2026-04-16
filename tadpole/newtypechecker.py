@@ -36,7 +36,6 @@ class Typechecker():
     def build_vt(self, node, env):
         vtable = env.copy()
     
-
         # Tilføj parametre til vtable
         for child in node.children:
             #print("built_vt, child:", child)
@@ -99,35 +98,49 @@ class Typechecker():
         else:
             raise Exception("idfk error")
 
+    
+    """ 
+    Checks a given node, and determines how to continue making checks from that. 
+
+    Parameters: 
+        self
+        node
+        env
+
+    Returns: 
+        If the given node is a leaf, return said token.
+        Otherwise, a string literal containing 'check_' followed by the type is run and returned.
+    """
     def check(self, node, env):
         if isinstance(node, Token):
             return self.read_token(node, env)
         
-
         method_name = f'check_{node.data}'
         check_method = getattr(self, method_name, self.check_unknown)
         return check_method(node, env)
 
+    
+    # check method to fall back on, if the given node is unknown
     def check_unknown(self, node, env):
         raise Exception(f"No handler for node type: '{node.data}'")
     
     # --- directory ---
-    def check_add(self, node, env):  return self.check_additive(node, env)
-    def check_sub(self, node, env):  return self.check_additive(node, env)
-    def check_mod(self, node, env):  return self.check_additive(node, env)
-    def check_mult(self, node, env): return self.check_additive(node, env)
+    def check_add(self, node, env):     return self.check_additive(node, env)
+    def check_sub(self, node, env):     return self.check_additive(node, env)
+    def check_mod(self, node, env):     return self.check_additive(node, env)
+    def check_mult(self, node, env):    return self.check_additive(node, env)
 
-    def check_div(self, node, env):  return self.check_div_mult(node, env)
+    def check_div(self, node, env):     return self.check_div_mult(node, env)
 
-    def check_less(self, node, env): return self.check_comparison(node, env)
+    def check_less(self, node, env):    return self.check_comparison(node, env)
     def check_greater(self, node, env): return self.check_comparison(node, env)
-    def check_leq(self, node, env): return self.check_comparison(node, env)
-    def check_geq(self, node, env): return self.check_comparison(node, env)
-    def check_equal(self, node, env): return self.check_comparison(node, env)
-    def check_neq(self, node, env): return self.check_comparison(node, env)
+    def check_leq(self, node, env):     return self.check_comparison(node, env)
+    def check_geq(self, node, env):     return self.check_comparison(node, env)
+    def check_equal(self, node, env):   return self.check_comparison(node, env)
+    def check_neq(self, node, env):     return self.check_comparison(node, env)
 
-    def check_or(self, node, env): return self.check_logical(node, env)
-    def check_and(self, node, env): return self.check_logical(node, env)
+    def check_or(self, node, env):      return self.check_logical(node, env)
+    def check_and(self, node, env):     return self.check_logical(node, env)
     
     # --- check implements ---
     def check_IDENT(self, node, env):
@@ -194,7 +207,7 @@ class Typechecker():
         pass
 
     def check_def(self, node, env):
-        # Check function body and return type matches with return when we declare the function
+        # TODO: Check function body and return type matches with return when we declare the function
         self.check_f(node, env)
 
     def check_body(self, node, env):
@@ -221,12 +234,54 @@ class Typechecker():
         return self.check(node.children[0], env)
     
     def check_array(self, node, env):
-        for x in node.children:
-            print("no", x)
+        # check if the array is empty
+        if len(node.children) == 0:
+            raise Exception("No type for an empty array")
 
-        # TODO Lav så vi ikke returner "Tree('array', [Token('FALSE', 'false'), Token('FALSE', 'false')"
-        if (all(self.check(x,env) == self.check(node.children[0],env) for x in node.children)):
-            return node
+        type_first_elem = self.check(node.children[0], env)
+        print("array type: ", type_first_elem)
+
+        # TODO: Lav så vi ikke returner "Tree('array', [Token('FALSE', 'false'), Token('FALSE', 'false')"
+        if (all(self.check(x,env) == type_first_elem for x in node.children)):
+            return [type_first_elem] # return as ARRAY of type T - [T], NOT simply T
+        else: 
+            raise Exception("Not all elems of array are the same")
+        
+    # if x is an array of type T, and e is an Int, then x[e] has type T
+    def check_index(self, node, env):
+        type_arr = self.check(node.children[0], env) # find the type for the array
+        type_idx = self.check(node.children[1], env) # find the type for the indexing nr
+
+        if type_idx in int:
+            return type_arr
+        else: 
+            raise Exception(f'Did not parse an integer for array indexing')
+    
+    # if an array [e] has type [T], and all elements are are of type T, then column c is of type T.
+    def check_column(self, node, env):
+        col_name = node.children[0]
+        col_arr = node.children[1]
+        
+        type_col_arr = self.check(col_arr, env)
+
+        env[col_name] = type_col_arr
+
+    def check_table(self, node, env):
+        print("table name", node.data)
+
+        for child in node.children:
+            self.check(child,env)
+
+        return node.data
+
+
+        
+        
+    
+
+
+
+
 
 
 Typechecker().check_p(result)
