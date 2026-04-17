@@ -140,10 +140,12 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-a = [1.2,2.1,3];
-function f([float] d, string c) returns [float]{
-return [3.2,1.2];
+a = [1,2,3];
+function f([float] d, string c) returns float{
+return 3.2;
 }
+
+return 3;
 
 """
 
