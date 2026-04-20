@@ -1,7 +1,7 @@
 grammar = r"""
 ?start: program
 
-?program: (stmt | def)*
+program: (stmt | def)*
 
 ?stmt: lvalue "=" rvalue ";"                     -> assign
      | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
@@ -140,6 +140,7 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
+
 """
 
 from lark import Lark

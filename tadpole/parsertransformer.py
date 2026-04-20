@@ -5,34 +5,34 @@ class MyTrans(Transformer):
 # Terminals for types
 
     def IDENT(self, c):
-        return Tree(str(c.value), [])
+        return c
     
     def FLOAT(self, c):
-        return Tree(str(c.value), [])
+        return c
 
     def BOOL(self, c):
-        return Tree(str(c.value), [])
+        return c
     
     def STRING(self, c):
-        return Tree(str(c.value), [])
+        return c
     
     def NA(self, c):
-        return Tree(str(c.value), [])
+        return c
     
     def type_int(self, c):
-        return Tree("int", [])
+        return c[0]
 
     def type_float(self, c):
-        return Tree("float", [])
+        return c[0]
 
     def type_bool(self, c):
-        return Tree("bool", [])
+        return c[0]
 
     def type_string(self, c):
-        return Tree("string", [])
+        return c[0]
 
     def type_array(self, c):
-        return Tree("array_type", c)  # c[0] will be the inner type
+        return Tree("array_type", c)
 
     def param_item(self, c):
         return Tree("param_item", c)  # c[0] = type, c[1] = ident
@@ -41,10 +41,10 @@ class MyTrans(Transformer):
 # Statements
 
     def method_call(self, c):
-        return Tree(".", c)    
+        return Tree("dot", c)    
     
     def assign(self, c):
-        return Tree("=", c)
+        return Tree("assign", c)
     
     def func_call(self, c):
         return Tree("call", c)
@@ -63,37 +63,37 @@ class MyTrans(Transformer):
     
     # Equal expressions
     def equal(self, c):
-        return Tree("==", c)
+        return Tree("equal", c)
     
     def not_equal(self, c):
-        return Tree("/=", c)
+        return Tree("neq", c)
     
     def less(self, c):
-        return Tree("<", c)
+        return Tree("less", c)
 
     def less_eq(self, c):
-        return Tree("<=", c)
+        return Tree("leq", c)
 
     def greater(self, c):
-        return Tree(">", c)
+        return Tree("greater", c)
 
     def greater_eq(self, c):
         c = self.fold(c)
-        return Tree(">=", c)
+        return Tree("geq", c)
 
     # Plus expressions
     def add(self, c):
-        return Tree("+", c)
+        return Tree("add", c)
     
     def sub(self, c):
-        return Tree("-", c)
+        return Tree("sub", c)
 
     # Mult expressions
     def mult(self, c):
-        return Tree("*", c)
+        return Tree("mult", c)
 
     def divide(self, c):
-        return Tree("/", c)
+        return Tree("div", c)
 
     def mod(self, c):
         return Tree("mod", c)
@@ -123,7 +123,7 @@ class MyTrans(Transformer):
         return Tree("param", c)
     
     def array(self, c):
-        return Tree("[]", c)
+        return Tree("array", c)
     
     def return_stmt(self, c):
         return Tree("return", c)
