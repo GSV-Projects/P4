@@ -108,10 +108,10 @@ class MyTrans(Transformer):
 # Functions
 
     def func_def(self, c):
-        return Tree("def", c)
+        return Tree("func_def", c)
 
     def func_def_ret(self, c):
-        return Tree("def", c)
+        return Tree("func_def_ret", c)
 
     def while_stmt(self, c):
         return Tree("while", c)
