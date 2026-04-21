@@ -36,7 +36,7 @@ program: (stmt | def)*
      | TYPE_STRING                              -> type_string
      | "[" type "]"                             -> type_array
 
-?param: (param_item ("," param_item)*)?
+param: (param_item ("," param_item)*)?
 
 ?param_item: type IDENT
 
@@ -140,10 +140,11 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-a = [1.2,2.1,3];
-function f([float] d, string c) returns [float]{
-return [3.2,1.2];
+a = 3;
+function f() returns int{
+return a;
 }
+a = 4;
 
 """
 
