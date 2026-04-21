@@ -1,3 +1,4 @@
+# "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt      gammel if statement
 grammar = r"""
 ?start: program
 
@@ -6,13 +7,15 @@ program: (stmt | def)*
 ?stmt: lvalue "=" rvalue ";"                     -> assign
      | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
-     | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
+     | "if" "(" expr ")" "then" "{" stmt* "}" (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
      | SKIP ";"                                  -> skip
      | "return" expr ";"                         -> return_stmt
 
 ?lvalue: IDENT
        | IDENT "[" expr "]"                       -> array_assign
+
+?ifelse:  "else" "{" stmt* "}"                     -> else
 
 ?rvalue: "[" (expr ("," expr)*)? "]"              -> array
        | IDENT "." call ("." call)*               -> method_call
@@ -23,7 +26,7 @@ program: (stmt | def)*
 
 ?column_content: (expr ("," expr)*)?                   -> array
 
-?call: IDENT "(" (expr ("," expr)*)? ")"
+call: IDENT "(" (expr ("," expr)*)? ")"
 
 ?def: "function" IDENT "(" param ")" body                   -> func_def
     | "function" IDENT "(" param ")" "returns" type body    -> func_def_ret
@@ -35,6 +38,7 @@ program: (stmt | def)*
      | TYPE_INT                                 -> type_int
      | TYPE_STRING                              -> type_string
      | "[" type "]"                             -> type_array
+     | TYPE_TBL                                 -> type_table
 
 param: (param_item ("," param_item)*)?
 
@@ -103,6 +107,7 @@ TYPE_BOOL: "bool"
 TYPE_FLOAT: "float"
 TYPE_INT: "int"
 TYPE_STRING: "string"
+TYPE_TBL: "tbl"
 
 // --- Operators ---
 EQUAL: "=="
@@ -140,6 +145,18 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
+
+a = 3;
+mytab = {
+     col1: [1,2,3];
+};
+
+function h(int b) returns int{
+return 3;
+}
+
+c = mytab.filter(3,mytab).test2(3.3).test3();
+h(2);
 
 """
 
