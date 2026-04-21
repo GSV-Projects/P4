@@ -13,7 +13,6 @@ class Typechecker():
         }
 
     def read_token(self, token, env):
-    def read_token(self, token, env):
         if token.type == 'IDENT':
             return self.check_IDENT(token, env)
         if token.type == 'TYPE_INT' or token.type == 'INT':
@@ -119,7 +118,7 @@ class Typechecker():
 
     
     # check method to fall back on, if the given node is unknown
-    def check_unknown(self, node, env):
+    def check_unknown(self, node, env, RL):
         raise Exception(f"No handler for node type: '{node.data}'")
 
     # --- directory ---
