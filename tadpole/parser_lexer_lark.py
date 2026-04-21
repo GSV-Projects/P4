@@ -140,11 +140,6 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-a = 3;
-function f() returns int{
-return a;
-}
-a = 4;
 
 """
 
