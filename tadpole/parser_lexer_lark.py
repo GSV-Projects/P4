@@ -146,7 +146,6 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
-a = 3;
 mytab = {
      col1: [1,2,3];
 };
@@ -155,8 +154,9 @@ function h(int b) returns int{
 return 3;
 }
 
-c = mytab.filter(3,mytab).test2(3.3).test3();
-h(2);
+a = 1;
+
+c = a.test3().test2();
 
 """
 

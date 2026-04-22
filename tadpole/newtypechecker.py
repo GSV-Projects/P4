@@ -12,10 +12,15 @@ class Typechecker():
             "R" : None,
             "L" : False
         }
-        self.PD = {
+        self.PD = { # "name" : ((parameters), return type)
             "filter" : ((int, 'tbl'), 'tbl'), # Test predefined function
             "test2" : ((float,), int), # another one
             "test3" : ((), str)
+        }
+        self.PD2 = { # "name" : (input type, (parameters), return type)
+            "filter" : ('tbl', (int, 'tbl'), 'tbl'), # Test predefined function
+            "test2" : ('tbl', (float,), int), # another one
+            "test3" : (int, (), str)
         }
 
 
@@ -335,20 +340,19 @@ class Typechecker():
         right = node.children[1:]
 
         id1 = self.check(left, env, RL)
-
-        if id1 != 'tbl':
-            raise Exception(f'{left} not a table')
-
+        
+        last_left_t = env[left]
 
         for child in right:
-            child_left = child.children[0] # Name of predefined function
+            child_left = child.children[0] # Name of method called
             actual_params = child.children[1:] # Actual parameters of predefined function
-            if child_left not in self.PD:
-                raise Exception(f'{child_left} is not defined')
+            if child_left not in self.PD2:
+                raise Exception(f'{child_left} is not predefined')
             
-            formal_params, return_type = self.PD[child_left]
-            print("formal", formal_params)
-            print("retu", return_type)
+            input_type, formal_params, return_type = self.PD2[child_left] # get info on current child
+
+            if last_left_t != input_type:
+                raise Exception (f'Called method {child_left} on type {last_left_t}, but can only be used on {input_type}')
 
             if len(formal_params) != len(actual_params):
                 raise Exception("Amount of formal parameters do not match actual parameters")
@@ -360,8 +364,11 @@ class Typechecker():
 
                 if t1 != t2: # Check if actual and formal parameter types are the same
                     raise Exception(f'Formal and actual parameters of function {child_left} not of same type')
+                
+            last_left_t = return_type
 
-        return return_type # Return type if its an assignment
+        return return_type # Return type if its an assignment 
+
 
     def check_skip(self, node, env, RL):
         if RL["L"] == False:
