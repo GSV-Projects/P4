@@ -4,7 +4,7 @@ grammar = r"""
 program: (stmt | def)*
 
 ?stmt: lvalue "=" rvalue ";"                     -> assign
-     | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
+     | call ";"                                  -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
      | STOP ";"                                  -> stop
@@ -16,10 +16,12 @@ program: (stmt | def)*
 
 ?rvalue: "[" (expr ("," expr)*)? "]"              -> array
        | IDENT "." call ("." call)*               -> method_call
-       | "{" column* "}"                          -> table
+       | table            
        | expr
 
-?column: ( IDENT ":" "[" column_content "]" ";" )      -> column
+?table: "{" column* "}" -> table
+       
+?column: ( COLUMN ":" "[" column_content "]" ";" )      -> column
 
 ?column_content: (expr ("," expr)*)?                   -> array
 
@@ -34,6 +36,8 @@ program: (stmt | def)*
      | TYPE_FLOAT                               -> type_float
      | TYPE_INT                                 -> type_int
      | TYPE_STRING                              -> type_string
+     | TYPE_COLUMN                              -> type_column
+     | TYPE_TABLE                               -> type_tbl
      | "[" type "]"                             -> type_array
 
 ?param: (param_item ("," param_item)*)?
@@ -71,7 +75,7 @@ program: (stmt | def)*
 ?unary_expr: NEG unary_expr
            | term
 
-?term: IDENT "(" (expr ("," expr)*)? ")"   -> func_call
+?term: call                                -> func_call
      | IDENT "[" expr "]"                  -> array_indexing
      | IDENT
      | FLOAT
@@ -103,6 +107,8 @@ TYPE_BOOL: "bool"
 TYPE_FLOAT: "float"
 TYPE_INT: "int"
 TYPE_STRING: "string"
+TYPE_COLUMN: "clmn"
+TYPE_TABLE: "tbl"
 
 // --- Operators ---
 EQUAL: "=="
@@ -126,6 +132,8 @@ NA: "NA"
 
 // --- Identifiers ---
 IDENT: /[A-Za-z_][A-Za-z0-9_]*/
+COLUMN: /[A-Za-z_][A-Za-z0-9_]*/
+
 
 // --- Numbers ---
 FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
@@ -140,6 +148,10 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
+
+x = myfunc();
+myfunc2();
+
 
 """
 
