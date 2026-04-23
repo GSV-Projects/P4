@@ -1,3 +1,4 @@
+# "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt      gammel if statement
 grammar = r"""
 ?start: program
 
@@ -6,7 +7,7 @@ program: (stmt | def)*
 ?stmt: lvalue "=" rvalue ";"                     -> assign
      | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
-     | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
+     | "if" "(" expr ")" "then" "{" stmt* "}" (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
      | SKIP ";"                                  -> skip
      | "return" expr ";"                         -> return_stmt
@@ -14,16 +15,20 @@ program: (stmt | def)*
 ?lvalue: IDENT
        | IDENT "[" expr "]"                       -> array_assign
 
+?ifelse:  "else" "{" stmt* "}"                     -> else
+
 ?rvalue: "[" (expr ("," expr)*)? "]"              -> array
        | IDENT "." call ("." call)*               -> method_call
-       | "{" column* "}"                          -> table
+       | table
        | expr
 
-?column: ( IDENT ":" "[" column_content "]" ";" )      -> column
+?table: "{" column* "}" -> table
+       
+?column: ( COLUMN ":" "[" column_content "]" ";" )      -> column
 
 ?column_content: (expr ("," expr)*)?                   -> array
 
-?call: IDENT "(" (expr ("," expr)*)? ")"
+call: IDENT "(" (expr ("," expr)*)? ")"
 
 ?def: "function" IDENT "(" param ")" body                   -> func_def
     | "function" IDENT "(" param ")" "returns" type body    -> func_def_ret
@@ -35,8 +40,10 @@ program: (stmt | def)*
      | TYPE_INT                                 -> type_int
      | TYPE_STRING                              -> type_string
      | "[" type "]"                             -> type_array
+     | "clmn" "[" type "]"                      -> type_column
+     | TYPE_TBL                                 -> type_table
 
-?param: (param_item ("," param_item)*)?
+param: (param_item ("," param_item)*)?
 
 ?param_item: type IDENT
 
@@ -103,6 +110,7 @@ TYPE_BOOL: "bool"
 TYPE_FLOAT: "float"
 TYPE_INT: "int"
 TYPE_STRING: "string"
+TYPE_TBL: "tbl"
 
 // --- Operators ---
 EQUAL: "=="
@@ -126,6 +134,7 @@ NA: "NA"
 
 // --- Identifiers ---
 IDENT: /[A-Za-z_][A-Za-z0-9_]*/
+COLUMN: /[A-Za-z_][A-Za-z0-9_]*/
 
 // --- Numbers ---
 FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
@@ -141,10 +150,13 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
+
 """
+
 
 from lark import Lark
 from parsertransformer import MyTrans
+from newtypechecker import Typechecker
 
 def transformtree(tree):
     return MyTrans().transform(tree)
@@ -153,5 +165,7 @@ parser = Lark(grammar, parser="lalr", strict=True)
 
 parsetree = parser.parse(code)
 result = transformtree(parsetree)
+Typechecker().check_p(result)
+
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())

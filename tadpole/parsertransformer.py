@@ -34,6 +34,9 @@ class MyTrans(Transformer):
     def type_array(self, c):
         return Tree("array_type", c)
 
+    def type_table(self, c):
+        return c[0]
+
     def param_item(self, c):
         return Tree("param_item", c)  # c[0] = type, c[1] = ident
 
@@ -103,7 +106,7 @@ class MyTrans(Transformer):
         return Tree("^", c)
     
     def unary_expr(self, c):
-        return Tree("-", [c[1]])
+        return Tree("neg", [c[1]])
 
 # Functions
 
@@ -119,11 +122,14 @@ class MyTrans(Transformer):
     def if_stmt(self, c):
         return Tree("if", c)
     
+    def else_stmt(self, c):
+        return Tree("else", c)
+    
     def param(self, c):
         return Tree("param", c)
     
     def array(self, c):
-        return Tree("array", c)
+        return Tree("array", c)  
     
     def return_stmt(self, c):
         return Tree("return", c)
