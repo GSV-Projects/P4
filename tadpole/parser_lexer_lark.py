@@ -19,10 +19,12 @@ program: (stmt | def)*
 
 ?rvalue: "[" (expr ("," expr)*)? "]"              -> array
        | IDENT "." call ("." call)*               -> method_call
-       | "{" column* "}"                          -> table
+       | table
        | expr
 
-?column: ( IDENT ":" "[" column_content "]" ";" )      -> column
+?table: "{" column* "}" -> table
+       
+?column: ( COLUMN ":" "[" column_content "]" ";" )      -> column
 
 ?column_content: (expr ("," expr)*)?                   -> array
 
@@ -38,6 +40,7 @@ call: IDENT "(" (expr ("," expr)*)? ")"
      | TYPE_INT                                 -> type_int
      | TYPE_STRING                              -> type_string
      | "[" type "]"                             -> type_array
+     | "clmn" "[" type "]"                      -> type_column
      | TYPE_TBL                                 -> type_table
 
 param: (param_item ("," param_item)*)?
@@ -131,6 +134,7 @@ NA: "NA"
 
 // --- Identifiers ---
 IDENT: /[A-Za-z_][A-Za-z0-9_]*/
+COLUMN: /[A-Za-z_][A-Za-z0-9_]*/
 
 // --- Numbers ---
 FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
@@ -146,22 +150,13 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
-mytab = {
-     col1: [1,2,3];
-};
-
-function h(int b) returns int{
-return 3;
-}
-
-a = 1;
-
-c = a.test3().test2();
 
 """
 
+
 from lark import Lark
 from parsertransformer import MyTrans
+from newtypechecker import Typechecker
 
 def transformtree(tree):
     return MyTrans().transform(tree)
@@ -170,5 +165,7 @@ parser = Lark(grammar, parser="lalr", strict=True)
 
 parsetree = parser.parse(code)
 result = transformtree(parsetree)
+Typechecker().check_p(result)
+
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())

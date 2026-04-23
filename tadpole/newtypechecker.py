@@ -1,5 +1,5 @@
 from lark import Lark, Transformer, v_args, Tree, Token
-from parser_lexer_lark import result
+#from parser_lexer_lark import result
 
 # Test comment
 
@@ -12,18 +12,13 @@ class Typechecker():
             "R" : None,
             "L" : False
         }
-        self.PD = { # "name" : ((parameters), return type)
-            "filter" : ((int, 'tbl'), 'tbl'), # Test predefined function
-            "test2" : ((float,), int), # another one
-            "test3" : ((), str)
-        }
-        self.PD2 = { # "name" : (input type, (parameters), return type)
+        self.PD = { # "name" : (input type, (parameters), return type)
             "filter" : ('tbl', (int, 'tbl'), 'tbl'), # Test predefined function
             "test2" : ('tbl', (float,), int), # another one
-            "test3" : (int, (), str)
+            "test3" : (int, (), str) # another one??
         }
 
-
+    # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
     def read_token(self, token, env):
         if token.type == 'IDENT':
             return self.check_IDENT(token, env)
@@ -42,7 +37,7 @@ class Typechecker():
 
  # --- Check program ---
     def check_p(self, c):
-         # --- build ftable ---
+        # Build ftable
         self.build_ft(c, self.vtable, self.RL)
 
         for statement in c.children:
@@ -56,7 +51,7 @@ class Typechecker():
             if isinstance(child, Tree) and (child.data == 'func_def' or child.data == 'func_def_ret'):
                 # TODO Tilføj child.data for returns og uden
 
-                # signature indeholder en liste med elementer: tuple af parameter typer og return typen
+                # Signature holds a list of elements: a tuple of input type, parameter types and the return type
                 func_id, signature = self.get_fun(child, env, RL)
                 
                 if func_id in self.ftable:
@@ -104,7 +99,6 @@ class Typechecker():
         Otherwise, a string literal containing 'check_' followed by the type is run and returned.
     """
     def check(self, node, env, RL):
-        #print("node", node)
         if isinstance(node, Token):
             return self.read_token(node, env)
         
@@ -117,8 +111,7 @@ class Typechecker():
     def check_unknown(self, node, env, RL):
         raise Exception(f"No handler for node type: '{node.data}'")
 
-    # --- directory ---
-    # Rerouting similar checks
+    # --- directory --- # Rerouting, making similar checks re-use relevant methods
     def check_add(self, node, env, RL):     return self.check_additive(node, env, RL)
     def check_sub(self, node, env, RL):     return self.check_additive(node, env, RL)
     def check_mod(self, node, env, RL):     return self.check_additive(node, env, RL)
@@ -153,8 +146,6 @@ class Typechecker():
             return
 
         t1 = self.check(right, env, RL)
-        #print("left", left.value)
-        #print("t1",  t1)
 
         if (left.value not in env):
             env[left.value] = t1
@@ -165,9 +156,7 @@ class Typechecker():
         else:
             env[left.value] = t1
 
-        # Should be done
-        ## TODO Hvis env = self.vtable -> check om env(left.value) er tom -> hvis ikke -> chekc om samme type -> hvis ikke -> error
-        
+
 
     def check_additive(self, node, env, RL):
         left = node.children[0]
@@ -242,10 +231,9 @@ class Typechecker():
             raise Exception("No type for an empty array")
 
         type_first_elem = self.check(node.children[0], env, RL)
-        #print("array type: ", type_first_elem)
 
         if (all(self.check(x, env, RL) == type_first_elem for x in node.children)):
-            return [type_first_elem] # return as ARRAY of type T - [T], NOT simply T
+            return [type_first_elem] # return as array of type T - [T], NOT simply T
         else: 
             raise Exception("Not all elems of array are of the same type")
         
@@ -254,7 +242,6 @@ class Typechecker():
         array_type = self.check(node.children[0], env, RL)
         return [array_type]
         
-    # if x is an array of type T, and e is an Int, then x[e] has type T
     def check_index(self, node, env, RL):
         type_id = self.check(node.children[0], env, RL) # find the type for the array itself
         type_idx = self.check(node.children[1], env, RL) # find the type for the indexing nr
@@ -264,6 +251,9 @@ class Typechecker():
         else: 
             raise Exception(f'Did not parse an integer for array indexing')
 
+    def check_column_sapling(self, node, env, RL):
+        return node.children
+
     def check_table(self, node, env, RL, table_id = None):
         if table_id == None:
             table_id = node.data
@@ -271,9 +261,16 @@ class Typechecker():
         for col in node.children:
             c_id = col.children[0]
             arr = col.children[1]
+            print("arr", arr)
+            
+            check_arr = self.check(arr, env, RL) # Get the type of the array held in current column
+
+            col = Tree("column_sapling", f'clmn{check_arr}')
+            print("col", col)
+
             # Turn the use of dot-notation into an identifier, that the array can be assigned to
             token = Token('IDENT', f'{table_id}.{c_id.value}')
-            S = Tree("assign", [token, arr])
+            S = Tree("assign", [token, col])
         
             self.check(S, env, RL)
 
@@ -281,7 +278,7 @@ class Typechecker():
         env[table_id] = "tbl"
 
         # TODO: behøves det her return?
-        #return table_id
+        # return table_id
 
     def check_f(self, node, env, RL):
         paramsnode = node.children[1]
@@ -346,10 +343,10 @@ class Typechecker():
         for child in right:
             child_left = child.children[0] # Name of method called
             actual_params = child.children[1:] # Actual parameters of predefined function
-            if child_left not in self.PD2:
+            if child_left not in self.PD:
                 raise Exception(f'{child_left} is not predefined')
             
-            input_type, formal_params, return_type = self.PD2[child_left] # get info on current child
+            input_type, formal_params, return_type = self.PD[child_left] # Get info on current child
 
             if last_left_t != input_type:
                 raise Exception (f'Called method {child_left} on type {last_left_t}, but can only be used on {input_type}')
@@ -412,4 +409,4 @@ class Typechecker():
             self.check(child, env, RL_new)
 
 
-Typechecker().check_p(result)
+
