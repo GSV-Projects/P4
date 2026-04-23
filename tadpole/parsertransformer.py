@@ -19,7 +19,7 @@ class MyTrans(Transformer):
         return c[0]
     
     def type_column(self, c):
-        return c[0]
+        return Tree("clmn", c)
 
     def type_tbl(self, c):
         return c[0]

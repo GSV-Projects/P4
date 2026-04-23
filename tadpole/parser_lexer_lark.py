@@ -36,8 +36,8 @@ program: (stmt | def)*
      | TYPE_FLOAT                               -> type_float
      | TYPE_INT                                 -> type_int
      | TYPE_STRING                              -> type_string
-     | TYPE_COLUMN                              -> type_column
      | TYPE_TABLE                               -> type_tbl
+     | "clmn" "[" type "]"                      -> type_column
      | "[" type "]"                             -> type_array
 
 ?param: (param_item ("," param_item)*)?
@@ -107,7 +107,6 @@ TYPE_BOOL: "bool"
 TYPE_FLOAT: "float"
 TYPE_INT: "int"
 TYPE_STRING: "string"
-TYPE_COLUMN: "clmn"
 TYPE_TABLE: "tbl"
 
 // --- Operators ---
@@ -149,8 +148,12 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
-x = myfunc();
-myfunc2();
+mytable = {hej: [1,2];};
+
+function myfunc() returns clmn[int]{
+a = 2;
+
+}
 
 
 """
