@@ -147,19 +147,15 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-
-mytable = {hej: [1,2];};
-
-function myfunc() returns clmn[int]{
-a = 2;
-
-}
-
+hej = 5;
 
 """
 
 from lark import Lark
 from parsertransformer import MyTrans
+from tadpole import interpreter
+
+
 
 def transformtree(tree):
     return MyTrans().transform(tree)
@@ -168,5 +164,6 @@ parser = Lark(grammar, parser="lalr", strict=True)
 
 parsetree = parser.parse(code)
 result = transformtree(parsetree)
+
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
