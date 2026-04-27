@@ -147,6 +147,9 @@ class Typechecker():
 
         t1 = self.check(right, env, RL)
 
+        if (t1 == None):
+            raise Exception(f'Cannot assign variable {left.value} as void')
+
         if (left.value not in env):
             env[left.value] = t1
         
