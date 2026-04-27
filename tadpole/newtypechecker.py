@@ -86,19 +86,17 @@ class Typechecker():
     
 
     
-    """ 
-    Checks a given node, and determines how to continue making checks from that. 
-
-    Parameters: 
-        self
-        node
-        env
-
-    Returns: 
-        If the given node is a leaf, return said token.
-        Otherwise, a string literal containing 'check_' followed by the type is run and returned.
-    """
     def check(self, node, env, RL):
+        """
+        Checks to see if...
+
+        Args:
+            one:
+
+        Returns:
+            
+        """
+
         if isinstance(node, Token):
             return self.read_token(node, env)
         
@@ -138,6 +136,17 @@ class Typechecker():
             return env[node.value]
 
     def check_assign(self, node, env, RL):
+        """
+    Validates assignment operations during type checking.
+
+    Args:
+        node: The AST node representing the assignment.
+        env: The current environment/scope.
+        RL: Rule list or context used for validation.
+
+    Returns:
+        None
+        """
         left = node.children[0]
         right = node.children[1]
 
@@ -162,6 +171,18 @@ class Typechecker():
 
 
     def check_additive(self, node, env, RL):
+        """
+        Checks the ad.
+
+        Args:
+            node: yes
+            env: ree
+
+        Returns:
+            None
+        
+        """
+
         left = node.children[0]
         right = node.children[1]
 
