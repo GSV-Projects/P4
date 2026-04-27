@@ -147,14 +147,13 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-hej = 5;
+x = 2;
+
 
 """
 
 from lark import Lark
 from parsertransformer import MyTrans
-from tadpole import interpreter
-
 
 
 def transformtree(tree):

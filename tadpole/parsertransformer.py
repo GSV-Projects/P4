@@ -96,7 +96,7 @@ class MyTrans(Transformer):
         return Tree("^", c)
     
     def unary_expr(self, c):
-        return Tree("-", [c[1]])
+        return Tree("neg", [c[1]])
 
 # Functions
 
