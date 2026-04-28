@@ -45,7 +45,9 @@ class Interpreter():
         v = self.Eval(tree.children[0], env)
         if v == True:
             env1 = self.SEval(tree.children[1], env)
-            return self.SEval_while(tree, env1)
+            print("envi:", env1)
+            print("hejsa", tree.children[1], env1)
+            return self.SEval(tree, env1)
         elif v == False:
             return env
         else:
@@ -59,6 +61,21 @@ class Interpreter():
             return env
         else:
             raise Exception(f"variable not declared: '{tree}'")
+
+    def SEval_if_else(self, tree, env):
+        v = self.Eval(tree.children[0], env)
+        if v == True:
+            return self.SEval(tree.children[1],env)
+        elif v == False:
+            return self.SEval(tree.children[2],env)
+        else:
+            raise Exception(f"variable not declared: '{tree}'")
+
+    def SEval_comp(self, tree, env):
+        env1 = self.SEval(tree.children[0],env)
+        
+        env2 = self.SEval(tree.children[1],en1)
+        v = selfenv2          # raise Exceptio#variable not declared: '{tree}'")
 
     def lookup(self, token, env):
         print("here tab:", self.vtable)
@@ -182,6 +199,15 @@ class Interpreter():
             v = self.Eval(tree.children[i], env)
             values.append(v)
         return values
+    
+    def Eval_index(self, tree, env):
+        x = self.Eval(tree.children[0], env)
+        i = self.Eval(tree.children[1], env)
+
+        if (i > 0 and i <= len(x)):
+            return x[i-1] # Adjust for python zero indexing
+        else:
+            raise Exception(f"index out of bounds, must be between: '{1}'-'{len(x)}'")
     
 
     def check_unknown(self, node, env):
