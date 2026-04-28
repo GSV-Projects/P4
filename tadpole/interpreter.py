@@ -1,5 +1,6 @@
 from lark import Lark, Transformer, v_args, Tree, Token
 from parser_lexer_lark import result
+import copy
 
 class Interpreter():
     def __init__(self):
@@ -10,7 +11,7 @@ class Interpreter():
     def Eval_P(self, p):
         for line in p.children:
             if ((line.data == "func_def") or (line.data == "func_def_ret")):
-                self.FEval(line, self.ftable)
+                self.FEval(line, self.vtable)
             else:
                 self.SEval(line, self.vtable)
 
@@ -18,15 +19,27 @@ class Interpreter():
         print("vtable:", self.vtable)
 
     def FEval(self, declaration, env):
-        #print(declaration)
-        env[declaration.data] = "pik"
+        method_name = f'FEval_{declaration.data}' # Accessing top node
+        Eval_method = getattr(self, method_name, self.check_unknown)
+        return Eval_method(declaration, env)
+    
+    def FEval_func_def(self, tree, env):
+        param_items = tree.children[1]
+        body = tree.children[2]
+        def_env = copy.deepcopy(env)
+        func_tuple = (body, param_items, def_env, self.ftable) # (S, x1...xn, env_v, env_p)
+        self.ftable[tree.children[0].value] = func_tuple
+
+    def FEval_func_def_ret(self, tree, env):
+        pass
 
     def SEval(self, statement, env):
+
          # --- Tokens (leaf nodes) ---
         if isinstance(statement, Token):
             return self.read_token(statement, env)
         
-        method_name = f'SEval_{statement.data}'
+        method_name = f'SEval_{statement.data}' # Accessing top node
         Eval_method = getattr(self, method_name, self.check_unknown)
         return Eval_method(statement, env)
 
@@ -73,12 +86,25 @@ class Interpreter():
 
     def SEval_comp(self, tree, env):
         env1 = self.SEval(tree.children[0],env)
+        env2 = self.SEval(tree.children[1],env)
+        v = self.env2          # raise Exceptio#variable not declared: '{tree}'")
+
+    def SEval_call(self, tree, env):
+        func = self.lookup(tree.children[0].value, self.ftable)
+        body, params, def_env, ftable = func
+        env_1 = self.bind(params, tree.children[1:], def_env)
+        print("tis ", env_1)
+        #return self.SEval(body, call_env)
+
+    def bind(self, formal_params, actual_params, env):
+        print(formal_params)
+        for i in range(len(formal_params.children)):
+            v = self.Eval(actual_params[i], env)
+            env[formal_params.children[i].children[1].value] = v
+        return env
         
-        env2 = self.SEval(tree.children[1],en1)
-        v = selfenv2          # raise Exceptio#variable not declared: '{tree}'")
 
     def lookup(self, token, env):
-        print("here tab:", self.vtable)
         if token in env:
             return env[token]
         else:

@@ -4,7 +4,7 @@ grammar = r"""
 program: (stmt | def)*
 
 ?stmt: lvalue "=" rvalue ";"                     -> assign
-     | call ";"                                  -> func_call
+     | call ";"                                  
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
      | STOP ";"                                  -> stop
@@ -25,7 +25,7 @@ program: (stmt | def)*
 
 ?column_content: (expr ("," expr)*)?                   -> array
 
-?call: IDENT "(" (expr ("," expr)*)? ")"
+?call: IDENT "(" (expr ("," expr)*)? ")"               -> func_call
 
 ?def: "function" IDENT "(" param ")" body                   -> func_def
     | "function" IDENT "(" param ")" "returns" type body    -> func_def_ret
@@ -40,7 +40,7 @@ program: (stmt | def)*
      | "clmn" "[" type "]"                      -> type_column
      | "[" type "]"                             -> type_array
 
-?param: (param_item ("," param_item)*)?
+param: (param_item ("," param_item)*)?
 
 ?param_item: type IDENT
 
@@ -75,7 +75,7 @@ program: (stmt | def)*
 ?unary_expr: NEG unary_expr
            | term
 
-?term: call                                -> func_call
+?term: call                                
      | IDENT "[" expr "]"                  -> array_indexing
      | IDENT
      | FLOAT
@@ -148,10 +148,17 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
-x = 1;
-while (x < 5) do {
-     x = x + 2;
+h = 5;
+
+function myfunc(int x, int y, int z) {
+     y = z + 1;
+     return y;
 }
+
+g = 12;
+
+myfunc(1, 2, 5);
+
 
 """
 
