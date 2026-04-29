@@ -7,7 +7,7 @@ program: (stmt | def)*
      | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
      | call ";"                                  -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
-     | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
+     | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
      | SKIP ";"                                  -> skip
      | "return" expr ";"                         -> return_stmt
@@ -23,7 +23,7 @@ program: (stmt | def)*
 
 ?column_content: (expr ("," expr)*)?                   -> array
 
-?call: IDENT "(" (expr ("," expr)*)? ")"
+?call: IDENT "(" (expr ("," expr)*)? ")"               -> func_call
 
 ?def: "function" IDENT "(" param ")" body                   -> func_def
     | "function" IDENT "(" param ")" "returns" type body    -> func_def_ret
@@ -38,7 +38,7 @@ program: (stmt | def)*
      | "clmn" "[" type "]"                      -> type_column
      | "[" type "]"                             -> type_array
 
-?param: (param_item ("," param_item)*)?
+param: (param_item ("," param_item)*)?
 
 ?param_item: type IDENT
 
@@ -73,7 +73,7 @@ program: (stmt | def)*
 ?unary_expr: NEG unary_expr
            | term
 
-?term: call                                -> func_call
+?term: call                                
      | IDENT "[" expr "]"                  -> array_indexing
      | IDENT
      | FLOAT
@@ -146,14 +146,6 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
-myTab = {
-col1: [6, 2, 2];
-col2: ["Hej", "Kat", "Abe"];
-};
-
-gennemsnit = myTab.mean(col1);
-first = myTab.first(col2);
-sum = myTab.sum(col2);
 
 """
 
