@@ -1,3 +1,4 @@
+# "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt      gammel if statement
 grammar = r"""
 ?start: program
 
@@ -9,15 +10,17 @@ program: (stmt | def)*
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
-     | SKIP ";"                                  -> skip
      | "return" expr ";"                         -> return_stmt
+
+?ifthen:  "then" "{" stmt* "}"                     -> then
+?ifelse:  "else" "{" stmt* "}"                     -> else
 
 ?rvalue: "[" (expr ("," expr)*)? "]"              -> array
        | IDENT "." call ("." call)*               -> method_call
        | table
        | expr
 
-?table: "{" column* "}"
+?table: "{" column* "}" -> table
        
 ?column: ( COLUMN ":" "[" column_content "]" ";" )      -> column
 
@@ -37,6 +40,8 @@ program: (stmt | def)*
      | TYPE_TABLE                               -> type_tbl
      | "clmn" "[" type "]"                      -> type_column
      | "[" type "]"                             -> type_array
+     | "clmn" "[" type "]"                      -> type_column
+     | TYPE_TBL                                 -> type_table
 
 param: (param_item ("," param_item)*)?
 
@@ -91,7 +96,6 @@ IF: "if"
 THEN: "then"
 ELSE: "else"
 STOP: "stop"
-SKIP: "skip"
 RETURN: "return"
 FUNCTION: "function"
 RETURNS: "returns"
@@ -131,7 +135,6 @@ NA: "NA"
 IDENT: /[A-Za-z_][A-Za-z0-9_]*/
 COLUMN: /[A-Za-z_][A-Za-z0-9_]*/
 
-
 // --- Numbers ---
 FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
 %import common.INT
@@ -146,12 +149,12 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
-
 """
 
 from lark import Lark
 from parsertransformer import MyTrans
 from interpreter import Interpreter
+from newtypechecker import Typechecker
 
 def transformtree(tree):
     return MyTrans().transform(tree)
@@ -164,5 +167,6 @@ result = transformtree(parsetree)
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
 
+Typechecker().check_p(result)
 fortolker = Interpreter()
 fortolker.Eval_P(result)
