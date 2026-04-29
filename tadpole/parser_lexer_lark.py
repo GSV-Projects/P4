@@ -4,16 +4,15 @@ grammar = r"""
 
 program: (stmt | def)*
 
-?stmt: lvalue "=" rvalue ";"                     -> assign
+?stmt: IDENT "=" rvalue ";"                     -> assign
+     | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
      | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" "then" "{" stmt* "}" (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
-     | SKIP ";"                                  -> skip
      | "return" expr ";"                         -> return_stmt
 
-?lvalue: IDENT
-       | IDENT "[" expr "]"                       -> array_assign
+
 
 ?ifelse:  "else" "{" stmt* "}"                     -> else
 
@@ -96,7 +95,6 @@ IF: "if"
 THEN: "then"
 ELSE: "else"
 STOP: "stop"
-SKIP: "skip"
 RETURN: "return"
 FUNCTION: "function"
 RETURNS: "returns"
@@ -165,7 +163,11 @@ parser = Lark(grammar, parser="lalr", strict=True)
 
 parsetree = parser.parse(code)
 result = transformtree(parsetree)
-Typechecker().check_p(result)
+
 
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
+
+Typechecker().check_p(result)
+
+
