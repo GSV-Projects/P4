@@ -8,12 +8,11 @@ program: (stmt | def)*
      | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
      | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
-     | "if" "(" expr ")" "then" "{" stmt* "}" (ifelse)?   -> if_stmt
+     | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
      | "return" expr ";"                         -> return_stmt
 
-
-
+?ifthen:  "then" "{" stmt* "}"                     -> then
 ?ifelse:  "else" "{" stmt* "}"                     -> else
 
 ?rvalue: "[" (expr ("," expr)*)? "]"              -> array
@@ -147,10 +146,13 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-
+if (true) then {
+a = 5;
+} else {
+a = 4;
+}
 
 """
-
 
 from lark import Lark
 from parsertransformer import MyTrans
@@ -164,10 +166,7 @@ parser = Lark(grammar, parser="lalr", strict=True)
 parsetree = parser.parse(code)
 result = transformtree(parsetree)
 
-
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
 
 Typechecker().check_p(result)
-
-

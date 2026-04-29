@@ -122,6 +122,9 @@ class Typechecker():
 
     def check_func_def(self, node, env, RL):     return self.check_f(node, env, RL)
     def check_func_def_ret(self, node, env, RL): return self.check_f(node, env, RL)
+
+    def check_then(self, node, env, RL):    return self.check_if_cases(node, env, RL)
+    def check_else(self, node, env, RL):    return self.check_if_cases(node, env, RL)
     
     # --- check implements ---
     def check_IDENT(self, node, env):
@@ -431,17 +434,19 @@ class Typechecker():
         # Checks the boolean condition in the if-statement
         t1 = self.check(node.children[0], env, RL)
 
+        # Raise exception if the condition is not a boolean
         if t1 != bool:
             raise Exception(f'{node.children[0]} is not a boolean expression')
 
+        # Set the body of the if-statement to be everything after the conditional statement
         body = node.children[1:]
 
         for child in body:
             self.check(child, env, RL)
-    
-    def check_else(self, node, env, RL):
 
-        # The children of the else node in the tree is just the statements that are to be executed if the else goes through
+    def check_if_cases(self, node, env, RL):
+
+        # The children of the if-statement in the tree are just the statements to be executed when a then/else goes through
         body = node.children
         
         for child in body:
@@ -471,10 +476,8 @@ class Typechecker():
         type_idx = self.check(node.children[1], env, RL) # find the type for the indexing nr
         type_ass = self.check(node.children[2], env, RL) # find the type for the assignment
 
-
         if type_idx != int:
             raise Exception(f'Did not parse an integer for array indexing')
-
 
         if type_id[0] != type_ass:
             raise Exception (f'Trying to assign {type_ass} to an array of type{type_id[0]}')
