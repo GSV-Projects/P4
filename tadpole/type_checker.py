@@ -27,7 +27,7 @@ class Typechecker():
             return str
         if token.type == 'TYPE_BOOL' or token.type == 'FALSE' or token.type == 'TRUE':
             return bool
-        if token.type == 'TYPE_TBL' or token.type == 'tbl':
+        if token.type == 'TYPE_TABLE' or token.type == 'tbl':
             return 'tbl'
         return 'unknown type shi'
 
@@ -40,8 +40,8 @@ class Typechecker():
         for statement in c.children:
             self.check(statement, self.vtable, self.RL)
 
-        print("ftable:", self.ftable)
-        print("global vtable:", self.vtable)
+        print("type_checker ftable:", self.ftable)
+        print("type_checker vtable:", self.vtable)
 
     def build_ft(self, c, env, RL):
         for child in c.children:
@@ -343,7 +343,6 @@ class Typechecker():
             raise Exception("function can't have an empty body")
             
         self.check(body, vtable_local, RL) # Checks the body of the function with the local variable enviroment
-        print("local", vtable_local)
 
 
     def check_body(self, node, env, RL):

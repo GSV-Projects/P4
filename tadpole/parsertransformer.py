@@ -20,9 +20,6 @@ class MyTrans(Transformer):
     
     def type_column(self, c):
         return Tree("clmn", c)
-
-    def type_tbl(self, c):
-        return c[0]
     
     def type_array(self, c):
         return Tree("array_type", c)

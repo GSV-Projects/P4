@@ -1,6 +1,5 @@
 from lark import Lark, Transformer, v_args, Tree, Token
 from table import Table
-from parser_lexer_lark import result
 import copy, math
 
 class Interpreter():
@@ -27,8 +26,8 @@ class Interpreter():
             else:
                 self.SEval(line, self.vtable)
 
-        #print("ftable:", self.ftable)
-        print("vtable:", self.vtable)
+        print("Elavator ftable:", self.ftable)
+        print("Elavator vtable:", self.vtable)
 
     # Handles the call of predefined dot functions
     def Eval_dot_call(self, tree, env):
@@ -191,7 +190,6 @@ class Interpreter():
                 return self.read_token(tree, env)
         
         method_name = f'Eval_{tree.data}'
-        #print(method_name)
         Eval_method = getattr(self, method_name, self.check_unknown)
         return Eval_method(tree, env)
     

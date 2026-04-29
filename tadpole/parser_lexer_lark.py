@@ -37,11 +37,10 @@ program: (stmt | def)*
      | TYPE_FLOAT                               -> type_float
      | TYPE_INT                                 -> type_int
      | TYPE_STRING                              -> type_string
-     | TYPE_TABLE                               -> type_tbl
+     | TYPE_TABLE                               -> type_table
      | "clmn" "[" type "]"                      -> type_column
      | "[" type "]"                             -> type_array
      | "clmn" "[" type "]"                      -> type_column
-     | TYPE_TBL                                 -> type_table
 
 param: (param_item ("," param_item)*)?
 
@@ -148,13 +147,19 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
+mytable = {col1: ["tis", "pik"];};
+
+
+function myfunc() returns tbl {
+return mytable;
+}
 
 """
 
 from lark import Lark
 from parsertransformer import MyTrans
 from interpreter import Interpreter
-from newtypechecker import Typechecker
+from type_checker import Typechecker
 
 def transformtree(tree):
     return MyTrans().transform(tree)
