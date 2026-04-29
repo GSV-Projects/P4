@@ -1,9 +1,5 @@
 from lark import Lark, Transformer, v_args, Tree, Token
 import copy
-#from parser_lexer_lark import result
-
-# Test comment
-
 
 class Typechecker():
     def __init__(self):
@@ -157,7 +153,7 @@ class Typechecker():
         if (left.value not in env):
            env[left.value] = t1
         # Else, check to see if it exists in some local vtable
-        elif (env is self.vtable): # "is" instead of "==" since we need to check if the object is different and not the values that is inside
+        elif (env is self.vtable): # "is" and not "==" since we need to check if the object is different and not the values that is inside
             # Furthermore, if the existing type does not match the one presently attempted assigned, raise exception
             if (env[left.value] != t1): 
                 raise Exception(f'{left.value} is of type {env[left.value]} and cannot be declared as type {t1}')  
@@ -255,13 +251,12 @@ class Typechecker():
 
     def check_array(self, node, env, RL):
         # Validates an element of type array
-        #print("check array: ", env)
 
         # If the array has no contents, raise exception, saying we cannot yet evaluate the type, as there is nothing to evaluate
         if len(node.children) == 0:
             raise Exception("No type for an empty array")
 
-        # Otherwise, mooving on, store the type of the very first element in the array
+        # Otherwise, moving on, store the type of the very first element in the array
         type_first_elem = self.check(node.children[0], env, RL)
         array_check_count = 0
 
@@ -294,35 +289,36 @@ class Typechecker():
             raise Exception(f'Did not parse an integer for array indexing')
 
     def check_column_sapling(self, node, env, RL):
-        # 
+        # This check method serves as a helper-check for check_table
+        #   Enters a column, to return the array/children of that column
         return node.children
 
     def check_table(self, node, env, RL, table_id = None):
+        # If the table name is not parsed on method call, find it through the node
         if table_id == None:
             table_id = node.data
 
         for col in node.children:
-            c_id = col.children[0]
-            arr = col.children[1]
-            #print("arr", arr)
+            c_id = col.children[0] # Get the name of the current column
+            arr = col.children[1] # Get the array related to that same column name 
             
             check_arr = self.check(arr, env, RL) # Get the type of the array held in current column
 
+            # Create a custom tree structure to assign a custom type to a custom variable in our environment
             col = Tree("column_sapling", f'clmn{check_arr}')
-            #print("col", col)
 
-            # Turn the use of dot-notation into an identifier, that the array can be assigned to
+            # Turn the use of dot-notation into an identifier that the array can be assigned to
             token = Token('IDENT', f'{table_id}.{c_id.value}')
-            S = Tree("assign", [token, col])
+            stmt = Tree("assign", [token, col])
+            self.check(stmt, env, RL)
 
+
+        # Ending the check_function with setting the id == "tbl" since all tables would be of type "tbl"
+        token = Token('IDENT', f'{table_id}')
+        tbl_token = Token('TYPE_TBL', 'tbl')
+        S = Tree("assign", [token, tbl_token])
+        self.check(S, env, RL)
         
-            self.check(S, env, RL)
-
-        # TODO: Why this
-        env[table_id] = "tbl"
-
-        # TODO: behøves det her return?
-        # return table_id
 
     def check_f(self, node, env, RL):
         # "check_f" is used to check the declaration of a function and its body
@@ -425,13 +421,6 @@ class Typechecker():
 
         return return_type # Return type if its an assignment 
 
-
-    def check_skip(self, node, env, RL):
-        # Raises an exception if we aren't in a loop currently
-        # This can be seen using the key "L" in the enviroment "RL"
-        if RL["L"] == False:
-            raise Exception(f'Cannot skip, not in loop')
-
     def check_stop(self, node, env, RL):
         # Raises an exception if we aren't in a loop currently
         # This can be seen using the key "L" in the enviroment "RL"
@@ -450,7 +439,6 @@ class Typechecker():
         for child in body:
             self.check(child, env, RL)
     
-
     def check_else(self, node, env, RL):
 
         # The children of the else node in the tree is just the statements that are to be executed if the else goes through
@@ -458,8 +446,6 @@ class Typechecker():
         
         for child in body:
             self.check(child, env, RL)
-
-
 
     def check_while(self, node, env, RL):
 
@@ -492,6 +478,3 @@ class Typechecker():
 
         if type_id[0] != type_ass:
             raise Exception (f'Trying to assign {type_ass} to an array of type{type_id[0]}')
-
-
-

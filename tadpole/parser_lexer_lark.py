@@ -10,7 +10,6 @@ program: (stmt | def)*
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" "then" "{" stmt* "}" (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
-     | SKIP ";"                                  -> skip
      | "return" expr ";"                         -> return_stmt
 
 
@@ -96,7 +95,6 @@ IF: "if"
 THEN: "then"
 ELSE: "else"
 STOP: "stop"
-SKIP: "skip"
 RETURN: "return"
 FUNCTION: "function"
 RETURNS: "returns"
@@ -151,18 +149,6 @@ STRING: /"([^"\\]|\\.)*"/
 code = """
 
 
-test1 = [1,2,3];
-mytab = {
-col1 : [1,2,3];
-};
-b = 3;
-
-
-function f(){
-test1 = ["bro", "broski"];
-}
-
-
 """
 
 
@@ -178,7 +164,10 @@ parser = Lark(grammar, parser="lalr", strict=True)
 parsetree = parser.parse(code)
 result = transformtree(parsetree)
 
+
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
+
 Typechecker().check_p(result)
+
 
