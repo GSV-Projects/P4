@@ -4,20 +4,7 @@ class MyTrans(Transformer):
 
 # Terminals for types
 
-    def IDENT(self, c):
-        return c
-    
-    def FLOAT(self, c):
-        return c
-
-    def BOOL(self, c):
-        return c
-    
-    def STRING(self, c):
-        return c
-    
-    def NA(self, c):
-        return c
+    # REMEMBER YOU DELETED SOMETHING HERE BUD
     
     def type_int(self, c):
         return c[0]
@@ -30,7 +17,13 @@ class MyTrans(Transformer):
 
     def type_string(self, c):
         return c[0]
+    
+    def type_column(self, c):
+        return Tree("clmn", c)
 
+    def type_tbl(self, c):
+        return c[0]
+    
     def type_array(self, c):
         return Tree("array_type", c)
 
@@ -44,7 +37,7 @@ class MyTrans(Transformer):
 # Statements
 
     def method_call(self, c):
-        return Tree("dot", c)    
+        return Tree("dot_call", c)    
     
     def assign(self, c):
         return Tree("assign", c)
@@ -103,7 +96,7 @@ class MyTrans(Transformer):
     
     # Misc expressions
     def exp_expr(self, c):
-        return Tree("^", c)
+        return Tree("e", c)
     
     def unary_expr(self, c):
         return Tree("neg", [c[1]])

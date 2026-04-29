@@ -4,9 +4,9 @@ grammar = r"""
 
 program: (stmt | def)*
 
-?stmt: IDENT "=" rvalue ";"                     -> assign
+?stmt: IDENT "=" rvalue ";"                      -> assign
      | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
-     | IDENT "(" (expr ("," expr)*)? ")" ";"     -> func_call
+     | call ";"                                  -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
@@ -26,7 +26,7 @@ program: (stmt | def)*
 
 ?column_content: (expr ("," expr)*)?                   -> array
 
-call: IDENT "(" (expr ("," expr)*)? ")"
+?call: IDENT "(" (expr ("," expr)*)? ")"               -> func_call
 
 ?def: "function" IDENT "(" param ")" body                   -> func_def
     | "function" IDENT "(" param ")" "returns" type body    -> func_def_ret
@@ -37,6 +37,8 @@ call: IDENT "(" (expr ("," expr)*)? ")"
      | TYPE_FLOAT                               -> type_float
      | TYPE_INT                                 -> type_int
      | TYPE_STRING                              -> type_string
+     | TYPE_TABLE                               -> type_tbl
+     | "clmn" "[" type "]"                      -> type_column
      | "[" type "]"                             -> type_array
      | "clmn" "[" type "]"                      -> type_column
      | TYPE_TBL                                 -> type_table
@@ -76,7 +78,7 @@ param: (param_item ("," param_item)*)?
 ?unary_expr: NEG unary_expr
            | term
 
-?term: IDENT "(" (expr ("," expr)*)? ")"   -> func_call
+?term: call                                
      | IDENT "[" expr "]"                  -> array_indexing
      | IDENT
      | FLOAT
@@ -107,7 +109,7 @@ TYPE_BOOL: "bool"
 TYPE_FLOAT: "float"
 TYPE_INT: "int"
 TYPE_STRING: "string"
-TYPE_TBL: "tbl"
+TYPE_TABLE: "tbl"
 
 // --- Operators ---
 EQUAL: "=="
@@ -146,16 +148,12 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-if (true) then {
-a = 5;
-} else {
-a = 4;
-}
 
 """
 
 from lark import Lark
 from parsertransformer import MyTrans
+from interpreter import Interpreter
 from newtypechecker import Typechecker
 
 def transformtree(tree):
@@ -170,3 +168,5 @@ print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
 
 Typechecker().check_p(result)
+fortolker = Interpreter()
+fortolker.Eval_P(result)
