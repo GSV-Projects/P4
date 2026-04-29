@@ -3,7 +3,8 @@ grammar = r"""
 
 program: (stmt | def)*
 
-?stmt: lvalue "=" rvalue ";"                     -> assign
+?stmt: IDENT "=" rvalue ";"                      -> assign
+     | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
      | call ";"                                  -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
@@ -11,15 +12,12 @@ program: (stmt | def)*
      | SKIP ";"                                  -> skip
      | "return" expr ";"                         -> return_stmt
 
-?lvalue: IDENT
-       | IDENT "[" expr "]"                       -> array_assign
-
 ?rvalue: "[" (expr ("," expr)*)? "]"              -> array
        | IDENT "." call ("." call)*               -> method_call
-       | table            
+       | table
        | expr
 
-?table: "{" column* "}" -> table
+?table: "{" column* "}"
        
 ?column: ( COLUMN ":" "[" column_content "]" ";" )      -> column
 
@@ -148,16 +146,20 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
-x = 1;
-while (x < 5) do {
-     x = x + 2;
-}
+myTab = {
+col1: [6, 2, 2];
+col2: ["Hej", "Kat", "Abe"];
+};
+
+gennemsnit = myTab.mean(col1);
+first = myTab.first(col2);
+sum = myTab.sum(col2);
 
 """
 
 from lark import Lark
 from parsertransformer import MyTrans
-
+from interpreter import Interpreter
 
 def transformtree(tree):
     return MyTrans().transform(tree)
@@ -169,3 +171,6 @@ result = transformtree(parsetree)
 
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
+
+fortolker = Interpreter()
+fortolker.Eval_P(result)
