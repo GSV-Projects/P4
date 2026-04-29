@@ -6,13 +6,16 @@ program: (stmt | def)*
 ?stmt: lvalue "=" rvalue ";"                     -> assign
      | call ";"                                  
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
-     | "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt
+     | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
      | SKIP ";"                                  -> skip
      | "return" expr ";"                         -> return_stmt
 
 ?lvalue: IDENT
        | IDENT "[" expr "]"                       -> array_assign
+
+?ifthen:  "then" "{" stmt* "}"                     -> then
+?ifelse:  "else" "{" stmt* "}"                     -> else
 
 ?rvalue: "[" (expr ("," expr)*)? "]"              -> array
        | IDENT "." call ("." call)*               -> method_call
@@ -147,18 +150,6 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-
-h = 5;
-
-function myfunc(int x, int y, int z) {
-     y = z + 1;
-     return y;
-}
-
-g = 12;
-
-myfunc(1, 2, 5);
-
 
 """
 
