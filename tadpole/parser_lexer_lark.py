@@ -3,26 +3,21 @@ grammar = r"""
 
 program: (stmt | def)*
 
-?stmt: lvalue "=" rvalue ";"                     -> assign
-     | call ";"                                  
+?stmt: IDENT "=" rvalue ";"                      -> assign
+     | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
+     | call ";"                                  -> func_call
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
      | SKIP ";"                                  -> skip
      | "return" expr ";"                         -> return_stmt
 
-?lvalue: IDENT
-       | IDENT "[" expr "]"                       -> array_assign
-
-?ifthen:  "then" "{" stmt* "}"                     -> then
-?ifelse:  "else" "{" stmt* "}"                     -> else
-
 ?rvalue: "[" (expr ("," expr)*)? "]"              -> array
        | IDENT "." call ("." call)*               -> method_call
-       | table            
+       | table
        | expr
 
-?table: "{" column* "}" -> table
+?table: "{" column* "}"
        
 ?column: ( COLUMN ":" "[" column_content "]" ";" )      -> column
 
@@ -151,11 +146,12 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
+
 """
 
 from lark import Lark
 from parsertransformer import MyTrans
-
+from interpreter import Interpreter
 
 def transformtree(tree):
     return MyTrans().transform(tree)
@@ -167,3 +163,6 @@ result = transformtree(parsetree)
 
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
+
+fortolker = Interpreter()
+fortolker.Eval_P(result)

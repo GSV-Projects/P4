@@ -1,4 +1,5 @@
 from lark import Lark, Transformer, v_args, Tree, Token
+from table import Table
 from parser_lexer_lark import result
 import copy, math
 
@@ -6,6 +7,17 @@ class Interpreter():
     def __init__(self):
         self.vtable = {}
         self.ftable = {}
+        self.ptable = self.init_ptable()
+
+    # Initialize table of predefined functions (called with dot)
+    def init_ptable(self):
+        return {
+            "mean": Table.mean,
+            "first": Table.first,
+            "last": Table.last,
+            "sum": Table.sum
+        }
+
 
     # --- Run program ---
     def Eval_P(self, p):
@@ -17,6 +29,25 @@ class Interpreter():
 
         #print("ftable:", self.ftable)
         print("vtable:", self.vtable)
+
+    # Handles the call of predefined dot functions
+    def Eval_dot_call(self, tree, env):
+        # Looks up the table in environment and the name of the function
+        table = self.lookup(tree.children[0].value, env) # Gets the table from vtable
+        method_name = tree.children[1].children[0].value # Gets the name of the method called
+
+        args = [] # Will hold all params for the called method
+
+        
+        for a in tree.children[1].children[1:]:
+            if isinstance(a, Token) and a.type == 'IDENT':
+                args.append(a.value)
+            else:
+                args.append(self.Eval(a, env))
+        if method_name in self.ptable:
+            return self.ptable[method_name](table, *args)
+        else:
+            raise Exception(f'Tried to call function {method_name}, which does not exist')
 
     def FEval(self, declaration, env):
         method_name = f'FEval_{declaration.data}' # Accessing top node
@@ -50,8 +81,24 @@ class Interpreter():
         return Eval_method(statement, env)
 
     def SEval_assign(self, tree, env):
+        name = tree.children[0].value
+        type = tree.children[1]
+
+        # Check if the rvalue is a table node
+        if isinstance(type, Tree) and type.data == "table":
+            env[name] = self.Eval_table(type, env)
+            return
+        
         v = self.Eval(tree.children[1], env)
         env[tree.children[0].value] = v
+
+    def Eval_table(self, tree, env):
+        columns = {}
+        for column in tree.children:
+            col_name = column.children[0].value
+            col_values = self.Eval(column.children[1], env)
+            columns[col_name] = col_values
+        return Table(columns)
 
     def SEval_return(self, tree, env):
         v = self.Eval(tree.children[0], env)
@@ -91,6 +138,17 @@ class Interpreter():
             if (child.data == "return") or isinstance(result, (int, str, float, bool)):
                 return result
 
+    def SEval_assign_index(self, tree, env):
+        name = tree.children[0].value
+        arr = self.lookup(name, env) 
+        i = self.Eval(tree.children[1], env)
+        v = self.Eval(tree.children[2], env)
+        if (i > 0 and i <= len(arr)):
+            arr[i-1] = v
+            env[name] = arr
+        else:
+            raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
+
     def SEval_call(self, tree, env):
         func = self.lookup(tree.children[0].value, self.ftable)
         body, params, def_env, ftable = func
@@ -129,7 +187,11 @@ class Interpreter():
         if isinstance(tree, Token):
             return self.read_token(tree, env)
         
+        if isinstance(tree, Token):
+                return self.read_token(tree, env)
+        
         method_name = f'Eval_{tree.data}'
+        #print(method_name)
         Eval_method = getattr(self, method_name, self.check_unknown)
         return Eval_method(tree, env)
     
@@ -216,8 +278,6 @@ class Interpreter():
         return v1 >= v2
     
     def Eval_and(self, tree, env):
-        print(tree.children[0].value)
-        print(tree.children[1].value)
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
         return v1 and v2
@@ -263,4 +323,4 @@ class Interpreter():
     def check_unknown(self, node, env):
         raise Exception(f"No handler for node type: '{node.data}'")
 
-Interpreter().Eval_P(result)
+#Interpreter().Eval_P(result)

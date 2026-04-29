@@ -34,7 +34,7 @@ class MyTrans(Transformer):
 # Statements
 
     def method_call(self, c):
-        return Tree("dot", c)    
+        return Tree("dot_call", c)    
     
     def assign(self, c):
         return Tree("assign", c)
@@ -93,7 +93,7 @@ class MyTrans(Transformer):
     
     # Misc expressions
     def exp_expr(self, c):
-        return Tree("^", c)
+        return Tree("e", c)
     
     def unary_expr(self, c):
         return Tree("neg", [c[1]])
