@@ -318,7 +318,7 @@ class Typechecker():
 
         # Ending the check_function with setting the id == "tbl" since all tables would be of type "tbl"
         token = Token('IDENT', f'{table_id}')
-        tbl_token = Token('TYPE_TBL', 'tbl')
+        tbl_token = Token('TYPE_TABLE', 'tbl')
         S = Tree("assign", [token, tbl_token])
         self.check(S, env, RL)
         
