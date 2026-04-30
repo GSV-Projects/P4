@@ -104,31 +104,40 @@ class Interpreter():
         return v
 
     def SEval_stop(self, tree, env):
-        return self.SEval_stop(self,tree,env)
+        return 
     
     def SEval_while(self, tree, env):
         v = self.Eval(tree.children[0], env)
+        print("children0", tree.children[0])
+        body = tree.children[1:]
         if v == True:
-            env1 = self.SEval(tree.children[1], env)
-            return self.SEval(tree, env1)
-        elif v == False:
-            return env
-        else:
-            raise Exception(f"variable not declared: '{tree}'")
+            for child in body:
+                result = self.SEval(child, env)
+                if (child.data == "stop"):
+                    return
+                elif (child.data == "return") or isinstance(result, (int, str, float, bool)):
+                    return result
+             
 
+            return self.SEval(tree, env)
+            
     def SEval_if(self, tree, env):
         v = self.Eval(tree.children[0], env)
         if v == True:
             return self.SEval(tree.children[1],env)
         elif v == False and len(tree.children) == 3:
             return self.SEval(tree.children[2],env)
+
         
     # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement"
     def SEval_then(self, tree, env):
         for child in tree.children:
             result = self.SEval(child, env)
+            print("child.body", child.data)
             if (child.data == "return") or isinstance(result, (int, str, float, bool)):
                 return result
+            elif (child.data == "stop"):
+                return "stop"
 
     # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement
     def SEval_else(self, tree, env):
@@ -136,6 +145,8 @@ class Interpreter():
             result = self.SEval(child, env)
             if (child.data == "return") or isinstance(result, (int, str, float, bool)):
                 return result
+            elif (child.data == "stop"):
+                return "stop"
 
     def SEval_assign_index(self, tree, env):
         name = tree.children[0].value

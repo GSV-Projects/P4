@@ -147,11 +147,15 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytable = {col1: ["tis", "pik"];};
 
-
-function myfunc() returns tbl {
-return mytable;
+x = 0;
+while (x < 5) do {
+     
+     x = x + 1;
+     
+     if (x > 2) then {
+          stop;
+     }
 }
 
 """
