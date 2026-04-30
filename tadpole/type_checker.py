@@ -343,7 +343,8 @@ class Typechecker():
             raise Exception("function can't have an empty body")
             
         self.check(body, vtable_local, RL) # Checks the body of the function with the local variable enviroment
-
+        RL["R"] = None
+    
 
     def check_body(self, node, env, RL):
         # "check_body" is used for checking the body of a function
