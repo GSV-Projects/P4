@@ -80,52 +80,52 @@ class Interpreter():
         v = self.Eval(tree.children[1], env_v)
         env_v[tree.children[0].value] = v
 
-    def SEval_return(self, tree, env):
-        v = self.Eval(tree.children[0], env)
+    def SEval_return(self, tree, env_v, env_p):
+        v = self.Eval(tree.children[0], env_v)
         return v
 
-    def SEval_stop(self, tree, env):
-        return self.SEval_stop(self, tree, env)
+    def SEval_stop(self, tree, env_v, env_p):
+        return self.SEval_stop(self, tree, env_v)
     
-    def SEval_while(self, tree, env):
-        v = self.Eval(tree.children[0], env)
+    def SEval_while(self, tree, env_v, env_p):
+        v = self.Eval(tree.children[0], env_v)
         if v == True:
-            env1 = self.SEval(tree.children[1], env)
+            env1 = self.SEval(tree.children[1], env_v)
             return self.SEval(tree, env1)
         elif v == False:
-            return env
+            return env_v
         else:
             raise Exception(f"variable not declared: '{tree}'")
 
-    def SEval_if(self, tree, env):
-        v = self.Eval(tree.children[0], env)
+    def SEval_if(self, tree, env_v, env_p):
+        v = self.Eval(tree.children[0], env_v)
         if v == True:
-            return self.SEval(tree.children[1], env)
+            return self.SEval(tree.children[1], env_v)
         elif v == False and len(tree.children) == 3:
-            return self.SEval(tree.children[2], env)
+            return self.SEval(tree.children[2], env_v)
         
     # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement"
-    def SEval_then(self, tree, env):
+    def SEval_then(self, tree, env_v, env_p):
         for child in tree.children:
-            result = self.SEval(child, env)
+            result = self.SEval(child, env_v)
             if (child.data == "return") or isinstance(result, (int, str, float, bool)):
                 return result
 
     # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement
-    def SEval_else(self, tree, env):
+    def SEval_else(self, tree, env_v, env_p):
         for child in tree.children:
-            result = self.SEval(child, env)
+            result = self.SEval(child, env_v)
             if (child.data == "return") or isinstance(result, (int, str, float, bool)):
                 return result
 
-    def SEval_assign_index(self, tree, env):
+    def SEval_assign_index(self, tree, env_v, env_p):
         name = tree.children[0].value
-        arr = self.lookup(name, env) 
-        i = self.Eval(tree.children[1], env)
-        v = self.Eval(tree.children[2], env)
+        arr = self.lookup(name, env_v) 
+        i = self.Eval(tree.children[1], env_v)
+        v = self.Eval(tree.children[2], env_v)
         if (i > 0 and i <= len(arr)):
             arr[i-1] = v
-            env[name] = arr
+            env_v[name] = arr
         else:
             raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
 
@@ -135,13 +135,13 @@ class Interpreter():
         env_v_1 = copy.deepcopy(def_env_v)
         local_env = self.bind(params, tree.children[1:], env_v_1)
         self.SEval(body, local_env, def_env_p)
+        print("here is local", local_env)
 
     def SEval_body(self, tree, env_v, env_p):
         for child in tree.children:
             result = self.SEval(child, env_v, env_p)
             if (child.data == "return") or isinstance(result, (int, str, float, bool)):
                 return result
-        print("local", env_v)
         
 # EXPRESSION EVALUATION
     def Eval(self, tree, env):
@@ -176,7 +176,6 @@ class Interpreter():
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
         return v1 / v2
-        
     
     def Eval_mod(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
@@ -254,17 +253,15 @@ class Interpreter():
         else:
             raise Exception(f"index out of bounds, must be between: '{1}'-'{len(x)}'")
         
-    def Eval_call(self, tree, env): #def_env ) variable environment (env not used as paramter cuz we save def_env from func)
+    def Eval_call(self, tree, env):
         func = self.lookup(tree.children[0].value, self.env_p)
-        body, params, def_env, ftable = func
-        env_1 = copy.deepcopy(def_env)
-        env_2 = self.bind(params, tree.children[1:], env_1)
-        print("local env", env_2)
-        return self.SEval(body, env_2)
+        body, params, def_env_v, def_env_p = func
+        env_v_1 = copy.deepcopy(def_env_v)
+        local_env = self.bind(params, tree.children[1:], env_v_1)
+        return self.SEval(body, local_env, def_env_p)
 
     def Eval_dot_call(self, tree, env):
         # Looks up the table in environment and the name of the function
-        print("here it is", tree.children[0].value)
         table = self.lookup(tree.children[0].value, env) # Gets the table from vtable
         method_name = tree.children[1].children[0].value # Gets the name of the method called
 
@@ -280,7 +277,7 @@ class Interpreter():
         else:
             raise Exception(f'Tried to call function {method_name}, which does not exist')
     
-    def Eval_table(self, tree, env_v, env_p):
+    def Eval_table(self, tree, env_v):
         columns = {}
         for column in tree.children:
             col_name = column.children[0].value
