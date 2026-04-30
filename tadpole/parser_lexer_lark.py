@@ -6,7 +6,7 @@ program: (stmt | def)*
 
 ?stmt: IDENT "=" rvalue ";"                      -> assign
      | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
-     | call ";"                                  -> func_call
+     | call ";"                                  
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
@@ -147,12 +147,17 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytable = {col1: ["tis", "pik"];};
-
-
-function myfunc() returns tbl {
-return mytable;
+function myfunc2(int x, int y) {
+     h = 1;
+     l = 2;
 }
+
+function myfunc(int x, int y) returns int {
+     h = 1;
+     l = 2;
+}
+
+myfunc2(1, 2);
 
 """
 
@@ -167,11 +172,11 @@ def transformtree(tree):
 parser = Lark(grammar, parser="lalr", strict=True)
 
 parsetree = parser.parse(code)
-result = transformtree(parsetree)
+ast = transformtree(parsetree)
 
 print("Parse \n", parsetree.pretty())
-print("AST \n", result.pretty())
+print("AST \n", ast.pretty())
 
-Typechecker().check_p(result)
+Typechecker().check_p(ast)
 fortolker = Interpreter()
-fortolker.Eval_P(result)
+fortolker.Eval_P(ast)
