@@ -277,11 +277,11 @@ class Interpreter():
         else:
             raise Exception(f'Tried to call function {method_name}, which does not exist')
     
-    def Eval_table(self, tree, env_v):
+    def Eval_table(self, tree, env):
         columns = {}
         for column in tree.children:
             col_name = column.children[0].value
-            col_values = self.Eval(column.children[1], env_v)
+            col_values = self.Eval(column.children[1], env)
             columns[col_name] = col_values
         return Table(columns)
     
