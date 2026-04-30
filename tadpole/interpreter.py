@@ -29,7 +29,6 @@ class Interpreter():
         print("Elavator vtable:", self.env_v)
 
 # FUNCTION EVALUATION
-
     def FEval(self, declaration, env_v, env_p):
         method_name = f'FEval_{declaration.data}' # Accessing top node
         Eval_method = getattr(self, method_name, self.check_unknown)
@@ -60,7 +59,6 @@ class Interpreter():
             self.env_p[func_ident] = func_tuple # Update global ftable
 
 # STATEMENTS EVALUATION
-
     def SEval(self, statement, env_v, env_p):
          # --- Tokens (leaf nodes) ---
         if isinstance(statement, Token):
@@ -145,9 +143,7 @@ class Interpreter():
                 return result
         print("local", env_v)
         
-
 # EXPRESSION EVALUATION
-
     def Eval(self, tree, env):
         # --- Tokens (leaf nodes) ---
         if isinstance(tree, Token):
@@ -293,7 +289,6 @@ class Interpreter():
         return Table(columns)
     
 # MISC EVALUATION
-
     def lookup(self, token, env):
         if token in env:
             return env[token]
