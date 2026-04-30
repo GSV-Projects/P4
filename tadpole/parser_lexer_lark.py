@@ -147,21 +147,19 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-x = 5;
 
+x = 1;
 
-function myfunc() returns int {
-
-     x = 1;
-     y = x;
-
+function myfunc1() returns int {
+     x = 2;
      return x;
 }
 
-x = myfunc();
+function myfunc2() {
+     hej = "tis";
+}
 
-
-
+h = myfunc1();
 
 """
 
