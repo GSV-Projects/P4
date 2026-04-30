@@ -10,7 +10,7 @@ class Typechecker():
             "L" : False
         }
         self.PD = { # "name" : (input type, (parameters), return type)
-            "filter" : ('tbl', (int, 'tbl'), 'tbl'), # Test predefined function
+            "filter" : ('tbl', (int,), 'tbl'), # Test predefined function
             "test2" : ('tbl', (float,), int), # another one
             "test3" : (int, (), str) # another one??
         }
@@ -287,7 +287,7 @@ class Typechecker():
 
         # If indexing was done using an int, proceed with the type of the array, otherwise, raise exception
         if type_idx == int:
-            return type_id
+            return type_id[0]
         else: 
             raise Exception(f'Did not parse an integer for array indexing')
 
@@ -384,7 +384,7 @@ class Typechecker():
             
         return return_type
     
-    def check_dot(self, node, env, RL):
+    def check_dot_call(self, node, env, RL):
         # The leftmost node of the children is the name of which variable the dot funtions is called upon
         left = node.children[0]
         # The rest of the children are the different predefined functions
