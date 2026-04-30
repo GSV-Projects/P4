@@ -271,7 +271,7 @@ class Interpreter():
         v2 = self.Eval(tree.children[1], env)
         return v1 < v2
     
-    def Eval_less_eq(self, tree, env):
+    def Eval_leq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
         return v1 <= v2
@@ -281,7 +281,7 @@ class Interpreter():
         v2 = self.Eval(tree.children[1], env)
         return v1 > v2
     
-    def Eval_greater_eq(self, tree, env):
+    def Eval_geq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
         return v1 >= v2
