@@ -86,10 +86,12 @@ class Interpreter():
         # Check if the rvalue is a table node
         if isinstance(type, Tree) and type.data == "table":
             env[name] = self.Eval_table(type, env)
+            print("evntest", env)
             return
         
         v = self.Eval(tree.children[1], env)
         env[tree.children[0].value] = v
+        print("evntest", env)
 
     def Eval_table(self, tree, env):
         columns = {}
