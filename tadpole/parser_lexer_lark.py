@@ -148,11 +148,10 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 mytab = {
-col1 : [1,2,3];
-col2 : [3, 4];
+col1 : [1, 2, 3];
+col2 : [3, 2, 4];
 };
-
-mytab = mytab.span(col1);
+a = mytab.mean(col1);
 """
 
 from lark import Lark
@@ -172,5 +171,5 @@ print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
 
 Typechecker().check_p(result)
-#fortolker = Interpreter()
-#fortolker.Eval_P(result)
+fortolker = Interpreter()
+fortolker.Eval_P(result)

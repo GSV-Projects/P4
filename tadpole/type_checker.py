@@ -10,7 +10,7 @@ class Typechecker():
             "L" : False
         }
         self.ptable = { # "name" : (input type, (parameters), return type)
-            "mean" :        ('tbl', (str,), 'tbl'),
+            "mean" :        ('tbl', (str,), int),
             "first" :       ('tbl', (str,), 'tbl'),
             "last" :        ('tbl', (str,), 'tbl'),
             "sum" :         ('tbl', (str,), float),
@@ -304,26 +304,11 @@ class Typechecker():
         else: 
             raise Exception(f'Did not parse an integer for array indexing')
 
-    '''
     def check_column_sapling(self, node, env, RL):
         # This check method serves as a helper-check for check_table
         #   Enters a column, to return the array/children of that column
         return node.children
-    '''
-    
-    def check_table(self, node, env, RL, table_id=None):
-        # If the table name is not parsed on method call, find it through the node
-        if table_id is None:
-            table_id = node.data
-
-        env[table_id] = {}
-
-        for col in node.children:
-            c_id = col.children[0] # Get the name of the current column
-            arr = col.children[1] # Get the array related to that same column name 
-            env[table_id][c_id.value] = self.check(arr, env, RL)
-    
-    '''
+  
     def check_table(self, node, env, RL, table_id = None):
         # If the table name is not parsed on method call, find it through the node
         if table_id == None:
@@ -336,7 +321,7 @@ class Typechecker():
             check_arr = self.check(arr, env, RL) # Get the type of the array held in current column
 
             # Create a custom tree structure to assign a custom type to a custom variable in our environment
-            col = Tree("column_sapling", f'clmn{check_arr}')
+            col = Tree("column_sapling", f'{check_arr}')
 
             # Turn the use of dot-notation into an identifier that the array can be assigned to
             token = Token('IDENT', f'{table_id} {c_id.value}')
@@ -349,9 +334,7 @@ class Typechecker():
         token = Token('IDENT', f'{table_id}')
         tbl_token = Token('TYPE_TABLE', 'tbl')
         S = Tree("assign", [token, tbl_token])
-        self.check(S, env, RL)
-        '''
-    
+        self.check(S, env, RL)    
     
     def check_f(self, node, env, RL):
         # "check_f" is used to check the declaration of a function and its body
@@ -417,45 +400,20 @@ class Typechecker():
     def check_dot(self, node, env, RL):
         # The leftmost node of the children is the name of which variable the dot funtions is called upon
         left = node.children[0]
-        # The rest of the children are the call node, that hold the predef. func. called and the params
+        # The rest of the children are the call node(s), that hold the predef. func. called and the params
         right = node.children[1:]
-
-
-        last_left_t = 'tbl' if isinstance(env[left.value], dict) else self.check(left, env, RL)
-        #id1 = self.check(left, env, RL) # whats this???
-        
-        # "last_left_t" serves to encapsulate what is left of the function that is currently called so we can chain these together
-        #last_left_t = env[left]
 
         # Checking each predefined function
         for child in right:
-            child_left = child.children[0] # Name of method called
+            child_left = child.children[0] # Name of predefined function called
             actual_params = child.children[1:] # Actual parameters of predefined function
             if child_left not in self.ptable: # Check if the function is in the enviroment of predefined functions
-                raise Exception(f'{child_left} is not predefined')
+                raise Exception(f'{child_left} is not a predefined function')
             
             input_type, formal_params, return_type = self.ptable[child_left] # Get formal info on current child
 
-            if last_left_t != input_type: # Check if the left side of the "." is of the correct type
-                raise Exception (f'Called method {child_left} on type {last_left_t}, but can only be used on {input_type}')
-
             if len(formal_params) != len(actual_params):
                 raise Exception("Amount of formal parameters do not match actual parameters")
-
-            # For every parameter, check if formal and actual are of the same type
-            for i in range(len(formal_params)):
-
-                #t1 = self.check(actual_params[i], env, RL) # Check type of actual parameter
-                if isinstance(actual_params[i], Token) and actual_params[i].type == 'IDENT' and actual_params[i].value in env.get(left.value, {}):
-                    t1 = str
-                else:
-                    t1 = self.check(actual_params[i], env, RL)
-                t2 = formal_params[i]
-
-                if t1 != t2: # Check if actual and formal parameter types are the same
-                    raise Exception(f'Formal and actual parameters of function {child_left} not of same type')
-                
-            last_left_t = return_type
 
         return return_type # Return type if its an assignment  
 

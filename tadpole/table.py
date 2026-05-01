@@ -5,6 +5,8 @@ class Table():
     def __repr__(self):
         return f"{self.columns}"
     
+    #def reader
+    
     # col (array?) - returns a column requested by string name
     def getcol(self, column):
         pass
