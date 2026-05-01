@@ -148,10 +148,11 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 mytab = {
-col1 : [1, 2, 3];
-col2 : [3, 2, 4];
+col1 : ["hej", "lol", "å"];
+col2 : [3, 2, 5];
+col3 : [1.1, 2.2];
 };
-a = mytab.mean(col1);
+a = mytab.span(col2);
 """
 
 from lark import Lark

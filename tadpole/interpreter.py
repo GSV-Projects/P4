@@ -11,6 +11,9 @@ class Interpreter():
     # Initialize table of predefined functions (called with dot)
     def init_ptable(self):
         return {
+            "getcol":       Table.getcol,
+            "getfirst":     Table.getfirst,
+            "getlast":      Table.getlast,
             "mean" :        Table.mean,
             "first" :       Table.first,
             "last" :        Table.last,

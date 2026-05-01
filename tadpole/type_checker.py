@@ -10,9 +10,12 @@ class Typechecker():
             "L" : False
         }
         self.ptable = { # "name" : (input type, (parameters), return type)
-            "mean" :        ('tbl', (str,), int),
-            "first" :       ('tbl', (str,), 'tbl'),
-            "last" :        ('tbl', (str,), 'tbl'),
+            "getcol":       ('tbl', (str,), []),
+            "getfirst":     ('tbl', (), []),
+            "getlast":      ('tbl', (), []),
+            "mean" :        ('tbl', (str,), float),
+            "first" :       ('tbl', (str,), ),
+            "last" :        ('tbl', (str,), ),
             "sum" :         ('tbl', (str,), float),
             "frequency" :   ('tbl', (str,), float),
             "filter" :      ('tbl', (str,), 'tbl'),
@@ -21,7 +24,7 @@ class Typechecker():
             "upperq" :      ('tbl', (str,), float),
             "min" :         ('tbl', (str,), float),
             "max" :         ('tbl', (str,), float),
-            "span" :        ('tbl', (str,), 'tbl')
+            "span" :        ('tbl', (str,), float)
         }
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
