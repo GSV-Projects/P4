@@ -1,5 +1,6 @@
 from lark import Lark, Transformer, v_args, Tree, Token
 from table import Table
+from utils.returnClass import return_value
 import copy, math
 
 class Interpreter():
@@ -103,7 +104,7 @@ class Interpreter():
 
     def SEval_return(self, tree, env):
         v = self.Eval(tree.children[0], env)
-        return v
+        raise return_value(v)
 
     def SEval_stop(self, tree, env):
         return self.SEval_stop(self,tree,env)
@@ -155,7 +156,10 @@ class Interpreter():
         body, params, def_env, ftable = func
         env_1 = copy.deepcopy(def_env)
         env_2 = self.bind(params, tree.children[1:], env_1)
-        self.SEval(body, env_2)
+        try:
+            self.SEval(body, env_2)
+        except return_value as e:
+            return e.value
 
     def bind(self, formal_params, actual_params, env):
         actual_param_values = []
@@ -317,10 +321,18 @@ class Interpreter():
         env_1 = copy.deepcopy(def_env)
         env_2 = self.bind(params, tree.children[1:], env_1)
         print("local env", env_2)
-        return self.SEval(body, env_2)
+        try:
+            self.SEval(body, env_2)
+        except return_value as e:
+            return e.value
+
+        
+
+    
     
 
     def check_unknown(self, node, env):
         raise Exception(f"No handler for node type: '{node.data}'")
 
 #Interpreter().Eval_P(result)
+
