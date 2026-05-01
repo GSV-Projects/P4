@@ -146,7 +146,12 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-function gcd(int a, int b) returns int {     
+a = 5;
+
+function gcd(int a, int b) returns int {
+     j = a;
+     return j;
+     
      if (b == 0) then {
           return a;
      } else {
@@ -154,9 +159,9 @@ function gcd(int a, int b) returns int {
      }
 }
 
-result1 = gcd(12, 3);
-result2 = gcd(13, 3);
+a = 13;
 
+result = gcd(a, 5);
 """
 
 from lark import Lark
