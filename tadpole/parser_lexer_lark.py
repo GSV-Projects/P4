@@ -147,13 +147,12 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytable = {col1: ["tis", "pik"];};
+mytab = {
+col1 : [1,2,3];
+col2 : [3, 4];
+};
 
-
-function myfunc() returns tbl {
-return mytable;
-}
-
+mytab = mytab.span(col1);
 """
 
 from lark import Lark
@@ -173,5 +172,5 @@ print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
 
 Typechecker().check_p(result)
-fortolker = Interpreter()
-fortolker.Eval_P(result)
+#fortolker = Interpreter()
+#fortolker.Eval_P(result)
