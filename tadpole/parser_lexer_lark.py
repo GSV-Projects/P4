@@ -148,6 +148,12 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
+function myfunc(int x) returns int {
+     return x;
+}
+
+x = myfunc(2);
+
 """
 
 from lark import Lark
