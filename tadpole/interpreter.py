@@ -122,23 +122,21 @@ class Interpreter():
     def SEval_if(self, tree, env):
         v = self.Eval(tree.children[0], env)
         if v == True:
-            return self.SEval(tree.children[1],env)
+            self.SEval(tree.children[1],env)
         elif v == False and len(tree.children) == 3:
-            return self.SEval(tree.children[2],env)
+            self.SEval(tree.children[2],env)
         
     # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement"
     def SEval_then(self, tree, env):
         for child in tree.children:
-            result = self.SEval(child, env)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+            self.SEval(child, env)
+
 
     # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement
     def SEval_else(self, tree, env):
         for child in tree.children:
-            result = self.SEval(child, env)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+            self.SEval(child, env)
+
 
     def SEval_assign_index(self, tree, env):
         name = tree.children[0].value
@@ -173,9 +171,7 @@ class Interpreter():
 
     def SEval_body(self, tree, env):
         for child in tree.children:
-            result = self.SEval(child, env)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+            self.SEval(child, env)
         print("local", env)
         
 
