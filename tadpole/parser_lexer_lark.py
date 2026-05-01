@@ -148,11 +148,7 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
-function myfunc(int x) returns int {
-     return x;
-}
-
-x = myfunc(2);
+x = NA+1;
 
 """
 

@@ -1,5 +1,7 @@
 from lark import Lark, Transformer, v_args, Tree, Token
 import copy
+class NA_exception(Exception):
+    print("caugt NA")
 
 class Typechecker():
     def __init__(self):
@@ -29,6 +31,8 @@ class Typechecker():
             return bool
         if token.type == 'TYPE_TABLE' or token.type == 'tbl':
             return 'tbl'
+        if token.type == 'NA':
+            raise NA_exception
         return 'unknown type shi'
 
 
@@ -170,12 +174,17 @@ class Typechecker():
         
         left = node.children[0]
         right = node.children[1]
-
-        t1 = self.check(left, env, RL)
+        try:
+            t1 = self.check(left, env, RL)
+        except NA_exception:
+            t1 = "kage"
         t2 = self.check(right, env, RL)
 
         # If both arguments are of type int, the resulting value is an int
-        if t1 == int and t2 == int:
+        if (t1 == int or "kage") and t2 == int:
+            return int
+
+        elif t1 == int and t2 == int:
             return int
         # If just one of the arguments is of type float, the resulting value is a float
         elif t1 in (int, float) and t2 in (int, float):
