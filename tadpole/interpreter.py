@@ -4,8 +4,8 @@ import copy, math
 
 class Interpreter():
     def __init__(self):
-        self.env_v = {}
-        self.env_p = {}
+        self.env_v = {} # Global variable environment
+        self.env_p = {} # Global procedure/function environment
         self.env_pd = self.init_ptable()
 
     # Initialize table of predefined functions (called with dot)
@@ -90,8 +90,8 @@ class Interpreter():
     def SEval_while(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
         if v == True:
-            env1 = self.SEval(tree.children[1], env_v)
-            return self.SEval(tree, env1)
+            env1 = self.SEval(tree.children[1], env_v, env_p)
+            return self.SEval(tree, env1, env_p)
         elif v == False:
             return env_v
         else:
@@ -100,21 +100,21 @@ class Interpreter():
     def SEval_if(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
         if v == True:
-            return self.SEval(tree.children[1], env_v)
+            return self.SEval(tree.children[1], env_v, env_p)
         elif v == False and len(tree.children) == 3:
-            return self.SEval(tree.children[2], env_v)
+            return self.SEval(tree.children[2], env_v, env_p)
         
     # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement"
     def SEval_then(self, tree, env_v, env_p):
         for child in tree.children:
-            result = self.SEval(child, env_v)
+            result = self.SEval(child, env_v, env_p)
             if (child.data == "return") or isinstance(result, (int, str, float, bool)):
                 return result
 
     # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement
     def SEval_else(self, tree, env_v, env_p):
         for child in tree.children:
-            result = self.SEval(child, env_v)
+            result = self.SEval(child, env_v, env_p)
             if (child.data == "return") or isinstance(result, (int, str, float, bool)):
                 return result
 
@@ -129,13 +129,17 @@ class Interpreter():
         else:
             raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
 
-    def SEval_call(self, tree, env_v, env_p):
-        func = self.lookup(tree.children[0].value, env_p)
-        body, params, def_env_v, def_env_p = func
-        env_v_1 = copy.deepcopy(def_env_v)
-        local_env = self.bind(params, tree.children[1:], env_v_1)
-        self.SEval(body, local_env, def_env_p)
-        print("here is local", local_env)
+    def SEval_call(self, tree, caller_env_v, env_p):
+        func_tuple = self.lookup(tree.children[0].value, env_p)
+        body, params, def_env_v, def_env_p = func_tuple
+        old_func_tuple = copy.deepcopy(func_tuple)
+        env_v_copy = copy.deepcopy(def_env_v)
+        local_env = self.bind(params, tree.children[1:], env_v_copy, caller_env_v)
+        func_tuple = (body, params, local_env, def_env_p)
+        self.env_p[tree.children[0].value] = func_tuple # Replace global env_p definition with new func tuple
+        result = self.SEval(body, local_env, def_env_p)
+        self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
+        return result
 
     def SEval_body(self, tree, env_v, env_p):
         for child in tree.children:
@@ -180,7 +184,6 @@ class Interpreter():
     def Eval_mod(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        print("bro", v1, v2, v1 % v2)
         return v1 % v2
     
     def Eval_exp(self, tree, env):
@@ -253,12 +256,17 @@ class Interpreter():
         else:
             raise Exception(f"index out of bounds, must be between: '{1}'-'{len(x)}'")
         
-    def Eval_call(self, tree, env):
-        func = self.lookup(tree.children[0].value, self.env_p)
-        body, params, def_env_v, def_env_p = func
-        env_v_1 = copy.deepcopy(def_env_v)
-        local_env = self.bind(params, tree.children[1:], env_v_1)
-        return self.SEval(body, local_env, def_env_p)
+    def Eval_call(self, tree, caller_env_v):
+        func_tuple = self.lookup(tree.children[0].value, self.env_p)
+        body, params, def_env_v, def_env_p = func_tuple
+        old_func_tuple = copy.deepcopy(func_tuple)
+        env_v_copy = copy.deepcopy(def_env_v)
+        local_env = self.bind(params, tree.children[1:], env_v_copy, caller_env_v)
+        func_tuple = (body, params, local_env, def_env_p)
+        self.env_p[tree.children[0].value] = func_tuple # Replace global env_p definition with new func tuple
+        result = self.SEval(body, local_env, def_env_p)
+        self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
+        return result
 
     def Eval_dot_call(self, tree, env):
         # Looks up the table in environment and the name of the function
@@ -289,18 +297,20 @@ class Interpreter():
     def lookup(self, token, env):
         if token in env:
             return env[token]
+        elif token in self.env_v: # Fallback to the global environment
+            return self.env_v[token]
         else:
             raise Exception(f"variable not declared: '{token}'")
-    
-    def bind(self, formal_params, actual_params, env):
+        
+    def bind(self, formal_params, actual_params, local_env, caller_env):
         actual_param_values = []
         for child in actual_params:
-            v = self.Eval(child, env)
+            v = self.Eval(child, caller_env)
             actual_param_values.append(v)
 
         for i in range(len(actual_param_values)):
-            env[formal_params.children[i].children[1].value] = actual_param_values[i]
-        return env
+            local_env[formal_params.children[i].children[1].value] = actual_param_values[i]
+        return local_env
         
     def read_token(self, token, env):
         if token.type == 'IDENT':

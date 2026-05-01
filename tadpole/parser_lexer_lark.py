@@ -40,7 +40,6 @@ program: (stmt | def)*
      | TYPE_TABLE                               -> type_table
      | "clmn" "[" type "]"                      -> type_column
      | "[" type "]"                             -> type_array
-     | "clmn" "[" type "]"                      -> type_column
 
 param: (param_item ("," param_item)*)?
 
@@ -147,19 +146,16 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-
-x = 1;
-
-function myfunc1() returns int {
-     x = 2;
-     return x;
+function gcd(int a, int b) returns int {     
+     if (b == 0) then {
+          return a;
+     } else {
+          return gcd(b, (a mod b));
+     }
 }
 
-function myfunc2() {
-     hej = "tis";
-}
-
-h = myfunc1();
+result1 = gcd(12, 3);
+result2 = gcd(13, 3);
 
 """
 
