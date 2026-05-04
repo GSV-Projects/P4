@@ -117,7 +117,9 @@ class Interpreter():
     
     def SEval_while(self, tree, env):
         v = self.Eval(tree.children[0], env)
-        if v == True:
+        if v is NA:
+            raise Exception("Runtime error: If condition evaluated to NA. Condition must evaluate to true or false")
+        elif v == True:
             env1 = self.SEval(tree.children[1], env)
             return self.SEval(tree, env1)
         elif v == False:
@@ -127,7 +129,9 @@ class Interpreter():
 
     def SEval_if(self, tree, env):
         v = self.Eval(tree.children[0], env)
-        if v == True:
+        if v is NA:
+            raise Exception("Runtime error: If condition evaluated to NA. Condition must evaluate to true or false")
+        elif v == True:
             self.SEval(tree.children[1],env)
         elif v == False and len(tree.children) == 3:
             self.SEval(tree.children[2],env)

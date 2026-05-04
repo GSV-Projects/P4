@@ -146,10 +146,8 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytab = { };
-url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv";
-mytab = mytab.read(url);
-snit = mytab.mean("PassengerId");
+
+x = NA + NA + 2;
 """
 
 from lark import Lark
