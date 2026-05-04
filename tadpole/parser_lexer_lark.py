@@ -1,4 +1,3 @@
-# "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt      gammel if statement
 grammar = r"""
 ?start: program
 
@@ -147,9 +146,10 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-
-x = NA+1;
-
+mytab = { };
+url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv";
+mytab = mytab.read(url);
+snit = mytab.mean("PassengerId");
 """
 
 from lark import Lark
@@ -168,6 +168,6 @@ result = transformtree(parsetree)
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
 
-Typechecker().check_p(result)
+#Typechecker().check_p(result)
 fortolker = Interpreter()
 fortolker.Eval_P(result)

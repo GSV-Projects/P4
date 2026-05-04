@@ -13,12 +13,20 @@ class Interpreter():
     # Initialize table of predefined functions (called with dot)
     def init_ptable(self):
         return {
-            "mean": Table.mean,
-            "first": Table.first,
-            "last": Table.last,
-            "sum": Table.sum
+            "read":         Table.read,
+            "mean" :        Table.mean,
+            "first" :       Table.first,
+            "last" :        Table.last,
+            "sum" :         Table.sum,
+            "frequency" :   Table.frequency,
+            "filter" :      Table.filter,
+            "median" :      Table.median,
+            "lowerq" :      Table.lowerq,
+            "upperq" :      Table.upperq,
+            "min" :         Table.min,
+            "max" :         Table.max,
+            "span" :        Table.span
         }
-
 
     # --- Run program ---
     def Eval_P(self, p):
@@ -28,23 +36,20 @@ class Interpreter():
             else:
                 self.SEval(line, self.vtable)
 
-        print("Elavator ftable:", self.ftable)
-        print("Elavator vtable:", self.vtable)
+        print("Evaluator ftable:", self.ftable)
+        print("Evaluator vtable:", self.vtable)
 
     # Handles the call of predefined dot functions
-    def Eval_dot_call(self, tree, env):
+    def Eval_dot(self, tree, env):
         # Looks up the table in environment and the name of the function
         table = self.lookup(tree.children[0].value, env) # Gets the table from vtable
         method_name = tree.children[1].children[0].value # Gets the name of the method called
 
         args = [] # Will hold all params for the called method
 
-        
         for a in tree.children[1].children[1:]:
-            if isinstance(a, Token) and a.type == 'IDENT':
-                args.append(a.value)
-            else:
                 args.append(self.Eval(a, env))
+        
         if method_name in self.ptable:
             return self.ptable[method_name](table, *args)
         else:
@@ -177,8 +182,6 @@ class Interpreter():
         
 
     def lookup(self, token, env):
-        print("token", token)
-        print("envb", env)
         if token in env:
             return env[token]
         else:
@@ -204,7 +207,7 @@ class Interpreter():
         if token.type == 'FLOAT':
             return float(token)
         if token.type == 'STRING':
-            return str(token)
+            return str(token)[1:-1]
         if token.type == 'FALSE':
             return False
         if token.type == 'TRUE':
