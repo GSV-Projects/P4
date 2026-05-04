@@ -34,7 +34,7 @@ class MyTrans(Transformer):
 # Statements
 
     def method_call(self, c):
-        return Tree("dot_call", c)    
+        return Tree("dot", c)    
     
     def assign(self, c):
         return Tree("assign", c)

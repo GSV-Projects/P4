@@ -1,4 +1,3 @@
-# "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt      gammel if statement
 grammar = r"""
 ?start: program
 
@@ -147,13 +146,8 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-
-function myfunc(int x) returns int {
-     return x;
-}
-
-x = myfunc(2);
-
+array = [1,2,2];
+array[NA] = 2;
 """
 
 from lark import Lark
@@ -172,6 +166,6 @@ result = transformtree(parsetree)
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
 
-Typechecker().check_p(result)
+#Typechecker().check_p(result)
 fortolker = Interpreter()
 fortolker.Eval_P(result)
