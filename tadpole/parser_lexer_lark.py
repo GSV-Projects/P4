@@ -146,8 +146,8 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-
-x = NA + NA + 2;
+array = [1,2,2];
+array[NA] = 2;
 """
 
 from lark import Lark

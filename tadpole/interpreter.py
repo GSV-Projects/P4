@@ -136,13 +136,11 @@ class Interpreter():
         elif v == False and len(tree.children) == 3:
             self.SEval(tree.children[2],env)
         
-    # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement"
     def SEval_then(self, tree, env):
         for child in tree.children:
             self.SEval(child, env)
 
 
-    # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement
     def SEval_else(self, tree, env):
         for child in tree.children:
             self.SEval(child, env)
@@ -153,11 +151,14 @@ class Interpreter():
         arr = self.lookup(name, env) 
         i = self.Eval(tree.children[1], env)
         v = self.Eval(tree.children[2], env)
-        if (i > 0 and i <= len(arr)):
-            arr[i-1] = v
-            env[name] = arr
+        if (i is not NA):
+            if (i > 0 and i <= len(arr)):
+                arr[i-1] = v
+                env[name] = arr
+            else:
+                raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
         else:
-            raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
+            raise Exception("Index cannot be NA")
 
     def SEval_call(self, tree, env):
         func = self.lookup(tree.children[0].value, self.ftable)
