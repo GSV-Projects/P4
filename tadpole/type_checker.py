@@ -1,5 +1,7 @@
 from lark import Lark, Transformer, v_args, Tree, Token
 import copy
+class NA_exception(Exception):
+    print("caugt NA")
 
 class Typechecker():
     def __init__(self):
@@ -41,6 +43,8 @@ class Typechecker():
             return bool
         if token.type == 'TYPE_TABLE' or token.type == 'tbl':
             return 'tbl'
+        if token.type == 'NA':
+            raise NA_exception
         return 'unknown type shi'
 
 
@@ -186,12 +190,17 @@ class Typechecker():
         
         left = node.children[0]
         right = node.children[1]
-
-        t1 = self.check(left, env, RL)
+        try:
+            t1 = self.check(left, env, RL)
+        except NA_exception:
+            t1 = "kage"
         t2 = self.check(right, env, RL)
 
         # If both arguments are of type int, the resulting value is an int
-        if t1 == int and t2 == int:
+        if (t1 == int or "kage") and t2 == int:
+            return int
+
+        elif t1 == int and t2 == int:
             return int
         # If just one of the arguments is of type float, the resulting value is a float
         elif t1 in (int, float) and t2 in (int, float):
@@ -303,7 +312,7 @@ class Typechecker():
 
         # If indexing was done using an int, proceed with the type of the array, otherwise, raise exception
         if type_idx == int:
-            return type_id
+            return type_id[0]
         else: 
             raise Exception(f'Did not parse an integer for array indexing')
 
@@ -359,7 +368,8 @@ class Typechecker():
             raise Exception("function can't have an empty body")
             
         self.check(body, vtable_local, RL) # Checks the body of the function with the local variable enviroment
-
+        RL["R"] = None
+    
 
     def check_body(self, node, env, RL):
         # "check_body" is used for checking the body of a function
@@ -400,7 +410,7 @@ class Typechecker():
             
         return return_type
     
-    def check_dot(self, node, env, RL):
+    def check_dot_call(self, node, env, RL):
         # The leftmost node of the children is the name of which variable the dot funtions is called upon
         left = node.children[0]
         # The rest of the children are the call node(s), that hold the predef. func. called and the params

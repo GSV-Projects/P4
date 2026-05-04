@@ -6,7 +6,7 @@ program: (stmt | def)*
 
 ?stmt: IDENT "=" rvalue ";"                      -> assign
      | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
-     | call ";"                                  -> func_call
+     | call ";"                                  
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop

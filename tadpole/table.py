@@ -5,7 +5,7 @@ class Table():
     def __repr__(self):
         return f"{self.columns}"
         
-    # col (array?) - returns a column requested by string name
+    # array - returns a column requested by string name
     def getcol(self, column):
         col = self.columns[column]
         return col
@@ -50,14 +50,21 @@ class Table():
         pass
 
     # tbl - returns the cleaned versoin of the same table, excluding the given column
-    def filter(self, column):
+    def filter(self, column = None):
         new_table = {}
-        for col in self.columns:
-            if col == column:
-                pass
-            else:
-                new_table.update({col : self.columns[col]})
-        return new_table
+
+        # for hver række (index)
+        for i in len(self.columns.column):
+            for col in self.columns:
+                if col[i] is NA:
+                    pass
+
+        # for col in self.columns:
+        #     if col == column:
+        #         pass
+        #     else:
+        #         new_table.update({col : self.columns[col]})
+        # return new_table
 
     # number - number at 50% of column summation
     def median(self, column):
