@@ -1,6 +1,7 @@
 import csv
 import pandas as pd
 import urllib.request
+from utils.NAliteral import NA
 
 class Table():
     def __init__(self, columns):
@@ -22,7 +23,6 @@ class Table():
         # Check if the CSV has headers for each column
         header_peek = pd.read_csv(url, nrows=1, header=None) # Read csv.
         first_row = header_peek.iloc[0].tolist() # First row, should hold string of headers.
-        print(first_row)
         has_header = all(isinstance(v, (str)) for v in first_row)
         if has_header:
             df = pd.read_csv(url)
@@ -92,6 +92,18 @@ class Table():
     # var - numeral difference from min to max value
     def span(self, column):
         pass
+
+    # column - rename the key of a given column
+    def rename(self, column, name):
+        if column not in self.columns:
+            raise Exception(f"Column '{column}' does not exist")
+        self.columns = {
+            name if k == column else k: v 
+            for k, v in self.columns.items()}
+        return self
+        
+
+
     
 #columns = 0
 #data = Table(columns)

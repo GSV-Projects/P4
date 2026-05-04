@@ -25,7 +25,8 @@ class Interpreter():
             "upperq" :      Table.upperq,
             "min" :         Table.min,
             "max" :         Table.max,
-            "span" :        Table.span
+            "span" :        Table.span,
+            "rename" :      Table.rename
         }
 
     # --- Run program ---
@@ -47,13 +48,13 @@ class Interpreter():
 
         args = [] # Will hold all params for the called method
 
-        for a in tree.children[1].children[1:]:
-                args.append(self.Eval(a, env))
-        
-        if method_name in self.ptable:
-            return self.ptable[method_name](table, *args)
-        else:
+        if method_name not in self.ptable:
             raise Exception(f'Tried to call function {method_name}, which does not exist')
+        
+        for a in tree.children[1].children[1:]:
+            args.append(self.Eval(a, env))
+            
+        return self.ptable[method_name](table, *args)
 
     def FEval(self, declaration, env):
         method_name = f'FEval_{declaration.data}' # Accessing top node
@@ -93,12 +94,10 @@ class Interpreter():
         # Check if the rvalue is a table node
         if isinstance(type, Tree) and type.data == "table":
             env[name] = self.Eval_table(type, env)
-            print("evntest", env)
             return
         
         v = self.Eval(tree.children[1], env)
         env[tree.children[0].value] = v
-        print("evntest", env)
 
     def Eval_table(self, tree, env):
         columns = {}

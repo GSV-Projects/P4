@@ -149,7 +149,7 @@ code = """
 mytab = { };
 url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv";
 mytab = mytab.read(url);
-snit = mytab.mean("PassengerId");
+col = mytab.rename("PassengerId", "kat");
 """
 
 from lark import Lark
