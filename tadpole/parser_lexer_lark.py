@@ -169,4 +169,4 @@ print("AST \n", ast.pretty())
 
 #Typechecker().check_p(ast)
 fortolker = Interpreter()
-fortolker.Eval_P(ast)
+fortolker.PEval(ast)

@@ -30,7 +30,7 @@ class Interpreter():
         }
 
     # --- Run program ---
-    def Eval_P(self, p):
+    def PEval(self, p):
         for line in p.children:
             if ((line.data == "func_def") or (line.data == "func_def_ret")):
                 self.FEval(line, self.env_v, self.env_p)
