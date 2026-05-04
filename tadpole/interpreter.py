@@ -26,7 +26,9 @@ class Interpreter():
             "min" :         Table.min,
             "max" :         Table.max,
             "span" :        Table.span,
-            "rename" :      Table.rename
+            "rename" :      Table.rename,
+            "sort" :        Table.sort,
+            "sortcol":      Table.sortcol
         }
 
     # --- Run program ---
@@ -331,7 +333,7 @@ class Interpreter():
         return result
 
     # Handles the call of predefined dot functions
-    def Eval_dot_call(self, tree, env):
+    def Eval_dot(self, tree, env):
         # Looks up the table in environment and the name of the function
         table = self.lookup(tree.children[0].value, env) # Gets the table from vtable
         method_name = tree.children[1].children[0].value # Gets the name of the method called
@@ -381,7 +383,7 @@ class Interpreter():
         if token.type == 'FLOAT':
             return float(token)
         if token.type == 'STRING':
-            return str(token)
+            return str(token)[1:-1]
         if token.type == 'FALSE':
             return False
         if token.type == 'TRUE':

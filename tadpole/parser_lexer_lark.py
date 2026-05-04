@@ -146,9 +146,9 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 mytab = { };
-url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv";
+url = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/mpg.csv";
 mytab = mytab.read(url);
-col = mytab.rename("PassengerId", "kat");
+sorted = mytab.sort("origin");
 """
 
 from lark import Lark

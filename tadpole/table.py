@@ -15,6 +15,7 @@ class Table():
         #Check if the URL is viable and working.
         if not url != "":
             raise Exception("URL cannot be empty")
+        print("Her", url)
         try: # Establish connection to check validity of URL.
             urllib.request.urlopen(url, timeout=5) 
         except urllib.error.URLError as e:
@@ -29,7 +30,10 @@ class Table():
         else:
             df = pd.read_csv(url, header=None)
             # If columns have no header, create customs in col1, col2... format
-            df.columns = [f"col{i+1}" for i in range(len(df.columns))] 
+            df.columns = [f"col{i+1}" for i in range(len(df.columns))]
+        df.fillna(NA)
+
+
 
         # Save the CSV columns wise to the columns of the object, and return.
         self.columns = df.to_dict(orient="list")
@@ -101,10 +105,30 @@ class Table():
             name if k == column else k: v 
             for k, v in self.columns.items()}
         return self
-        
-
-
     
+    def sort(self, column):
+        if column not in self.columns:
+            raise Exception(f"Column '{column}' does not exist")
+    
+        col = self.columns[column]
+
+        if all(isinstance(v, (int, float)) for v in col):
+            sorted_indices = sorted(range(len(col)), key=lambda i: col[i])
+            self.columns = {k: [v[i] for i in sorted_indices] for k, v in self.columns.items()}
+            return self
+        try:
+            col_numeric = [float(v) if v not in (None, "?", "") else None for v in col]
+            sorted_indices = sorted(range(len(col_numeric)), key=lambda i: (col_numeric[i] is None, col_numeric[i] or 0))
+        except (ValueError, TypeError):
+            raise Exception(f"Column '{column}' cannot be sorted")
+        self.columns = {k: [v[i] for i in sorted_indices] for k, v in self.columns.items()}
+        return
+              
+    def sortcol(self, column):
+        if column not in self.columns:
+            raise Exception(f"Column '{column}' does not exist")
+
+        return sorted(self.columns[column])
 #columns = 0
 #data = Table(columns)
 #data.read('https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv')
