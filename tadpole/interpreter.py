@@ -136,7 +136,7 @@ class Interpreter():
         env_v_copy = copy.deepcopy(def_env_v)
         local_env = self.bind(params, tree.children[1:], env_v_copy, caller_env_v)
         func_tuple = (body, params, local_env, def_env_p)
-        self.env_p[tree.children[0].value] = func_tuple # Replace global env_p definition with new func tuple
+        self.env_p[tree.children[0].value] = func_tuple # Replace global env_p definition with new func tuple for possibility of recursion
         result = self.SEval(body, local_env, def_env_p)
         self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
         return result

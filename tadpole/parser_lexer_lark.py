@@ -8,15 +8,15 @@ program: (stmt | def)*
      | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
      | call ";"                                  
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
-     | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
+     | "if" "(" expr ")" ifthen (ifelse)?        -> if_stmt
      | STOP ";"                                  -> stop
      | "return" expr ";"                         -> return_stmt
 
-?ifthen:  "then" "{" stmt* "}"                     -> then
-?ifelse:  "else" "{" stmt* "}"                     -> else
+?ifthen:  "then" "{" stmt* "}"                   -> then
+?ifelse:  "else" "{" stmt* "}"                   -> else
 
-?rvalue: "[" (expr ("," expr)*)? "]"              -> array
-       | IDENT "." call ("." call)*               -> method_call
+?rvalue: "[" (expr ("," expr)*)? "]"             -> array
+       | IDENT "." call ("." call)*              -> method_call
        | table
        | expr
 
@@ -24,9 +24,9 @@ program: (stmt | def)*
        
 ?column: ( COLUMN ":" "[" column_content "]" ";" )      -> column
 
-?column_content: (expr ("," expr)*)?                   -> array
+?column_content: (expr ("," expr)*)?                    -> array
 
-?call: IDENT "(" (expr ("," expr)*)? ")"               -> func_call
+?call: IDENT "(" (expr ("," expr)*)? ")"                -> func_call
 
 ?def: "function" IDENT "(" param ")" body                   -> func_def
     | "function" IDENT "(" param ")" "returns" type body    -> func_def_ret
@@ -77,7 +77,7 @@ param: (param_item ("," param_item)*)?
            | term
 
 ?term: call                                
-     | IDENT "[" expr "]"                  -> array_indexing
+     | IDENT "[" expr "]"               -> array_indexing
      | IDENT
      | FLOAT
      | INT
@@ -148,7 +148,7 @@ STRING: /"([^"\\]|\\.)*"/
 code = """
 a = 5;
 
-function gcd(int a, int b) returns int {
+function gcd(int a, float b) returns int {
      j = a;
      return j;
      
