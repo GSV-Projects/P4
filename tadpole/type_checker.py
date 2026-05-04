@@ -11,23 +11,23 @@ class Typechecker():
             "R" : None,
             "L" : False
         }
-        self.ptable = { # "name" : (input type, (parameters), return type)
-            "getcol":       ('tbl', (str,), []),
-            "getfirst":     ('tbl', (), []),
-            "getlast":      ('tbl', (), []),
-            "mean" :        ('tbl', (str,), float),
-            "first" :       ('tbl', (str,), ),
-            "last" :        ('tbl', (str,), ),
-            "sum" :         ('tbl', (str,), float),
-            "frequency" :   ('tbl', (str,), float),
-            "filter" :      ('tbl', (str,), 'tbl'),
-            "median" :      ('tbl', (str,), float),
-            "lowerq" :      ('tbl', (str,), float),
-            "upperq" :      ('tbl', (str,), float),
-            "min" :         ('tbl', (str,), float),
-            "max" :         ('tbl', (str,), float),
-            "span" :        ('tbl', (str,), float)
-        }
+        #self.ptable = { # "name" : (input type, (parameters), return type)
+        #    "getcol":       ('tbl', (str,), []),
+        #    "getfirst":     ('tbl', (), []),
+        #    "getlast":      ('tbl', (), []),
+        #    "mean" :        ('tbl', (str,), float),
+        #    "first" :       ('tbl', (str,), ),
+        #    "last" :        ('tbl', (str,), ),
+        #    "sum" :         ('tbl', (str,), float),
+        #    "frequency" :   ('tbl', (str,), float),
+        #    "filter" :      ('tbl', (str,), 'tbl'),
+        #    "median" :      ('tbl', (str,), float),
+        #    "lowerq" :      ('tbl', (str,), float),
+        #    "upperq" :      ('tbl', (str,), float),
+        #    "min" :         ('tbl', (str,), float),
+        #    "max" :         ('tbl', (str,), float),
+        #    "span" :        ('tbl', (str,), float)
+        #}
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
     def read_token(self, token, env):
@@ -410,7 +410,7 @@ class Typechecker():
             
         return return_type
     
-    def check_dot_call(self, node, env, RL):
+    def check_dot(self, node, env, RL):
         # The leftmost node of the children is the name of which variable the dot funtions is called upon
         left = node.children[0]
         # The rest of the children are the call node(s), that hold the predef. func. called and the params

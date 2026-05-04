@@ -149,10 +149,15 @@ STRING: /"([^"\\]|\\.)*"/
 code = """
 mytab = {
 col1 : ["hej", "lol", "å"];
-col2 : [3, 2, 5];
-col3 : [1.1, 2.2];
+col2 : [3, 4, 5, 5, 6, 2];
+col3 : [1.1, 2.2, 3.3];
 };
-a = mytab.span(col2);
+
+name = "col4";
+arr = [1,2,3,4];
+
+newtab = mytab.append(name, arr);
+
 """
 
 from lark import Lark
@@ -171,6 +176,6 @@ result = transformtree(parsetree)
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
 
-Typechecker().check_p(result)
+#Typechecker().check_p(result)
 fortolker = Interpreter()
 fortolker.Eval_P(result)

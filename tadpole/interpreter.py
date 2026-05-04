@@ -27,7 +27,9 @@ class Interpreter():
             "upperq" :      Table.upperq,
             "min" :         Table.min,
             "max" :         Table.max,
-            "span" :        Table.span
+            "span" :        Table.span,
+            "append":       Table.append,
+            "remove":       Table.remove
         }
 
     # --- Run program ---
@@ -211,7 +213,7 @@ class Interpreter():
         if token.type == 'FLOAT':
             return float(token)
         if token.type == 'STRING':
-            return str(token)
+            return str(token)[1:-1]
         if token.type == 'FALSE':
             return False
         if token.type == 'TRUE':
