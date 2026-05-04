@@ -1,5 +1,7 @@
 from lark import Lark, Transformer, v_args, Tree, Token
 from table import Table
+from utils.returnClass import return_value
+from utils.NAliteral import NA
 import copy, math
 
 class Interpreter():
@@ -91,10 +93,12 @@ class Interpreter():
         # Check if the rvalue is a table node
         if isinstance(type, Tree) and type.data == "table":
             env[name] = self.Eval_table(type, env)
+            print("evntest", env)
             return
         
         v = self.Eval(tree.children[1], env)
         env[tree.children[0].value] = v
+        print("evntest", env)
 
     def Eval_table(self, tree, env):
         columns = {}
@@ -106,7 +110,7 @@ class Interpreter():
 
     def SEval_return(self, tree, env):
         v = self.Eval(tree.children[0], env)
-        return v
+        raise return_value(v)
 
     def SEval_stop(self, tree, env):
         return self.SEval_stop(self,tree,env)
@@ -124,23 +128,21 @@ class Interpreter():
     def SEval_if(self, tree, env):
         v = self.Eval(tree.children[0], env)
         if v == True:
-            return self.SEval(tree.children[1],env)
+            self.SEval(tree.children[1],env)
         elif v == False and len(tree.children) == 3:
-            return self.SEval(tree.children[2],env)
+            self.SEval(tree.children[2],env)
         
     # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement"
     def SEval_then(self, tree, env):
         for child in tree.children:
-            result = self.SEval(child, env)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+            self.SEval(child, env)
+
 
     # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement
     def SEval_else(self, tree, env):
         for child in tree.children:
-            result = self.SEval(child, env)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+            self.SEval(child, env)
+
 
     def SEval_assign_index(self, tree, env):
         name = tree.children[0].value
@@ -158,7 +160,10 @@ class Interpreter():
         body, params, def_env, ftable = func
         env_1 = copy.deepcopy(def_env)
         env_2 = self.bind(params, tree.children[1:], env_1)
-        self.SEval(body, env_2)
+        try:
+            self.SEval(body, env_2)
+        except return_value as e:
+            return e.value
 
     def bind(self, formal_params, actual_params, env):
         actual_param_values = []
@@ -172,9 +177,7 @@ class Interpreter():
 
     def SEval_body(self, tree, env):
         for child in tree.children:
-            result = self.SEval(child, env)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+            self.SEval(child, env)
         print("local", env)
         
 
@@ -211,90 +214,138 @@ class Interpreter():
             return True
         if token.type == 'tbl':
             return 'tbl'
+        if token.type == "NA":
+            return NA
         return 'unknown type shi'
-    #  NEED TO ADD NA
 
     # Arithmetic evaluations
     def Eval_add(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 + v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 + v2
     
     def Eval_sub(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 - v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 - v2
 
     def Eval_mult(self, tree, env):
         v1 = self.Eval(tree.children[0], env) 
         v2 = self.Eval(tree.children[1], env)
-        return v1 * v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 * v2
     
     def Eval_div(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 / v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 / v2
         
     
     def Eval_mod(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        print("bro", v1, v2, v1 % v2)
-        return v1 % v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 % v2
     
     def Eval_exp(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1**v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 ** v2
     
     # Boolean evaluations
     def Eval_equal(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 == v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 == v2
     
     def Eval_neq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 != v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 != v2
     
     def Eval_less(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 < v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 < v2
     
     def Eval_less_eq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 <= v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 <= v2
 
     def Eval_greater(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 > v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 > v2
     
     def Eval_greater_eq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 >= v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 >= v2
     
     def Eval_and(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 and v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 and v2
     
     def Eval_or(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
-        return v1 or v2
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            return v1 or v2
     
     def Eval_not(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
-        return not v1
+        if (v1 is NA):
+            return NA
+        else:
+            return not v1
 
     def Eval_neg(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
-        return -v1
+        if (v1 is NA):
+            return NA
+        else:
+            return -v1
 
     def Eval_array(self, tree, env):
         values = []
@@ -307,7 +358,9 @@ class Interpreter():
         x = self.Eval(tree.children[0], env)
         i = self.Eval(tree.children[1], env)
 
-        if (i > 0 and i <= len(x)):
+        if (i is NA):
+            raise Exception(f"Index cannot be NA, must be an integer between: '{1}'-'{len(x)}'")
+        elif (i > 0 and i <= len(x)):
             return x[math.floor(i-1)] # Adjust for python zero indexing
         else:
             raise Exception(f"index out of bounds, must be between: '{1}'-'{len(x)}'")
@@ -318,10 +371,13 @@ class Interpreter():
         env_1 = copy.deepcopy(def_env)
         env_2 = self.bind(params, tree.children[1:], env_1)
         print("local env", env_2)
-        return self.SEval(body, env_2)
-    
+        try:
+            self.SEval(body, env_2)
+        except return_value as e:
+            return e.value
+
 
     def check_unknown(self, node, env):
         raise Exception(f"No handler for node type: '{node.data}'")
 
-#Interpreter().Eval_P(result)
+
