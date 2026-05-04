@@ -148,7 +148,7 @@ STRING: /"([^"\\]|\\.)*"/
 code = """
 a = 5;
 
-function gcd(int a, float b) returns int {
+function gcd(int a, int b) returns int {
      j = a;
      return j;
      

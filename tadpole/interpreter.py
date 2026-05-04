@@ -268,23 +268,22 @@ class Interpreter():
         self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
         return result
 
+    # Handles the call of predefined dot functions
     def Eval_dot_call(self, tree, env):
         # Looks up the table in environment and the name of the function
         table = self.lookup(tree.children[0].value, env) # Gets the table from vtable
         method_name = tree.children[1].children[0].value # Gets the name of the method called
 
-        args = [] # Will hold all params for the called method
-        
-        for a in tree.children[1].children[1:]:
-            if isinstance(a, Token) and a.type == 'IDENT':
-                args.append(a.value)
-            else:
-                args.append(self.Eval(a, env))
-        if method_name in self.env_pd:
-            return self.env_pd[method_name](table, *args)
-        else:
+        parameters = [] # Will hold all params for the called method
+
+        if (method_name not in self.env_pd):
             raise Exception(f'Tried to call function {method_name}, which does not exist')
-    
+        
+        for actual_params in tree.children[1].children[1:]:
+            parameters.append(self.Eval(actual_params, env))
+        execute = self.env_pd[method_name](table, *parameters)
+        return execute
+        
     def Eval_table(self, tree, env):
         columns = {}
         for column in tree.children:
