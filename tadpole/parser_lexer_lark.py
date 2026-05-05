@@ -7,15 +7,15 @@ program: (stmt | def)*
      | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
      | call ";"                                  
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
-     | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
+     | "if" "(" expr ")" ifthen (ifelse)?        -> if_stmt
      | STOP ";"                                  -> stop
      | "return" expr ";"                         -> return_stmt
 
-?ifthen:  "then" "{" stmt* "}"                     -> then
-?ifelse:  "else" "{" stmt* "}"                     -> else
+?ifthen:  "then" "{" stmt* "}"                   -> then
+?ifelse:  "else" "{" stmt* "}"                   -> else
 
-?rvalue: "[" (expr ("," expr)*)? "]"              -> array
-       | IDENT "." call ("." call)*               -> method_call
+?rvalue: "[" (expr ("," expr)*)? "]"             -> array
+       | IDENT "." call ("." call)*              -> method_call
        | table
        | expr
 
@@ -23,9 +23,9 @@ program: (stmt | def)*
        
 ?column: ( COLUMN ":" "[" column_content "]" ";" )      -> column
 
-?column_content: (expr ("," expr)*)?                   -> array
+?column_content: (expr ("," expr)*)?                    -> array
 
-?call: IDENT "(" (expr ("," expr)*)? ")"               -> func_call
+?call: IDENT "(" (expr ("," expr)*)? ")"                -> func_call
 
 ?def: "function" IDENT "(" param ")" body                   -> func_def
     | "function" IDENT "(" param ")" "returns" type body    -> func_def_ret
@@ -39,7 +39,6 @@ program: (stmt | def)*
      | TYPE_TABLE                               -> type_table
      | "clmn" "[" type "]"                      -> type_column
      | "[" type "]"                             -> type_array
-     | "clmn" "[" type "]"                      -> type_column
 
 param: (param_item ("," param_item)*)?
 
@@ -77,7 +76,7 @@ param: (param_item ("," param_item)*)?
            | term
 
 ?term: call                                
-     | IDENT "[" expr "]"                  -> array_indexing
+     | IDENT "[" expr "]"               -> array_indexing
      | IDENT
      | FLOAT
      | INT
@@ -146,8 +145,26 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-array = [1,2,2];
-array[NA] = 2;
+a = 5;
+
+b = 4;
+
+function gcd(int a, int j) returns int {
+     b = b - 1;
+     return b;
+     
+     if (b == 0) then {
+          return a;
+     } else {
+          return gcd(b, (a mod b));
+     }
+}
+
+a = 13;
+
+result1 = gcd(13, 3);
+result2 = gcd(13, 3);
+
 """
 
 from lark import Lark
@@ -161,11 +178,11 @@ def transformtree(tree):
 parser = Lark(grammar, parser="lalr", strict=True)
 
 parsetree = parser.parse(code)
-result = transformtree(parsetree)
+ast = transformtree(parsetree)
 
 print("Parse \n", parsetree.pretty())
-print("AST \n", result.pretty())
+print("AST \n", ast.pretty())
 
-#Typechecker().check_p(result)
+Typechecker().check_p(ast)
 fortolker = Interpreter()
-fortolker.Eval_P(result)
+fortolker.PEval(ast)
