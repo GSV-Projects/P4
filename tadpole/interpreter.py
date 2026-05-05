@@ -13,6 +13,9 @@ class Interpreter():
     # Initialize table of predefined functions (called with dot)
     def init_ptable(self):
         return {
+            "getcol":       Table.getcol,
+            "getfirst":     Table.getfirst,
+            "getlast":      Table.getlast,
             "read":         Table.read,
             "mean" :        Table.mean,
             "first" :       Table.first,
@@ -27,6 +30,8 @@ class Interpreter():
             "max" :         Table.max,
             "span" :        Table.span,
             "rename" :      Table.rename
+            "append":       Table.append,
+            "remove":       Table.remove
         }
 
     # --- Run program ---
@@ -97,38 +102,39 @@ class Interpreter():
         raise return_value(v)
 
     def SEval_stop(self, tree, env_v, env_p):
-        return self.SEval_stop(self, tree, env_v)
+        return 
     
     def SEval_while(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
+        print("children0", tree.children[0])
+        body = tree.children[1:]
         if v == True:
-            env1 = self.SEval(tree.children[1], env_v, env_p)
-            return self.SEval(tree, env1, env_p)
-        elif v == False:
-            return env_v
-        else:
-            raise Exception(f"variable not declared: '{tree}'")
+            for child in body:
+                result = self.SEval(child, env_v, env_p)
+                if (child.data == "stop"):
+                    return
+                elif (child.data == "return") or isinstance(result, (int, str, float, bool)):
+                    return result
+             
 
+            return self.SEval(tree, env_v, env_p)
+            
     def SEval_if(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
-        if v == True:
-            return self.SEval(tree.children[1], env_v, env_p)
+        if v is NA:
+            raise Exception("Runtime error: If condition evaluated to NA. Condition must evaluate to true or false")
+        elif v == True:
+            self.SEval(tree.children[1], env_v, env_p)
         elif v == False and len(tree.children) == 3:
-            return self.SEval(tree.children[2], env_v, env_p)
+            self.SEval(tree.children[2], env_v, env_p)
         
-    # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement"
     def SEval_then(self, tree, env_v, env_p):
         for child in tree.children:
-            result = self.SEval(child, env_v, env_p)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+            self.SEval(child, env_v, env_p)
 
-    # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement
     def SEval_else(self, tree, env_v, env_p):
         for child in tree.children:
-            result = self.SEval(child, env_v, env_p)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+             self.SEval(child, env_v, env_p)
 
     def SEval_assign_index(self, tree, env_v, env_p):
         name = tree.children[0].value
@@ -249,7 +255,7 @@ class Interpreter():
         else:
             return v1 < v2
     
-    def Eval_less_eq(self, tree, env):
+    def Eval_leq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
         if (v1 is NA or v2 is NA):
@@ -265,7 +271,7 @@ class Interpreter():
         else:
             return v1 > v2
     
-    def Eval_greater_eq(self, tree, env):
+    def Eval_geq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
         if (v1 is NA or v2 is NA):
