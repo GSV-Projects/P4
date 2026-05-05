@@ -1,4 +1,3 @@
-# "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt      gammel if statement
 grammar = r"""
 ?start: program
 
@@ -6,7 +5,7 @@ program: (stmt | def)*
 
 ?stmt: IDENT "=" rvalue ";"                      -> assign
      | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
-     | call ";"                                  -> func_call
+     | call ";"                                  
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" ifthen (ifelse)?   -> if_stmt
      | STOP ";"                                  -> stop
@@ -147,17 +146,8 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-
-x = 0;
-while (x < 5) do {
-     
-     x = x + 1;
-     
-     if (x > 2) then {
-          stop;
-     }
-}
-
+array = [1,2,2];
+array[NA] = 2;
 """
 
 from lark import Lark
@@ -176,6 +166,6 @@ result = transformtree(parsetree)
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
 
-Typechecker().check_p(result)
+#Typechecker().check_p(result)
 fortolker = Interpreter()
 fortolker.Eval_P(result)
