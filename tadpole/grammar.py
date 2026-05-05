@@ -144,45 +144,4 @@ STRING: /"([^"\\]|\\.)*"/
 %ignore WS
 """
 
-code = """
-a = 5;
 
-b = 4;
-
-function gcd(int a, int j) returns int {
-     b = b - 1;
-     return b;
-     
-     if (b == 0) then {
-          return a;
-     } else {
-          return gcd(b, (a mod b));
-     }
-}
-
-a = 13;
-
-result1 = gcd(13, 3);
-result2 = gcd(13, 3);
-
-"""
-
-from lark import Lark
-from parsertransformer import MyTrans
-from interpreter import Interpreter
-from type_checker import Typechecker
-
-def transformtree(tree):
-    return MyTrans().transform(tree)
-
-parser = Lark(grammar, parser="lalr", strict=True)
-
-parsetree = parser.parse(code)
-ast = transformtree(parsetree)
-
-print("Parse \n", parsetree.pretty())
-print("AST \n", ast.pretty())
-
-Typechecker().check_p(ast)
-fortolker = Interpreter()
-fortolker.PEval(ast)

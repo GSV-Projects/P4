@@ -1,5 +1,5 @@
 from lark import Lark, Transformer, v_args, Tree, Token
-from utils.NAliteral import na_type
+from .utils.NAliteral import na_type
 import copy
 
 class Typechecker():
@@ -49,6 +49,7 @@ class Typechecker():
 
  # --- Check program ---
     def check_p(self, c):
+        print(c)
         # Build ftable
         self.build_ft(c, self.vtable, self.RL)
 

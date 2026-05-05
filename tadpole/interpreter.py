@@ -1,7 +1,7 @@
 from lark import Tree, Token
-from table import Table
-from utils.returnClass import return_value
-from utils.NAliteral import NA
+from tadpole.table import Table
+from tadpole.utils.returnClass import return_value
+from tadpole.utils.NAliteral import NA
 import copy, math
 
 class Interpreter():
