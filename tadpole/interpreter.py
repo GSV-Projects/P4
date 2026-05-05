@@ -151,14 +151,11 @@ class Interpreter():
         arr = self.lookup(name, env) 
         i = self.Eval(tree.children[1], env)
         v = self.Eval(tree.children[2], env)
-        if (i is not NA):
-            if (i > 0 and i <= len(arr)):
-                arr[i-1] = v
-                env[name] = arr
-            else:
-                raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
+        if (i > 0 and i <= len(arr)):
+            arr[i-1] = v
+            env[name] = arr
         else:
-            raise Exception("Index cannot be NA")
+            raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
 
     def SEval_call(self, tree, env):
         func = self.lookup(tree.children[0].value, self.ftable)
