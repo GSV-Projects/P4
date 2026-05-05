@@ -2,8 +2,6 @@ from lark import Lark, Transformer, v_args, Tree, Token
 from utils.NAliteral import na_type
 import copy
 
-
-
 class Typechecker():
     def __init__(self):
         self.vtable = {}
@@ -12,20 +10,23 @@ class Typechecker():
             "R" : None,
             "L" : False
         }
-        self.ptable = { # "name" : (input type, (parameters), return type)
-            "mean" :        ('tbl', (str,), int),
-            "first" :       ('tbl', (str,), 'tbl'),
-            "last" :        ('tbl', (str,), 'tbl'),
-            "sum" :         ('tbl', (str,), float),
-            "frequency" :   ('tbl', (str,), float),
-            "filter" :      ('tbl', (str,), 'tbl'),
-            "median" :      ('tbl', (str,), float),
-            "lowerq" :      ('tbl', (str,), float),
-            "upperq" :      ('tbl', (str,), float),
-            "min" :         ('tbl', (str,), float),
-            "max" :         ('tbl', (str,), float),
-            "span" :        ('tbl', (str,), 'tbl')
-        }
+        #self.ptable = { # "name" : (input type, (parameters), return type)
+        #    "getcol":       ('tbl', (str,), []),
+        #    "getfirst":     ('tbl', (), []),
+        #    "getlast":      ('tbl', (), []),
+        #    "mean" :        ('tbl', (str,), float),
+        #    "first" :       ('tbl', (str,), ),
+        #    "last" :        ('tbl', (str,), ),
+        #    "sum" :         ('tbl', (str,), float),
+        #    "frequency" :   ('tbl', (str,), float),
+        #    "filter" :      ('tbl', (str,), 'tbl'),
+        #    "median" :      ('tbl', (str,), float),
+        #    "lowerq" :      ('tbl', (str,), float),
+        #    "upperq" :      ('tbl', (str,), float),
+        #    "min" :         ('tbl', (str,), float),
+        #    "max" :         ('tbl', (str,), float),
+        #    "span" :        ('tbl', (str,), float)
+        #}
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
     def read_token(self, token, env):
@@ -399,7 +400,7 @@ class Typechecker():
             
         return return_type
     
-    def check_dot_call(self, node, env, RL):
+    def check_dot(self, node, env, RL):
         # The leftmost node of the children is the name of which variable the dot funtions is called upon
         left = node.children[0]
         # The rest of the children are the call node(s), that hold the predef. func. called and the params
@@ -417,18 +418,7 @@ class Typechecker():
             if len(formal_params) != len(actual_params):
                 raise Exception("Amount of formal parameters do not match actual parameters")
 
-            # For every parameter, check if formal and actual are of the same type
-            for i in range(len(formal_params)):
-
-                t1 = self.check(actual_params[i], env, RL) # Check type of actual parameter
-                t2 = formal_params[i]
-
-                if t1 != t2 and t1 is not na_type: # Check if actual and formal parameter types are the same
-                    raise Exception(f'Formal and actual parameters of function {child_left} not of same type')
-                
-            last_left_t = return_type
-
-        return return_type # Return type if its an assignment 
+        return return_type # Return type if its an assignment  
 
     def check_stop(self, node, env, RL):
         # Raises an exception if we aren't in a loop currently

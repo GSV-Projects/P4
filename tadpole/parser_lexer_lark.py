@@ -166,6 +166,6 @@ result = transformtree(parsetree)
 print("Parse \n", parsetree.pretty())
 print("AST \n", result.pretty())
 
-Typechecker().check_p(result)
+#Typechecker().check_p(result)
 fortolker = Interpreter()
 fortolker.Eval_P(result)

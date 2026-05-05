@@ -13,6 +13,9 @@ class Interpreter():
     # Initialize table of predefined functions (called with dot)
     def init_ptable(self):
         return {
+            "getcol":       Table.getcol,
+            "getfirst":     Table.getfirst,
+            "getlast":      Table.getlast,
             "read":         Table.read,
             "mean" :        Table.mean,
             "first" :       Table.first,
@@ -25,7 +28,9 @@ class Interpreter():
             "upperq" :      Table.upperq,
             "min" :         Table.min,
             "max" :         Table.max,
-            "span" :        Table.span
+            "span" :        Table.span,
+            "append":       Table.append,
+            "remove":       Table.remove
         }
 
     # --- Run program ---
