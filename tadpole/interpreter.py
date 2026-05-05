@@ -118,20 +118,23 @@ class Interpreter():
         raise return_value(v)
 
     def SEval_stop(self, tree, env):
-        return self.SEval_stop(self,tree,env)
+        return 
     
     def SEval_while(self, tree, env):
         v = self.Eval(tree.children[0], env)
-        if v is NA:
-            raise Exception("Runtime error: If condition evaluated to NA. Condition must evaluate to true or false")
-        elif v == True:
-            env1 = self.SEval(tree.children[1], env)
-            return self.SEval(tree, env1)
-        elif v == False:
-            return env
-        else:
-            raise Exception(f"variable not declared: '{tree}'")
+        print("children0", tree.children[0])
+        body = tree.children[1:]
+        if v == True:
+            for child in body:
+                result = self.SEval(child, env)
+                if (child.data == "stop"):
+                    return
+                elif (child.data == "return") or isinstance(result, (int, str, float, bool)):
+                    return result
+             
 
+            return self.SEval(tree, env)
+            
     def SEval_if(self, tree, env):
         v = self.Eval(tree.children[0], env)
         if v is NA:
@@ -145,11 +148,9 @@ class Interpreter():
         for child in tree.children:
             self.SEval(child, env)
 
-
     def SEval_else(self, tree, env):
         for child in tree.children:
             self.SEval(child, env)
-
 
     def SEval_assign_index(self, tree, env):
         name = tree.children[0].value
@@ -300,7 +301,7 @@ class Interpreter():
         else:
             return v1 < v2
     
-    def Eval_less_eq(self, tree, env):
+    def Eval_leq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
         if (v1 is NA or v2 is NA):
@@ -316,7 +317,7 @@ class Interpreter():
         else:
             return v1 > v2
     
-    def Eval_greater_eq(self, tree, env):
+    def Eval_geq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
         if (v1 is NA or v2 is NA):
