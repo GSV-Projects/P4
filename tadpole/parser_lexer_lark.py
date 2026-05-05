@@ -145,10 +145,26 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytab = { };
-url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv";
-mytab = mytab.read(url);
-col = mytab.rename("PassengerId", "kat");
+a = 5;
+
+b = 4;
+
+function gcd(int a, int j) returns int {
+     b = b - 1;
+     return b;
+     
+     if (b == 0) then {
+          return a;
+     } else {
+          return gcd(b, (a mod b));
+     }
+}
+
+a = 13;
+
+result1 = gcd(13, 3);
+result2 = gcd(13, 3);
+
 """
 
 from lark import Lark
@@ -167,6 +183,6 @@ ast = transformtree(parsetree)
 print("Parse \n", parsetree.pretty())
 print("AST \n", ast.pretty())
 
-#Typechecker().check_p(ast)
+Typechecker().check_p(ast)
 fortolker = Interpreter()
 fortolker.PEval(ast)

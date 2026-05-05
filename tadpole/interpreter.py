@@ -1,4 +1,4 @@
-from lark import Lark, Transformer, v_args, Tree, Token
+from lark import Tree, Token
 from table import Table
 from utils.returnClass import return_value
 from utils.NAliteral import NA
@@ -92,8 +92,8 @@ class Interpreter():
         v = self.Eval(tree.children[1], env_v)
         env_v[tree.children[0].value] = v
 
-    def SEval_return(self, tree, env):
-        v = self.Eval(tree.children[0], env)
+    def SEval_return(self, tree, env_v, env_p):
+        v = self.Eval(tree.children[0], env_v)
         raise return_value(v)
 
     def SEval_stop(self, tree, env_v, env_p):
@@ -149,9 +149,12 @@ class Interpreter():
         local_env = self.bind(params, tree.children[1:], env_v_copy, caller_env_v)
         func_tuple = (body, params, local_env, def_env_p)
         self.env_p[tree.children[0].value] = func_tuple # Replace global env_p definition with new func tuple for possibility of recursion
-        result = self.SEval(body, local_env, def_env_p)
-        self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
-        return result
+        try:
+            self.SEval(body, local_env, def_env_p)
+            self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
+        except return_value as e:
+            self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
+            return e.value
 
     def SEval_body(self, tree, env_v, env_p):
         for child in tree.children:
@@ -326,9 +329,12 @@ class Interpreter():
         local_env = self.bind(params, tree.children[1:], env_v_copy, caller_env_v)
         func_tuple = (body, params, local_env, def_env_p)
         self.env_p[tree.children[0].value] = func_tuple # Replace global env_p definition with new func tuple
-        result = self.SEval(body, local_env, def_env_p)
-        self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
-        return result
+        try:
+            self.SEval(body, local_env, def_env_p)
+            self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
+        except return_value as e:
+            self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
+            return e.value
 
     # Handles the call of predefined dot functions
     def Eval_dot(self, tree, env):
