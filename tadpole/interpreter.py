@@ -29,7 +29,7 @@ class Interpreter():
             "min" :         Table.min,
             "max" :         Table.max,
             "span" :        Table.span,
-            "rename" :      Table.rename
+            "rename" :      Table.rename,
             "append":       Table.append,
             "remove":       Table.remove
         }
@@ -134,7 +134,7 @@ class Interpreter():
 
     def SEval_else(self, tree, env_v, env_p):
         for child in tree.children:
-             self.SEval(child, env_v, env_p)
+            self.SEval(child, env_v, env_p)
 
     def SEval_assign_index(self, tree, env_v, env_p):
         name = tree.children[0].value
