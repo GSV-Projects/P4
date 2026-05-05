@@ -145,25 +145,9 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-a = 5;
 
-b = 4;
-
-function gcd(int a, int j) returns int {
-     b = b - 1;
-     return b;
-     
-     if (b == 0) then {
-          return a;
-     } else {
-          return gcd(b, (a mod b));
-     }
-}
-
-a = 13;
-
-result1 = gcd(13, 3);
-result2 = gcd(13, 3);
+mytab = {col1: [1,2,3];
+          col2: [5, 6];};
 
 """
 

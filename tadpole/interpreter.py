@@ -212,15 +212,9 @@ class Interpreter():
         if (v1 is NA or v2 is NA):
             return NA
         else:
+            if (v2 == 0):
+                raise Exception(f"Division by zero not allowed!")
             return v1 / v2
-
-    def Eval_mod(self, tree, env):
-        v1 = self.Eval(tree.children[0], env)
-        v2 = self.Eval(tree.children[1], env)
-        if (v1 is NA or v2 is NA):
-            return NA
-        else:
-            return v1 % v2
     
     def Eval_exp(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
@@ -295,20 +289,29 @@ class Interpreter():
         else:
             return v1 or v2
     
-    def Eval_not(self, tree, env):
+    def Eval_mod(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
-        if (v1 is NA):
+        v2 = self.Eval(tree.children[1], env)
+        if (v1 is NA or v2 is NA):
             return NA
         else:
-            return not v1
+            return v1 % v2
+    
+    def Eval_not(self, tree, env):
+        v = self.Eval(tree.children[0], env)
+        if (v is NA):
+            return NA
+        else:
+            return not v
 
     def Eval_neg(self, tree, env):
-        v1 = self.Eval(tree.children[0], env)
-        if (v1 is NA):
+        v = self.Eval(tree.children[0], env)
+        if (v is NA):
             return NA
         else:
-            return -v1
+            return -v
 
+    # Arrays
     def Eval_array(self, tree, env):
         values = []
         for child in tree.children:
@@ -316,6 +319,7 @@ class Interpreter():
             values.append(v)
         return values
     
+    # Array indexing
     def Eval_index(self, tree, env):
         x = self.Eval(tree.children[0], env)
         i = self.Eval(tree.children[1], env)
@@ -359,12 +363,20 @@ class Interpreter():
         return execute
         
     def Eval_table(self, tree, env):
+        max_length = 0
+        lenghts = []
         columns = {}
         for column in tree.children:
             col_name = column.children[0].value
             col_values = self.Eval(column.children[1], env)
+            if (len(col_values) > max_length):
+                max_length = len(col_values)
             columns[col_name] = col_values
-        return Table(columns)
+            lenghts.append(len(col_values))
+        if all(v == max_length for v in lenghts):
+            return Table(columns)
+        else:
+            raise Exception
     
 # MISC EVALUATION
     def lookup(self, token, env):
