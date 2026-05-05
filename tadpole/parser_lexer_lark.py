@@ -1,4 +1,3 @@
-# "if" "(" expr ")" "then" "{" stmt* "}" ("else" "{" stmt* "}")?    -> if_stmt      gammel if statement
 grammar = r"""
 ?start: program
 
@@ -147,17 +146,8 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytab = {
-col1 : ["hej", "lol", "å"];
-col2 : [3, 4, 5, 5, 6, 2];
-col3 : [1.1, 2.2, 3.3];
-};
-
-name = "col4";
-arr = [1,2,3,4];
-
-newtab = mytab.append(name, arr);
-
+array = [1,2,2];
+array[NA] = 2;
 """
 
 from lark import Lark

@@ -16,6 +16,7 @@ class Interpreter():
             "getcol":       Table.getcol,
             "getfirst":     Table.getfirst,
             "getlast":      Table.getlast,
+            "read":         Table.read,
             "mean" :        Table.mean,
             "first" :       Table.first,
             "last" :        Table.last,
@@ -52,10 +53,8 @@ class Interpreter():
         args = [] # Will hold all params for the called method
 
         for a in tree.children[1].children[1:]:
-            if isinstance(a, Token) and a.type == 'IDENT':
-                args.append(a.value)
-            else:
                 args.append(self.Eval(a, env))
+        
         if method_name in self.ptable:
             return self.ptable[method_name](table, *args)
         else:
@@ -123,7 +122,9 @@ class Interpreter():
     
     def SEval_while(self, tree, env):
         v = self.Eval(tree.children[0], env)
-        if v == True:
+        if v is NA:
+            raise Exception("Runtime error: If condition evaluated to NA. Condition must evaluate to true or false")
+        elif v == True:
             env1 = self.SEval(tree.children[1], env)
             return self.SEval(tree, env1)
         elif v == False:
@@ -133,18 +134,18 @@ class Interpreter():
 
     def SEval_if(self, tree, env):
         v = self.Eval(tree.children[0], env)
-        if v == True:
+        if v is NA:
+            raise Exception("Runtime error: If condition evaluated to NA. Condition must evaluate to true or false")
+        elif v == True:
             self.SEval(tree.children[1],env)
         elif v == False and len(tree.children) == 3:
             self.SEval(tree.children[2],env)
         
-    # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement"
     def SEval_then(self, tree, env):
         for child in tree.children:
             self.SEval(child, env)
 
 
-    # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement
     def SEval_else(self, tree, env):
         for child in tree.children:
             self.SEval(child, env)
