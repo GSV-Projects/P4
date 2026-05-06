@@ -86,26 +86,24 @@ class Interpreter():
         Eval_method = getattr(self, method_name, self.check_unknown)
         return Eval_method(statement, env_v, env_p)
 
+    # Assign / declaration of variables
     def SEval_assign(self, tree, env_v, env_p):
-        name = tree.children[0].value
-        type = tree.children[1]
+        identifier = tree.children[0].value
+        value = tree.children[1]
+        v = self.Eval(value, env_v)
+        env_v[identifier] = v
 
-        # Check if the rvalue is a table node
-        if isinstance(type, Tree) and type.data == "table":
-            env_v[name] = self.Eval_table(type, env_v)
-            return
-        
-        v = self.Eval(tree.children[1], env_v)
-        env_v[tree.children[0].value] = v
-
+    # Return statement
     def SEval_return(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
         raise return_value(v)
 
+    # Stop statement to be used in loops
     def SEval_stop(self, tree, env_v, env_p):
         raise stop
         
     
+    # While loop
     def SEval_while(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
         print("children0", tree.children[0])
@@ -115,9 +113,7 @@ class Interpreter():
                 try: 
                     self.SEval(child, env_v, env_p)
                 except stop:
-                    return
-
-            
+                    return            
             
     def SEval_if(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
@@ -128,19 +124,27 @@ class Interpreter():
         elif v == False and len(tree.children) == 3:
             self.SEval(tree.children[2], env_v, env_p)
         
+    # Then clause
     def SEval_then(self, tree, env_v, env_p):
         for child in tree.children:
             self.SEval(child, env_v, env_p)
 
+    # Else clause
     def SEval_else(self, tree, env_v, env_p):
         for child in tree.children:
             self.SEval(child, env_v, env_p)
 
+    # Assign indexing of arrays i.e. x[3] = 2;
     def SEval_assign_index(self, tree, env_v, env_p):
         name = tree.children[0].value
-        arr = self.lookup(name, env_v) 
+        arr = self.lookup(name, env_v)
+
         i = self.Eval(tree.children[1], env_v)
         v = self.Eval(tree.children[2], env_v)
+
+        if (v is NA):
+            raise Exception(f"Cannot index by NA value")
+
         if (i > 0 and i <= len(arr)):
             arr[i-1] = v
             env_v[name] = arr
@@ -212,15 +216,9 @@ class Interpreter():
         if (v1 is NA or v2 is NA):
             return NA
         else:
+            if (v2 == 0):
+                raise Exception(f"Division by zero not allowed!")
             return v1 / v2
-
-    def Eval_mod(self, tree, env):
-        v1 = self.Eval(tree.children[0], env)
-        v2 = self.Eval(tree.children[1], env)
-        if (v1 is NA or v2 is NA):
-            return NA
-        else:
-            return v1 % v2
     
     def Eval_exp(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
@@ -295,20 +293,29 @@ class Interpreter():
         else:
             return v1 or v2
     
-    def Eval_not(self, tree, env):
+    def Eval_mod(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
-        if (v1 is NA):
+        v2 = self.Eval(tree.children[1], env)
+        if (v1 is NA or v2 is NA):
             return NA
         else:
-            return not v1
+            return v1 % v2
+    
+    def Eval_not(self, tree, env):
+        v = self.Eval(tree.children[0], env)
+        if (v is NA):
+            return NA
+        else:
+            return not v
 
     def Eval_neg(self, tree, env):
-        v1 = self.Eval(tree.children[0], env)
-        if (v1 is NA):
+        v = self.Eval(tree.children[0], env)
+        if (v is NA):
             return NA
         else:
-            return -v1
+            return -v
 
+    # Arrays
     def Eval_array(self, tree, env):
         values = []
         for child in tree.children:
@@ -316,6 +323,7 @@ class Interpreter():
             values.append(v)
         return values
     
+    # Array indexing
     def Eval_index(self, tree, env):
         x = self.Eval(tree.children[0], env)
         i = self.Eval(tree.children[1], env)
@@ -364,6 +372,11 @@ class Interpreter():
             col_name = column.children[0].value
             col_values = self.Eval(column.children[1], env)
             columns[col_name] = col_values
+
+        lengths = [len(v) for v in columns.values()]
+        if len(set(lengths)) > 1:
+            raise Exception("Table columns must all have the same length")
+    
         return Table(columns)
     
 # MISC EVALUATION
