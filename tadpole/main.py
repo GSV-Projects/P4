@@ -8,7 +8,10 @@ from tadpole.type_checker import Typechecker
 
 
 code = """
-a = 5;
+a = 0;
+while (a < 15) do {
+    a = a + 1;
+}
 
 """
 

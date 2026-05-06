@@ -1,6 +1,7 @@
 from lark import Tree, Token
 from tadpole.table import Table
 from tadpole.utils.returnClass import return_value
+from tadpole.utils.stopClass import stop 
 from tadpole.utils.NAliteral import NA
 import copy, math
 
@@ -102,7 +103,8 @@ class Interpreter():
         raise return_value(v)
 
     def SEval_stop(self, tree, env_v, env_p):
-        return 
+        raise stop
+        
     
     def SEval_while(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
@@ -110,14 +112,12 @@ class Interpreter():
         body = tree.children[1:]
         if v == True:
             for child in body:
-                result = self.SEval(child, env_v, env_p)
-                if (child.data == "stop"):
+                try: 
+                    self.SEval(child, env_v, env_p)
+                except stop:
                     return
-                elif (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                    return result
-             
 
-            return self.SEval(tree, env_v, env_p)
+            
             
     def SEval_if(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
