@@ -43,7 +43,6 @@ class Typechecker():
         if token.type == 'TYPE_TABLE' or token.type == 'tbl':
             return 'tbl'
         if token.type == 'NA':
-            print("hello na")
             return na_type
         return 'unknown type shihahhaha'
 
@@ -243,6 +242,10 @@ class Typechecker():
         
         # Ensure that both argumentss are of type bool, otherwive, raise exception
         if (t1 == bool and t2 == bool):
+            return bool
+        elif (t1 is na_type and t2 == bool):
+            return bool
+        elif (t1 == bool and t2 == t1 is na_type):
             return bool
         else:
             raise Exception(f'Values {left.value} and {right.value} must be of type bool')

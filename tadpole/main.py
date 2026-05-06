@@ -8,11 +8,12 @@ from tadpole.type_checker import Typechecker
 
 
 code = """
-a = 0;
-while (a < 15) do {
-    a = a + 1;
-}
+    function factorial(int n) returns int {
+        if (n <= 1) then { return 1; }
+        return n * factorial(n - 1);
+    }
 
+    result = factorial(5);
 """
 
 def transformtree(tree):
