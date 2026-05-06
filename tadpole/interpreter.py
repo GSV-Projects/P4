@@ -102,7 +102,6 @@ class Interpreter():
     def SEval_stop(self, tree, env_v, env_p):
         raise stop
         
-    
     # While loop
     def SEval_while(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
@@ -113,7 +112,8 @@ class Interpreter():
                 try: 
                     self.SEval(child, env_v, env_p)
                 except stop:
-                    return            
+                    return    
+            self.SEval(tree, env_v, env_p)
             
     def SEval_if(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
