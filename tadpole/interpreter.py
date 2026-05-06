@@ -15,6 +15,7 @@ class Interpreter():
     def init_ptable(self):
         return {
             "read":         Table.read,
+            "replaceNA":    Table.replaceNAvalues,
             "getcol":       Table.getcol,
             "getfirst":     Table.getfirst,
             "getlast":      Table.getlast,
@@ -34,12 +35,15 @@ class Interpreter():
             "sort" :        Table.sort,
             "sortcol":      Table.sortcol,
             "round":        Table.round,
+            "roundcol":     Table.roundcol,
             "keys":         Table.keys,
             "length":       Table.lenCol,
-            "replaceNA":    Table.replaceNavalues
             "append":       Table.append,
             "remove":       Table.remove,
-            "mutate":       Table.mutate
+            "mutate":       Table.mutate,
+            "variance":     Table.variance,
+            "stddev":       Table.stddev,
+            "fwdfill":      Table.fwdfill
         }
 
     # --- Run program ---
@@ -385,7 +389,7 @@ class Interpreter():
         if (method_name not in self.env_pd):
             raise Exception(f'Tried to call function {method_name}, which does not exist')
         
-        expressions = {"equal", "not_equal", "less", "less_eq", "greater", "greater_eq", "and", "or", "not", 
+        expressions = {"equal", "neq", "less", "leq", "greater", "geq", "and", "or", "not", 
                        "add", "sub", "mult", "divide", "mod", "exp"}
 
         for actual_params in tree.children[1].children[1:]:

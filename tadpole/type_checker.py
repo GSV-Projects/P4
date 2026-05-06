@@ -10,23 +10,37 @@ class Typechecker():
             "R" : None,
             "L" : False
         }
-        self.ptable = { # "name" : (return type)
-            "mean" :        (int),
-            "first" :       ('tbl'),
-            "last" :        ('tbl'),
-            "sum" :         (float),
-            "frequency" :   (float),
-            "filter" :      ('tbl'),
-            "median" :      (float),
-            "lowerq" :      (float),
-            "upperq" :      (float),
-            "min" :         (float),
-            "max" :         (float),
-            "span" :        ('tbl'),
-            "read" :        ('tbl'),
-            "replaceNA":    ('tbl'),
-            "sort":         ('tbl'),
-            "sortcol":      ('tbl')
+        self.ptable = { 
+            "read":         ('tbl'),    # vent med + self
+            "replaceNA":    ('tbl'),    # self
+            "getcol":       ([]),       #
+            "getfirst":     ([]),       #
+            "getlast":      ([]),       #
+            "mean" :        (int),      # num - weird floats? str err
+            "head" :        ((int, float, str, bool)),  # 
+            "tail" :        ((int, float, str, bool)),  #
+            "sum" :         (float),    # num - str err
+            "frequency" :   (float),    #
+            "filter" :      ('tbl'),    # 
+            "median" :      (float),    # udeluk str
+            "lowerq" :      (float),    # -||-
+            "upperq" :      (float),    # -||-
+            "min" :         (float),    # -||-
+            "max" :         (float),    # -||-
+            "span" :        ('tbl'),    # -||-
+            "rename" :      ('tbl'),    # self
+            "sort" :        ('tbl'),    # validate column
+            "sortcol":      ([]),       # validate column
+            "round":        ('tbl'),    # self
+            "roundcol":     ([]),       # valid col
+            "keys":         ([]),       # vali tbl validate table
+            "length":       (int),      # måske ændre til at tage table istedet
+            "append":       ('tbl'),    #
+            "remove":       ('tbl'),    #
+            "mutate":       ('tbl'),    #
+            "variance":     (float),    #
+            "stddev":       (float),    #
+            "fwdfill":      ('tbl')     # ogs gerne for hele tbl
         }
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
@@ -57,8 +71,8 @@ class Typechecker():
         for statement in c.children:
             self.check(statement, self.vtable, self.RL)
 
-        print("type_checker ftable:", self.ftable)
-        print("type_checker vtable:", self.vtable)
+        #print("type_checker ftable:", self.ftable)
+        #print("type_checker vtable:", self.vtable)
 
     def build_ft(self, c, env, RL):
         for child in c.children:
@@ -329,10 +343,8 @@ class Typechecker():
 
             # Turn the use of dot-notation into an identifier that the array can be assigned to
             token = Token('IDENT', f'{table_id} {c_id.value}')
-            print(token)
             stmt = Tree("assign", [token, col])
             self.check(stmt, env, RL)
- 
 
         # Ending the check_function with setting the id == "tbl" since all tables would be of type "tbl"
         token = Token('IDENT', f'{table_id}')

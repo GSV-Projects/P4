@@ -145,6 +145,16 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
+mytab = {
+col1: [1, 2, 3, 6, 10];
+col2: [NA, 2.2, 3.3, NA, 5.0];
+col3: ["abe", "slange", "lllabel", "a", "b"];
+col4: [false, true, false, false, true];
+};
+
+x = [1,4,7];
+
+newtab = mytab.stddev("col1");
 """
 
 from lark import Lark

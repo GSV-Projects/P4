@@ -38,7 +38,7 @@ class Table():
         self.cleanValues(self.columns)
         return self
     
-    # Table - loops through each column and checks whether a value is NA
+    # tbl - loops through each column and checks whether a value is NA
     def cleanValues(self, columns):
         for column in columns:
             self.columns[column] = [self.replaceNaN(v) for v in self.columns[column]]
@@ -54,7 +54,6 @@ class Table():
         for key in self.columns[column]:
             if key == NA:
                 self.columns[column] = value
-        return self
         
     # array - Returns a column requested by string name
     def getcol(self, column):
@@ -154,7 +153,7 @@ class Table():
             if any(v is NA or v == value for v in row.values()):
                 continue
             # If an expr is given, and expr(row) returns False, goto next i
-            if expr is not None and not expr(row): # expr(row) is a lambda, returning a bool
+            if expr is not None and expr(row): # expr(row) is a lambda, returning a bool
                 continue
             # Otherwise, all is good, paste row into our new_table
             for col, v in row.items():
@@ -242,6 +241,11 @@ class Table():
         self.columns[column] = [round(v) for v in col]
         return self
 
+    def roundcol(self, column):
+        col = self.columns[column]
+        sorted_col = [round(v) for v in col]
+        return sorted_col
+    
     # column - rename the key of a given column
     def rename(self, column, name):
         if column not in self.columns:
@@ -265,14 +269,17 @@ class Table():
     
     # table - sort whole table from one column, numerically for numbers or
     # alphabetically for strings.
-    def sort(self, column):
-        if column not in self.columns:
-            raise Exception(f"Column '{column}' does not exist")
-        
+    def sort(self, column, o = None):
         col = self.columns[column]
 
         # Uses Python 'sorted' which takes the key 'lambda' to ensure it is sorted by values, not indecies
-        sorted_indices = sorted(range(len(col)), key=lambda i: col[i])
+        if((o == 'decr') or (o == 'decrease') or (o == 'd') or (o == True)):
+            # decreasing order
+            sorted_indices = sorted(range(len(col)), key=lambda i: col[i], reverse=True)
+        else: 
+            # increasing order
+            sorted_indices = sorted(range(len(col)), key=lambda i: col[i])
+     
         # Rebuild the table in new order
         self.columns = {k: [v[i] for i in sorted_indices] for k, v in self.columns.items()}
         return self
@@ -280,10 +287,8 @@ class Table():
     # array - given a column, returns an array of the column sorted
     # sorted numerically for numbers and alphabetically for strings.
     def sortcol(self, column):
-        if column not in self.columns:
-            raise Exception(f"Column '{column}' does not exist")
-
         return sorted(self.columns[column])
+    
     # tbl - Appends a given array to the table, wlong with the given name
     def append(self, array, key = None):
         new_table = dict(self.columns)
@@ -329,7 +334,7 @@ class Table():
     def variance(self, column):
         # Get values and intialise array for differences in mean and elements
         col = self.columns[column]
-        mean = self.mean(col)
+        mean = self.mean(column)
         deviations = []
         # For each column, square the difference. The sum of all these is the variance
         for val in col:
