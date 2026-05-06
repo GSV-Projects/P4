@@ -85,25 +85,23 @@ class Interpreter():
         Eval_method = getattr(self, method_name, self.check_unknown)
         return Eval_method(statement, env_v, env_p)
 
+    # Assign / declaration of variables
     def SEval_assign(self, tree, env_v, env_p):
-        name = tree.children[0].value
-        type = tree.children[1]
+        identifier = tree.children[0].value
+        value = tree.children[1]
+        v = self.Eval(value, env_v)
+        env_v[identifier] = v
 
-        # Check if the rvalue is a table node
-        if isinstance(type, Tree) and type.data == "table":
-            env_v[name] = self.Eval_table(type, env_v)
-            return
-        
-        v = self.Eval(tree.children[1], env_v)
-        env_v[tree.children[0].value] = v
-
+    # Return statement
     def SEval_return(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
         raise return_value(v)
 
+    # Stop statement to be used in loops
     def SEval_stop(self, tree, env_v, env_p):
         return 
     
+    # While loop
     def SEval_while(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
         print("children0", tree.children[0])
@@ -118,7 +116,8 @@ class Interpreter():
              
 
             return self.SEval(tree, env_v, env_p)
-            
+
+    # First part of the if statement   
     def SEval_if(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
         if v is NA:
@@ -128,19 +127,27 @@ class Interpreter():
         elif v == False and len(tree.children) == 3:
             self.SEval(tree.children[2], env_v, env_p)
         
+    # Then clause
     def SEval_then(self, tree, env_v, env_p):
         for child in tree.children:
             self.SEval(child, env_v, env_p)
 
+    # Else clause
     def SEval_else(self, tree, env_v, env_p):
         for child in tree.children:
             self.SEval(child, env_v, env_p)
 
+    # Assign indexing of arrays i.e. x[3] = 2;
     def SEval_assign_index(self, tree, env_v, env_p):
         name = tree.children[0].value
-        arr = self.lookup(name, env_v) 
+        arr = self.lookup(name, env_v)
+
         i = self.Eval(tree.children[1], env_v)
         v = self.Eval(tree.children[2], env_v)
+
+        if (v is NA):
+            raise Exception(f"Cannot index by NA value")
+
         if (i > 0 and i <= len(arr)):
             arr[i-1] = v
             env_v[name] = arr

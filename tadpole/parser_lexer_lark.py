@@ -146,9 +146,8 @@ STRING: /"([^"\\]|\\.)*"/
 
 code = """
 
-mytab = {col1: [1,2,3];
-          col2: [5, 6, 69];};
-
+x = [1, 2, 3];
+x[3] = 5;
 """
 
 from lark import Lark
