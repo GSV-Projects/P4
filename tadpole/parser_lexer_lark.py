@@ -145,10 +145,8 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytab = { };
-url = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/mpg.csv";
-mytab = mytab.read(url);
-sorted = mytab.sort("origin");
+a = 5;
+print(a);
 """
 
 from lark import Lark

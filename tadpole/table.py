@@ -9,7 +9,7 @@ class Table():
     
     def __repr__(self):
         return f"{self.columns}"
-    
+
     # Method that reads from a URL and saves it in the table object.
     def read(self, url):
         #Check if the URL is viable and working.
@@ -31,13 +31,23 @@ class Table():
             df = pd.read_csv(url, header=None)
             # If columns have no header, create customs in col1, col2... format
             df.columns = [f"col{i+1}" for i in range(len(df.columns))]
-        df.fillna(NA)
-
-
 
         # Save the CSV columns wise to the columns of the object, and return.
         self.columns = df.to_dict(orient="list")
+        self.cleanValues(self.columns)
         return self
+    
+    # Table - loops through each column and checks whether a value is NA
+    def cleanValues(self, columns):
+        for column in columns:
+            self.columns[column] = [self.replaceNaN(v) for v in self.columns[column]]
+        return self
+
+    # var - replaces missing values with our own literal 'NA'
+    def replaceNaN(self, value):
+        if value in ('nan', 'NaN', 'na', 'NAN', 'NA', None, '', 'N/A') or value != value:  # value != value catches float NaN
+            return NA
+        return value
     
     # col (array?) - returns a column requested by string name
     def getcol(self, column):
@@ -97,6 +107,18 @@ class Table():
     def span(self, column):
         pass
 
+    # table - round a column to whole integers
+    def round(self, column):
+        if column not in self.columns:
+            raise Exception(f"Column '{column}' does not exist")
+        col = self.columns[column]
+    
+        if not all(isinstance(v, (int, float)) for v in col):
+            raise Exception(f"Column '{column}' must only consist of integers or floats")
+
+        self.columns[column] = [round(v) for v in col]
+        return self
+
     # column - rename the key of a given column
     def rename(self, column, name):
         if column not in self.columns:
@@ -106,29 +128,22 @@ class Table():
             for k, v in self.columns.items()}
         return self
     
+    # table - sort whole table from one column, numerically for numbers or
+    # alphabetically for strings.
     def sort(self, column):
         if column not in self.columns:
             raise Exception(f"Column '{column}' does not exist")
     
         col = self.columns[column]
 
-        if all(isinstance(v, (int, float)) for v in col):
-            sorted_indices = sorted(range(len(col)), key=lambda i: col[i])
-            self.columns = {k: [v[i] for i in sorted_indices] for k, v in self.columns.items()}
-            return self
-        try:
-            col_numeric = [float(v) if v not in (None, "?", "") else None for v in col]
-            sorted_indices = sorted(range(len(col_numeric)), key=lambda i: (col_numeric[i] is None, col_numeric[i] or 0))
-        except (ValueError, TypeError):
-            raise Exception(f"Column '{column}' cannot be sorted")
+        sorted_indices = sorted(range(len(col)), key=lambda i: col[i])
         self.columns = {k: [v[i] for i in sorted_indices] for k, v in self.columns.items()}
-        return
-              
+        return self
+        
+    # array - given a column, returns an array of the column sorted
+    # sorted numerically for numbers and alphabetically for strings.
     def sortcol(self, column):
         if column not in self.columns:
             raise Exception(f"Column '{column}' does not exist")
 
         return sorted(self.columns[column])
-#columns = 0
-#data = Table(columns)
-#data.read('https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv')
