@@ -49,6 +49,12 @@ class Table():
             return NA
         return value
     
+    def replaceNAvalues(self, column, value):
+        for key in self.columns[column]:
+            if key == NA:
+                self.columns[column] = value
+        return self
+    
     # col (array?) - returns a column requested by string name
     def getcol(self, column):
         pass
@@ -136,6 +142,7 @@ class Table():
 
         return keys
 
+    # var - returns the length of a given column / number of rows in a table
     def lenCol(self, column):
         return len(self.columns[column])
     
@@ -144,10 +151,12 @@ class Table():
     def sort(self, column):
         if column not in self.columns:
             raise Exception(f"Column '{column}' does not exist")
-    
+        
         col = self.columns[column]
 
+        # Uses Python 'sorted' which takes the key 'lambda' to ensure it is sorted by values, not indecies
         sorted_indices = sorted(range(len(col)), key=lambda i: col[i])
+        # Rebuild the table in new order
         self.columns = {k: [v[i] for i in sorted_indices] for k, v in self.columns.items()}
         return self
         

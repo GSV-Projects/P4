@@ -147,8 +147,9 @@ STRING: /"([^"\\]|\\.)*"/
 code = """
 mytab = {};
 mytab = mytab.read("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/mpg.csv");
-a = 5;
-print("sus");
+mytab = mytab.sort("horsepower");
+mytab = mytab.replaceNA("horsepower", 130);
+print(mytab);
 """
 
 from lark import Lark

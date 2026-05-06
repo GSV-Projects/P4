@@ -24,7 +24,10 @@ class Typechecker():
             "min" :         (float),
             "max" :         (float),
             "span" :        ('tbl'),
-            "read" :        ('tbl')
+            "read" :        ('tbl'),
+            "replaceNA":    ('tbl'),
+            "sort":         ('tbl'),
+            "sortcol":      ('tbl')
         }
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree

@@ -31,7 +31,8 @@ class Interpreter():
             "sortcol":      Table.sortcol,
             "round":        Table.round,
             "keys":         Table.keys,
-            "length":       Table.lenCol
+            "length":       Table.lenCol,
+            "replaceNA":    Table.replaceNavalues
         }
 
     # --- Run program ---
