@@ -125,6 +125,7 @@ class Typechecker():
     def check_sub(self, node, env, RL):     return self.check_additive(node, env, RL)
     def check_mod(self, node, env, RL):     return self.check_additive(node, env, RL)
     def check_mult(self, node, env, RL):    return self.check_additive(node, env, RL)
+    def check_exp(self, node, env, RL):     return self.check_additive(node, env, RL)
 
     def check_less(self, node, env, RL):    return self.check_comparison(node, env, RL)
     def check_greater(self, node, env, RL): return self.check_comparison(node, env, RL)
