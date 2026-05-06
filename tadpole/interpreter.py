@@ -363,20 +363,17 @@ class Interpreter():
         return execute
         
     def Eval_table(self, tree, env):
-        max_length = 0
-        lenghts = []
         columns = {}
         for column in tree.children:
             col_name = column.children[0].value
             col_values = self.Eval(column.children[1], env)
-            if (len(col_values) > max_length):
-                max_length = len(col_values)
             columns[col_name] = col_values
-            lenghts.append(len(col_values))
-        if all(v == max_length for v in lenghts):
-            return Table(columns)
-        else:
-            raise Exception
+
+        lengths = [len(v) for v in columns.values()]
+        if len(set(lengths)) > 1:
+            raise Exception("Table columns must all have the same length")
+    
+        return Table(columns)
     
 # MISC EVALUATION
     def lookup(self, token, env):
