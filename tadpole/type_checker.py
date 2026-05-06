@@ -329,7 +329,7 @@ class Typechecker():
             check_arr = self.check(arr, env, RL) # Get the type of the array held in current column
 
             # Create a custom tree structure to assign a custom type to a custom variable in our environment
-            col = Tree("column_sapling", f'{check_arr}')
+            col = Tree("column_sapling", check_arr)
 
             # Turn the use of dot-notation into an identifier that the array can be assigned to
             token = Token('IDENT', f'{table_id} {c_id.value}')

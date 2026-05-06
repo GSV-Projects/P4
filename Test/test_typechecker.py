@@ -419,4 +419,4 @@ def test_column_types():
     '''
 
     # Expected output
-    assert typechecker.vtable['mytab.col1'] == '[]'
+    assert typechecker.vtable['mytab name'] == [str]

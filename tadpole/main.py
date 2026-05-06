@@ -8,12 +8,7 @@ from tadpole.type_checker import Typechecker
 
 
 code = """
-    function factorial(int n) returns int {
-        if (n <= 1) then { return 1; }
-        return n * factorial(n - 1);
-    }
-
-    result = factorial(5);
+a = 3;
 """
 
 def transformtree(tree):
