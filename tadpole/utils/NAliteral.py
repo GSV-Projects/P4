@@ -3,3 +3,7 @@ class NA_literal():
         return "NA"
 
 NA = NA_literal()
+
+class NA_type():
+    pass
+na_type = NA_type()

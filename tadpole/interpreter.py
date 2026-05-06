@@ -1,4 +1,4 @@
-from lark import Lark, Transformer, v_args, Tree, Token
+from lark import Tree, Token
 from table import Table
 from utils.returnClass import return_value
 from utils.NAliteral import NA
@@ -14,9 +14,12 @@ class Interpreter():
     def init_ptable(self):
         return {
             "read":         Table.read,
+            "getcol":       Table.getcol,
+            "getfirst":     Table.getfirst,
+            "getlast":      Table.getlast,
             "mean" :        Table.mean,
-            "first" :       Table.first,
-            "last" :        Table.last,
+            "head" :        Table.head,
+            "tail" :        Table.tail,
             "sum" :         Table.sum,
             "frequency" :   Table.frequency,
             "filter" :      Table.filter,
@@ -33,10 +36,13 @@ class Interpreter():
             "keys":         Table.keys,
             "length":       Table.lenCol,
             "replaceNA":    Table.replaceNavalues
+            "append":       Table.append,
+            "remove":       Table.remove,
+            "mutate":       Table.mutate
         }
 
     # --- Run program ---
-    def Eval_P(self, p):
+    def PEval(self, p):
         for line in p.children:
             if ((line.data == "func_def") or (line.data == "func_def_ret")):
                 self.FEval(line, self.env_v, self.env_p)
@@ -98,43 +104,44 @@ class Interpreter():
         v = self.Eval(tree.children[1], env_v)
         env_v[tree.children[0].value] = v
 
-    def SEval_return(self, tree, env):
-        v = self.Eval(tree.children[0], env)
+    def SEval_return(self, tree, env_v, env_p):
+        v = self.Eval(tree.children[0], env_v)
         raise return_value(v)
 
     def SEval_stop(self, tree, env_v, env_p):
-        return self.SEval_stop(self, tree, env_v)
+        return 
     
     def SEval_while(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
+        print("children0", tree.children[0])
+        body = tree.children[1:]
         if v == True:
-            env1 = self.SEval(tree.children[1], env_v, env_p)
-            return self.SEval(tree, env1, env_p)
-        elif v == False:
-            return env_v
-        else:
-            raise Exception(f"variable not declared: '{tree}'")
+            for child in body:
+                result = self.SEval(child, env_v, env_p)
+                if (child.data == "stop"):
+                    return
+                elif (child.data == "return") or isinstance(result, (int, str, float, bool)):
+                    return result
+             
 
+            return self.SEval(tree, env_v, env_p)
+            
     def SEval_if(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
-        if v == True:
-            return self.SEval(tree.children[1], env_v, env_p)
+        if v is NA:
+            raise Exception("Runtime error: If condition evaluated to NA. Condition must evaluate to true or false")
+        elif v == True:
+            self.SEval(tree.children[1], env_v, env_p)
         elif v == False and len(tree.children) == 3:
-            return self.SEval(tree.children[2], env_v, env_p)
+            self.SEval(tree.children[2], env_v, env_p)
         
-    # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement"
     def SEval_then(self, tree, env_v, env_p):
         for child in tree.children:
-            result = self.SEval(child, env_v, env_p)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+            self.SEval(child, env_v, env_p)
 
-    # TODO: prollyy wrong at return hvert eneste child?, men skal måske return hvis der er et "return i if statement
     def SEval_else(self, tree, env_v, env_p):
         for child in tree.children:
-            result = self.SEval(child, env_v, env_p)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+            self.SEval(child, env_v, env_p)
 
     def SEval_assign_index(self, tree, env_v, env_p):
         name = tree.children[0].value
@@ -167,9 +174,12 @@ class Interpreter():
         local_env = self.bind(params, tree.children[1:], env_v_copy, caller_env_v)
         func_tuple = (body, params, local_env, def_env_p)
         self.env_p[tree.children[0].value] = func_tuple # Replace global env_p definition with new func tuple for possibility of recursion
-        result = self.SEval(body, local_env, def_env_p)
-        self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
-        return result
+        try:
+            self.SEval(body, local_env, def_env_p)
+            self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
+        except return_value as e:
+            self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
+            return e.value
 
     def SEval_body(self, tree, env_v, env_p):
         for child in tree.children:
@@ -269,7 +279,7 @@ class Interpreter():
         else:
             return v1 < v2
     
-    def Eval_less_eq(self, tree, env):
+    def Eval_leq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
         if (v1 is NA or v2 is NA):
@@ -285,7 +295,7 @@ class Interpreter():
         else:
             return v1 > v2
     
-    def Eval_greater_eq(self, tree, env):
+    def Eval_geq(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
         v2 = self.Eval(tree.children[1], env)
         if (v1 is NA or v2 is NA):
@@ -349,9 +359,12 @@ class Interpreter():
         local_env = self.bind(params, tree.children[1:], env_v_copy, caller_env_v)
         func_tuple = (body, params, local_env, def_env_p)
         self.env_p[tree.children[0].value] = func_tuple # Replace global env_p definition with new func tuple
-        result = self.SEval(body, local_env, def_env_p)
-        self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
-        return result
+        try:
+            self.SEval(body, local_env, def_env_p)
+            self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
+        except return_value as e:
+            self.env_p[tree.children[0].value] = old_func_tuple # Restore global env_p to old definition of func tuple
+            return e.value
 
     # Handles the call of predefined dot functions
     def Eval_dot(self, tree, env):
@@ -364,10 +377,23 @@ class Interpreter():
         if (method_name not in self.env_pd):
             raise Exception(f'Tried to call function {method_name}, which does not exist')
         
+        expressions = {"equal", "not_equal", "less", "less_eq", "greater", "greater_eq", "and", "or", "not", 
+                       "add", "sub", "mult", "divide", "mod", "exp"}
 
-        
         for actual_params in tree.children[1].children[1:]:
-            parameters.append(self.Eval(actual_params, env))
+            # If the argument is a boolean expression, consider the tree data, 
+            #   and ensure the expression is constructed using the above operators
+            if isinstance(actual_params, Tree) and actual_params.data in expressions:
+                # 
+                def make_lambda(expr_tree, captured_env):
+                    def row_expr(row):
+                        return self.Eval(expr_tree, {**captured_env, **row})
+                    return row_expr
+                parameters.append(make_lambda(actual_params, env))
+            
+            else:
+                parameters.append(self.Eval(actual_params, env))
+        
         execute = self.env_pd[method_name](table, *parameters)
         return execute
         
@@ -414,7 +440,6 @@ class Interpreter():
         if token.type == 'tbl':
             return 'tbl'
         return 'unknown type shi'
-    #  NEED TO ADD NA
 
     def check_unknown(self, node, env):
         raise Exception(f"No handler for node type: '{node.data}'")

@@ -145,11 +145,6 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-mytab = {};
-mytab = mytab.read("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/mpg.csv");
-mytab = mytab.sort("horsepower");
-mytab = mytab.replaceNA("horsepower", 130);
-print(mytab);
 """
 
 from lark import Lark
@@ -170,4 +165,4 @@ print("AST \n", ast.pretty())
 
 Typechecker().check_p(ast)
 fortolker = Interpreter()
-fortolker.Eval_P(ast)
+fortolker.PEval(ast)
