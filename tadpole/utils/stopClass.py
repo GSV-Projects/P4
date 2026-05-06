@@ -1,0 +1,2 @@
+class stop(Exception):
+    pass

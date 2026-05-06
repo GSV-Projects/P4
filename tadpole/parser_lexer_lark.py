@@ -145,9 +145,6 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-
-x = [1, 2, 3];
-x[3] = 5;
 """
 
 from lark import Lark

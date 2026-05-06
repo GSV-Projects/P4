@@ -43,8 +43,9 @@ class Typechecker():
         if token.type == 'TYPE_TABLE' or token.type == 'tbl':
             return 'tbl'
         if token.type == 'NA':
+            print("hello na")
             return na_type
-        return 'unknown type shi'
+        return 'unknown type shihahhaha'
 
 
  # --- Check program ---
