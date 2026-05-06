@@ -30,9 +30,7 @@ class MyTrans(Transformer):
     def param_item(self, c):
         return Tree("param_item", c)  # c[0] = type, c[1] = ident
 
-
 # Statements
-
     def method_call(self, c):
         return Tree("dot", c)    
     
@@ -93,7 +91,7 @@ class MyTrans(Transformer):
     
     # Misc expressions
     def exp_expr(self, c):
-        return Tree("e", c)
+        return Tree("exp", c)
     
     def unary_expr(self, c):
         return Tree("neg", [c[1]])

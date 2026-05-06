@@ -14,13 +14,13 @@ class Interpreter():
     # Initialize table of predefined functions (called with dot)
     def init_ptable(self):
         return {
+            "read":         Table.read,
             "getcol":       Table.getcol,
             "getfirst":     Table.getfirst,
             "getlast":      Table.getlast,
-            "read":         Table.read,
             "mean" :        Table.mean,
-            "first" :       Table.first,
-            "last" :        Table.last,
+            "head" :        Table.head,
+            "tail" :        Table.tail,
             "sum" :         Table.sum,
             "frequency" :   Table.frequency,
             "filter" :      Table.filter,
@@ -31,8 +31,15 @@ class Interpreter():
             "max" :         Table.max,
             "span" :        Table.span,
             "rename" :      Table.rename,
+            "sort" :        Table.sort,
+            "sortcol":      Table.sortcol,
+            "round":        Table.round,
+            "keys":         Table.keys,
+            "length":       Table.lenCol,
+            "replaceNA":    Table.replaceNavalues
             "append":       Table.append,
-            "remove":       Table.remove
+            "remove":       Table.remove,
+            "mutate":       Table.mutate
         }
 
     # --- Run program ---
@@ -152,6 +159,18 @@ class Interpreter():
             raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
 
     def SEval_call(self, tree, caller_env_v, env_p):
+        func_name = tree.children[0].value
+        if func_name == 'print':
+            args = []
+            for children in tree.children[1:]:
+                v = self.Eval(children, caller_env_v)
+                print(v)
+                if(v == 'sus'):
+                    self.amogus()
+                    return
+                args.append(v)
+            print(*args)
+            return
         func_tuple = self.lookup(tree.children[0].value, env_p)
         body, params, def_env_v, def_env_p = func_tuple
         old_func_tuple = copy.deepcopy(func_tuple)
@@ -171,6 +190,11 @@ class Interpreter():
             result = self.SEval(child, env_v, env_p)
             if (child.data == "return") or isinstance(result, (int, str, float, bool)):
                 return result
+            
+    def SEval_print(self, tree, env_v):
+        print(tree)
+        v = self.Eval(tree, env_v)
+        print(v)
         
 # EXPRESSION EVALUATION
     def Eval(self, tree, env):
@@ -361,8 +385,23 @@ class Interpreter():
         if (method_name not in self.env_pd):
             raise Exception(f'Tried to call function {method_name}, which does not exist')
         
+        expressions = {"equal", "not_equal", "less", "less_eq", "greater", "greater_eq", "and", "or", "not", 
+                       "add", "sub", "mult", "divide", "mod", "exp"}
+
         for actual_params in tree.children[1].children[1:]:
-            parameters.append(self.Eval(actual_params, env))
+            # If the argument is a boolean expression, consider the tree data, 
+            #   and ensure the expression is constructed using the above operators
+            if isinstance(actual_params, Tree) and actual_params.data in expressions:
+                # 
+                def make_lambda(expr_tree, captured_env):
+                    def row_expr(row):
+                        return self.Eval(expr_tree, {**captured_env, **row})
+                    return row_expr
+                parameters.append(make_lambda(actual_params, env))
+            
+            else:
+                parameters.append(self.Eval(actual_params, env))
+        
         execute = self.env_pd[method_name](table, *parameters)
         return execute
         
@@ -419,3 +458,25 @@ class Interpreter():
 
     def check_unknown(self, node, env):
         raise Exception(f"No handler for node type: '{node.data}'")
+    
+    def amogus(self):
+        a = '''⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣤⣤⣤⣤⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀ 
+        ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀ 
+        ⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠋⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠈⢻⣿⣿⡄⠀⠀⠀⠀ 
+        ⠀⠀⠀⠀⠀⠀⠀⣸⣿⡏⠀⠀⠀⣠⣶⣾⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣄⠀⠀⠀ 
+        ⠀⠀⠀⠀⠀⠀⠀⣿⣿⠁⠀⠀⢰⣿⣿⣯⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⢿⣷⡄⠀ 
+        ⠀⠀⣀⣤⣴⣶⣶⣿⡟⠀⠀⠀⢸⣿⣿⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣷⠀ 
+        ⠀⢰⣿⡟⠋⠉⣹⣿⡇⠀⠀⠀⠘⣿⣿⣿⣿⣷⣦⣤⣤⣤⣶⣶⣶⣶⣿⣿⣿⠀ 
+        ⠀⢸⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃⠀ 
+        ⠀⣸⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠉⠻⠿⣿⣿⣿⣿⡿⠿⠿⠛⢻⣿⡇⠀⠀ 
+        ⠀⣿⣿⠁⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣧⠀⠀ 
+        ⠀⣿⣿⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀ 
+        ⠀⣿⣿⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀ 
+        ⠀⢿⣿⡆⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⡇⠀⠀ 
+        ⠀⠸⣿⣧⡀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠃⠀⠀ 
+        ⠀⠀⠛⢿⣿⣿⣿⣿⣇⠀⠀⠀⠀⠀⣰⣿⣿⣷⣶⣶⣶⣶⠶⠀⢠⣿⣿⠀⠀⠀ 
+        ⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⣽⣿⡏⠁⠀⠀⢸⣿⡇⠀⠀⠀ 
+        ⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⢹⣿⡆⠀⠀⠀⣸⣿⠇⠀⠀⠀ 
+        ⠀⠀⠀⠀⠀⠀⠀⢿⣿⣦⣄⣀⣠⣴⣿⣿⠁⠀⠈⠻⣿⣿⣿⣿⡿⠏⠀⠀⠀⠀ 
+        ⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀'''
+        print(a)
