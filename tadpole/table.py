@@ -136,7 +136,8 @@ class Table():
 
         return keys
 
-
+    def lenCol(self, column):
+        return len(self.columns[column])
     
     # table - sort whole table from one column, numerically for numbers or
     # alphabetically for strings.

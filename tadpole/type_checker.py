@@ -12,18 +12,19 @@ class Typechecker():
             "L" : False
         }
         self.ptable = { # "name" : (input type, (parameters), return type)
-            "mean" :        ('tbl', (str,), int),
-            "first" :       ('tbl', (str,), 'tbl'),
-            "last" :        ('tbl', (str,), 'tbl'),
-            "sum" :         ('tbl', (str,), float),
-            "frequency" :   ('tbl', (str,), float),
-            "filter" :      ('tbl', (str,), 'tbl'),
-            "median" :      ('tbl', (str,), float),
-            "lowerq" :      ('tbl', (str,), float),
-            "upperq" :      ('tbl', (str,), float),
-            "min" :         ('tbl', (str,), float),
-            "max" :         ('tbl', (str,), float),
-            "span" :        ('tbl', (str,), 'tbl')
+            "mean" :        (int),
+            "first" :       ('tbl'),
+            "last" :        ('tbl'),
+            "sum" :         (float),
+            "frequency" :   (float),
+            "filter" :      ('tbl'),
+            "median" :      (float),
+            "lowerq" :      (float),
+            "upperq" :      (float),
+            "min" :         (float),
+            "max" :         (float),
+            "span" :        ('tbl'),
+            "read" :        ('tbl')
         }
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
@@ -387,6 +388,9 @@ class Typechecker():
     def check_call(self, node, env, RL):
         f_id = node.children[0] # Name of the function called
 
+        if(node.children[0] == 'print'):
+            return
+
         if (f_id not in self.ftable):
             raise Exception(f'Function not previously defined')
 
@@ -407,26 +411,30 @@ class Typechecker():
             
         return return_type
     
-    def check_dot_call(self, node, env, RL):
+    def check_dot(self, node, env, RL):
         # The leftmost node of the children is the name of which variable the dot funtions is called upon
-        left = node.children[0]
+        #left = node.children[0]
+        right = node.children[1].children[0]
+        return_type = self.ptable[right] # Get formal info on current child
+        return return_type # Return type if its an assignment
         # The rest of the children are the call node(s), that hold the predef. func. called and the params
-        right = node.children[1:]
-
-        # Checking each predefined function
-        for child in right:
-            child_left = child.children[0] # Name of predefined function called
-            actual_params = child.children[1:] # Actual parameters of predefined function
-            if child_left not in self.ptable: # Check if the function is in the enviroment of predefined functions
-                raise Exception(f'{child_left} is not a predefined function')
-            
-            input_type, formal_params, return_type = self.ptable[child_left] # Get formal info on current child
-
-            if len(formal_params) != len(actual_params):
-                raise Exception("Amount of formal parameters do not match actual parameters")
-
-        return return_type # Return type if its an assignment  
-
+        
+#
+    #    # Checking each predefined function
+    #    for child in right:
+    #        child_left = child.children[0] # Name of predefined function called
+    #        actual_params = child.children[1:] # Actual parameters of predefined function
+    #        if child_left not in self.ptable: # Check if the function is in the enviroment of predefined functions
+    #            raise Exception(f'{child_left} is not a predefined function')
+    #        
+    #        input_type, formal_params, return_type = self.ptable[child_left] # Get formal info on current child
+#
+    #        if len(formal_params) != len(actual_params):
+    #            raise Exception("Amount of formal parameters do not match actual parameters")
+#
+#
+    #    return return_type # Return type if its an assignment  
+#
     def check_stop(self, node, env, RL):
         # Raises an exception if we aren't in a loop currently
         # This can be seen using the key "L" in the enviroment "RL"

@@ -147,8 +147,8 @@ STRING: /"([^"\\]|\\.)*"/
 code = """
 mytab = {};
 mytab = mytab.read("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/mpg.csv");
-keys = mytab.keys();
-print(keys);
+a = 5;
+print("sus");
 """
 
 from lark import Lark
@@ -167,6 +167,6 @@ ast = transformtree(parsetree)
 print("Parse \n", parsetree.pretty())
 print("AST \n", ast.pretty())
 
-#Typechecker().check_p(ast)
+Typechecker().check_p(ast)
 fortolker = Interpreter()
 fortolker.Eval_P(ast)
