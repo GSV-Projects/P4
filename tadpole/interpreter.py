@@ -117,6 +117,8 @@ class Interpreter():
                 except stop:
                     return
 
+            self.SEval(tree, env_v, env_p)
+
             
             
     def SEval_if(self, tree, env_v, env_p):
@@ -212,6 +214,8 @@ class Interpreter():
         if (v1 is NA or v2 is NA):
             return NA
         else:
+            if (v2 == 0):
+                raise Exception(f"Division by zero not allowed!")
             return v1 / v2
 
     def Eval_mod(self, tree, env):
