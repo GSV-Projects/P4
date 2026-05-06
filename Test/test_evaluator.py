@@ -87,7 +87,7 @@ def test_zerodivision():
     assert "Division by zero not allowed!" in str(excinfo.value)
 '''
 
-def test_zerodivision():
+def test_zeromodulo():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('mod', [Token('INT', '5'), Token('INT', '0')])])])
     evaluator = Interpreter()
