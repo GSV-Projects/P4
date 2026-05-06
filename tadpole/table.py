@@ -128,6 +128,16 @@ class Table():
             for k, v in self.columns.items()}
         return self
     
+    # array - returns array of all keys in a table
+    def keys(self):
+        keys = []
+        for column in self.columns:
+            keys.append(column)
+
+        return keys
+
+
+    
     # table - sort whole table from one column, numerically for numbers or
     # alphabetically for strings.
     def sort(self, column):

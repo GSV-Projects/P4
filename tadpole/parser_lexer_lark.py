@@ -145,8 +145,10 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-a = 5;
-print(a);
+mytab = {};
+mytab = mytab.read("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/mpg.csv");
+keys = mytab.keys();
+print(keys);
 """
 
 from lark import Lark

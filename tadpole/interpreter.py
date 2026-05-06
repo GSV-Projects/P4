@@ -29,7 +29,8 @@ class Interpreter():
             "rename" :      Table.rename,
             "sort" :        Table.sort,
             "sortcol":      Table.sortcol,
-            "round":        Table.round
+            "round":        Table.round,
+            "keys":         Table.keys
         }
 
     # --- Run program ---
@@ -145,13 +146,15 @@ class Interpreter():
             raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
 
     def SEval_call(self, tree, caller_env_v, env_p):
-        if(tree.children[0].value == 'print'):
-            self.SEval_print(tree.children[1].value, caller_env_v)
-        func_tuple = self.lookup(tree.children[0].value, env_p)
-        if func_tuple == 'print':
-            v = self.Eval(tree.children[1], caller_env_v)
-            print(v)
+        func_name = tree.children[0].value
+        if func_name == 'print':
+            args = []
+            for children in tree.children[1:]:
+                v = self.Eval(children, caller_env_v)
+                args.append(v)
+            print(*args)
             return
+        func_tuple = self.lookup(tree.children[0].value, env_p)
         body, params, def_env_v, def_env_p = func_tuple
         old_func_tuple = copy.deepcopy(func_tuple)
         env_v_copy = copy.deepcopy(def_env_v)
@@ -333,7 +336,6 @@ class Interpreter():
             raise Exception(f"index out of bounds, must be between: '{1}'-'{len(x)}'")
         
     def Eval_call(self, tree, caller_env_v):
-        print(tree.children[0].value)
         func_tuple = self.lookup(tree.children[0].value, self.env_p)
         body, params, def_env_v, def_env_p = func_tuple
         old_func_tuple = copy.deepcopy(func_tuple)

@@ -93,7 +93,7 @@ class MyTrans(Transformer):
     
     # Misc expressions
     def exp_expr(self, c):
-        return Tree("e", c)
+        return Tree("exp", c)
     
     def unary_expr(self, c):
         return Tree("neg", [c[1]])
