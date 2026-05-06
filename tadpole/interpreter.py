@@ -13,13 +13,13 @@ class Interpreter():
     # Initialize table of predefined functions (called with dot)
     def init_ptable(self):
         return {
+            "read":         Table.read,
             "getcol":       Table.getcol,
             "getfirst":     Table.getfirst,
             "getlast":      Table.getlast,
-            "read":         Table.read,
             "mean" :        Table.mean,
-            "first" :       Table.first,
-            "last" :        Table.last,
+            "head" :        Table.head,
+            "tail" :        Table.tail,
             "sum" :         Table.sum,
             "frequency" :   Table.frequency,
             "filter" :      Table.filter,
@@ -31,7 +31,8 @@ class Interpreter():
             "span" :        Table.span,
             "rename" :      Table.rename,
             "append":       Table.append,
-            "remove":       Table.remove
+            "remove":       Table.remove,
+            "mutate":       Table.mutate
         }
 
     # --- Run program ---
@@ -353,8 +354,23 @@ class Interpreter():
         if (method_name not in self.env_pd):
             raise Exception(f'Tried to call function {method_name}, which does not exist')
         
+        expressions = {"equal", "not_equal", "less", "less_eq", "greater", "greater_eq", "and", "or", "not", 
+                       "add", "sub", "mult", "divide", "mod", "exp"}
+
         for actual_params in tree.children[1].children[1:]:
-            parameters.append(self.Eval(actual_params, env))
+            # If the argument is a boolean expression, consider the tree data, 
+            #   and ensure the expression is constructed using the above operators
+            if isinstance(actual_params, Tree) and actual_params.data in expressions:
+                # 
+                def make_lambda(expr_tree, captured_env):
+                    def row_expr(row):
+                        return self.Eval(expr_tree, {**captured_env, **row})
+                    return row_expr
+                parameters.append(make_lambda(actual_params, env))
+            
+            else:
+                parameters.append(self.Eval(actual_params, env))
+        
         execute = self.env_pd[method_name](table, *parameters)
         return execute
         

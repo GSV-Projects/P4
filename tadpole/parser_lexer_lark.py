@@ -145,26 +145,16 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-a = 5;
+mytab = {
+col1 : ["a", "b", "c"];
+col2 : [1, 2, 3];
+col3 : [1.1, 2.2, 3.3];
+col4 : [true, false, true];
+};
 
-b = 4;
+a = [11, 22, 33];
 
-function gcd(int a, int j) returns int {
-     b = b - 1;
-     return b;
-     
-     if (b == 0) then {
-          return a;
-     } else {
-          return gcd(b, (a mod b));
-     }
-}
-
-a = 13;
-
-result1 = gcd(13, 3);
-result2 = gcd(13, 3);
-
+newtab = mytab.filter( col2 > 1);
 """
 
 from lark import Lark
@@ -183,6 +173,6 @@ ast = transformtree(parsetree)
 print("Parse \n", parsetree.pretty())
 print("AST \n", ast.pretty())
 
-Typechecker().check_p(ast)
+#Typechecker().check_p(ast)
 fortolker = Interpreter()
 fortolker.PEval(ast)
