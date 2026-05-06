@@ -287,23 +287,136 @@ def test_if_not_bool():
 
 def test_func_multiple_params():
     # Testing if we get an error is amont of actual and formal doesnt match
-    pass
+
+    # Setup
+    tree = Tree(Token('RULE', 'program'), [Tree('func_def_ret', [Token('IDENT', 'myfunc'), Tree('param', [Tree('param_item', [Token('TYPE_INT', 'int'), Token('IDENT', 'a')])]), Token('TYPE_INT', 'int'), Tree('return', [Token('IDENT', 'a')])]), Tree('assign', [Token('IDENT', 'b'), Tree('call', [Token('IDENT', 'myfunc'), Token('INT', '4'), Token('INT', '5')])])]) 
+    typechecker = Typechecker()
+
+    with pytest.raises(Exception) as excinfo:
+        typechecker.check_p(tree)
+
+    # What the syntax_tree represents
+    '''
+    function myfunc(int a) returns int {
+    return a;
+    }
+
+    b = myfunc(4,5);
+    '''
+
+    # Expected output
+    assert "Amount of formal parameters do not match actual parameters" in str(excinfo.value)
 
 def test_func_scope_isolation():
     # function f() { x = 10; } x = 5; f(); x should still be 5
-    pass
+
+    # Setup
+    tree = Tree(Token('RULE', 'program'), [Tree('func_def', [Token('IDENT', 'f'), Tree('param', []), Tree('assign', [Token('IDENT', 'x'), Token('INT', '10')])]), Tree('assign', [Token('IDENT', 'x'), Token('INT', '5')]), Tree('call', [Token('IDENT', 'f')])])    
+    typechecker = Typechecker()
+    typechecker.check_p(tree)
+
+    # What the syntax_tree represents
+    '''
+    function f() { 
+        x = 10.4; 
+    } 
+    x = 5; 
+    f();
+    '''
+
+    # Expected output
+    assert typechecker.vtable['x'] == int
 
 def test_NA_array():
-    pass
+    # Testing is its possible to create an array only with NA values
+
+    # Setup
+    tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'arr'), Tree('array', [Token('NA', 'NA'), Token('NA', 'NA'), Token('NA', 'NA')])])])
+    typechecker = Typechecker()
+
+    with pytest.raises(Exception) as excinfo:
+        typechecker.check_p(tree)
+
+    # What the syntax_tree represents
+    '''
+    arr = [NA, NA, NA];
+    '''
+
+    # Expected output
+    assert "Array cannot consist of only NA" in str(excinfo.value)
 
 def test_check_logical():
-    pass
+    # Testing the logical operators
+
+    # Setup
+    tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'b'), Tree('and', [Token('TRUE', 'true'), Tree('less', [Token('INT', '5'), Token('INT', '3')])])])])
+    typechecker = Typechecker()
+    typechecker.check_p(tree)
+
+    # What the syntax_tree represents
+    '''
+    b = true and 5 < 3;
+    '''
+
+    # Expected output
+    assert typechecker.vtable['b'] == bool
 
 def test_while_not_bool():
-    pass
+    # Testing the boolean expression in a while loop
+
+    # Setup
+    tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Token('INT', '3')]), Tree('while', [Token('IDENT', 'a'), Tree('assign', [Token('IDENT', 'b'), Token('INT', '5')])])])
+    typechecker = Typechecker()
+
+    with pytest.raises(Exception) as excinfo:
+        typechecker.check_p(tree)
+
+    # What the syntax_tree represents
+    '''
+    a = 3;
+
+    while (a) do {
+        b = 5;
+    }
+    '''
+
+    # Expected output
+    assert "is not a boolean expression" in str(excinfo.value)
 
 def test_table_type():
-    pass
+    # Testing tbl type
+
+    # Setup
+    tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'mytab'), Tree('table', [Tree('column', [Token('COLUMN', 'name'), Tree('array', [Token('STRING', '"David"'), Token('STRING', '"Mads"'), Token('STRING', '"Bo"')])]), Tree('column', [Token('COLUMN', 'rank'), Tree('array', [Token('INT', '1'), Token('INT', '67'), Token('INT', '2')])])])])])    
+    typechecker = Typechecker()
+    typechecker.check_p(tree)
+
+    # What the syntax_tree represents
+    '''
+    mytab = {
+    name : ["David","Mads","Bo"];
+    rank : [1,67,2];
+    };
+    '''
+
+    # Expected output
+    assert typechecker.vtable['mytab'] == 'tbl'
 
 def test_column_types():
-    pass
+    # Testing the custom column type tbl.clmn
+  
+    # Setup
+    tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'mytab'), Tree('table', [Tree('column', [Token('COLUMN', 'name'), Tree('array', [Token('STRING', '"David"'), Token('STRING', '"Mads"'), Token('STRING', '"Bo"')])]), Tree('column', [Token('COLUMN', 'rank'), Tree('array', [Token('INT', '1'), Token('INT', '67'), Token('INT', '2')])])])])])    
+    typechecker = Typechecker()
+    typechecker.check_p(tree)
+
+    # What the syntax_tree represents
+    '''
+    mytab = {
+    name : ["David","Mads","Bo"];
+    rank : [1,67,2];
+    };
+    '''
+
+    # Expected output
+    assert typechecker.vtable['mytab.col1'] == '[]'
