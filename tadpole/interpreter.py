@@ -220,7 +220,10 @@ class Interpreter():
         if (v1 is NA or v2 is NA):
             return NA
         else:
-            return v1 % v2
+            if (v2 == 0):
+                raise Exception("Modulo by zero is undefined")
+            else:
+                return v1 % v2
     
     def Eval_exp(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
@@ -400,6 +403,8 @@ class Interpreter():
             return True
         if token.type == 'tbl':
             return 'tbl'
+        if token.type == 'NA':
+            return NA
         return 'unknown type shi'
 
     def check_unknown(self, node, env):
