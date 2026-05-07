@@ -1,5 +1,5 @@
 from lark import Lark, Transformer, v_args, Tree, Token
-from utils.NAliteral import na_type
+from .utils.NAliteral import na_type
 import copy
 
 class Typechecker():
@@ -44,13 +44,13 @@ class Typechecker():
         if token.type == 'TYPE_TABLE' or token.type == 'tbl':
             return 'tbl'
         if token.type == 'NA':
-            print("hello na")
             return na_type
         return 'unknown type shihahhaha'
 
 
  # --- Check program ---
     def check_p(self, c):
+        print(c)
         # Build ftable
         self.build_ft(c, self.vtable, self.RL)
 
@@ -126,6 +126,7 @@ class Typechecker():
     def check_sub(self, node, env, RL):     return self.check_additive(node, env, RL)
     def check_mod(self, node, env, RL):     return self.check_additive(node, env, RL)
     def check_mult(self, node, env, RL):    return self.check_additive(node, env, RL)
+    def check_exp(self, node, env, RL):     return self.check_additive(node, env, RL)
 
     def check_less(self, node, env, RL):    return self.check_comparison(node, env, RL)
     def check_greater(self, node, env, RL): return self.check_comparison(node, env, RL)
@@ -243,6 +244,10 @@ class Typechecker():
         # Ensure that both argumentss are of type bool, otherwive, raise exception
         if (t1 == bool and t2 == bool):
             return bool
+        elif (t1 is na_type and t2 == bool):
+            return bool
+        elif (t1 == bool and t2 == t1 is na_type):
+            return bool
         else:
             raise Exception(f'Values {left.value} and {right.value} must be of type bool')
         
@@ -325,7 +330,7 @@ class Typechecker():
             check_arr = self.check(arr, env, RL) # Get the type of the array held in current column
 
             # Create a custom tree structure to assign a custom type to a custom variable in our environment
-            col = Tree("column_sapling", f'{check_arr}')
+            col = Tree("column_sapling", check_arr)
 
             # Turn the use of dot-notation into an identifier that the array can be assigned to
             token = Token('IDENT', f'{table_id} {c_id.value}')

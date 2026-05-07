@@ -144,31 +144,3 @@ STRING: /"([^"\\]|\\.)*"/
 %ignore WS
 """
 
-code = """
-a = 1;
-
-while(a < 10) do {
-     a = a + 1;
-}
-
-"""
-
-from lark import Lark
-from parsertransformer import MyTrans
-from interpreter import Interpreter
-from type_checker import Typechecker
-
-def transformtree(tree):
-    return MyTrans().transform(tree)
-
-parser = Lark(grammar, parser="lalr", strict=True)
-
-parsetree = parser.parse(code)
-ast = transformtree(parsetree)
-
-print("Parse \n", parsetree.pretty())
-print("AST \n", ast.pretty())
-
-Typechecker().check_p(ast)
-fortolker = Interpreter()
-fortolker.PEval(ast)
