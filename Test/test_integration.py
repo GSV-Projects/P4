@@ -53,3 +53,30 @@ def test_long_program():
     assert (a_result and b_result)
     
     
+def test_recursion():
+    # Setup
+    code = '''
+    function isEven(int n) returns bool {
+        if (n == 0) then { return true; }
+        return isOdd(n - 1);
+    }
+
+    function isOdd(int n) returns bool {
+        if (n == 0) then { return false; }
+        return isEven(n - 1);
+    }
+
+    ans = isEven(10);
+    '''
+    ast = parse_to_ast(code)
+    typechecker = Typechecker()
+    typechecker.check_p(ast)
+    fortolker = Interpreter()
+    fortolker.PEval(ast)
+
+
+    # Assert 
+    a_result = typechecker.vtable["ans"] == bool 
+    b_result = fortolker.env_v["ans"] == True
+
+    assert (a_result and b_result)
