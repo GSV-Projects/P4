@@ -5,7 +5,7 @@ from tadpole.utils.stopClass import stop
 from tadpole.utils.NAliteral import NA
 import copy, math
 
-class Interpreter():
+class Evaluator():
     def __init__(self):
         self.env_v = {} # Global variable environment
         self.env_p = {} # Global procedure/function environment
@@ -98,6 +98,10 @@ class Interpreter():
         identifier = tree.children[0].value
         value = tree.children[1]
         v = self.Eval(value, env_v)
+
+        if v is NA:
+            raise Exception("Runtime error: Cannot assign NA to variable")
+
         env_v[identifier] = v
 
     # Return statement
@@ -457,7 +461,7 @@ class Interpreter():
             return 'tbl'
         if token.type == 'NA':
             return NA
-        return 'unknown type shi'
+        raise Exception(f"unknown type '{token.type}'")
 
     def check_unknown(self, node, env):
         raise Exception(f"No handler for node type: '{node.data}'")

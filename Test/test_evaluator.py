@@ -1,15 +1,14 @@
 from lark import Tree, Token
-from tadpole.interpreter import Interpreter
+from tadpole.evaluator import Evaluator
 from tadpole.utils.NAliteral import NA
 import pytest
-
 
 ## Aritmetic test ##
 # test normal integer addition
 def test_add_int():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('add', [Tree('add', [Token('INT', '5'), Token('INT', '10')]), Token('INT', '7')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -24,7 +23,7 @@ def test_add_int():
 def test_add_mix():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('add', [Tree('add', [Token('FLOAT', '6.34'), Token('FLOAT', '7.5')]), Token('INT', '7')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -39,7 +38,7 @@ def test_add_mix():
 def test_precidence_num():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('div', [Tree('sub', [Tree('add', [Token('INT', '2'), Token('INT', '2')]), Tree('mult', [Token('INT', '5'), Token('INT', '4')])]), Token('INT', '2')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -54,7 +53,7 @@ def test_precidence_num():
 def test_precidence_logic():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('or', [Tree('and', [Token('TRUE', 'true'), Tree('not', [Token('TRUE', 'true')])]), Token('TRUE', 'true')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -69,7 +68,7 @@ def test_precidence_logic():
 def test_zerodivision():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('div', [Token('INT', '5'), Token('INT', '0')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     with pytest.raises(Exception) as excinfo:
         evaluator.PEval(syntax_tree)
 
@@ -86,7 +85,7 @@ def test_zerodivision():
 def test_zeromodulo():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('mod', [Token('INT', '5'), Token('INT', '0')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     with pytest.raises(Exception) as excinfo:
         evaluator.PEval(syntax_tree)
 
@@ -102,7 +101,7 @@ def test_zeromodulo():
 def test_bigexponent():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('exp', [Token('INT', '2'), Token('INT', '200')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -119,7 +118,7 @@ def test_bigexponent():
 def test_na_propagation_boolean_or():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('or', [Token('NA', 'NA'), Token('TRUE', 'true')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -134,7 +133,7 @@ def test_na_propagation_boolean_or():
 def test_na_propagation_boolean_and():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('and', [Token('NA', 'NA'), Token('FALSE', 'false')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -149,7 +148,7 @@ def test_na_propagation_boolean_and():
 def test_napropagation_aritmetic():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Tree('add', [Token('NA', 'NA'), Tree('div', [Tree('mult', [Token('INT', '5'), Token('INT', '2')]), Token('NA', 'NA')])])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -164,7 +163,7 @@ def test_napropagation_aritmetic():
 def test_napropagation_parameter_parsing():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('func_def_ret', [Token('IDENT', 'myfunc'), Tree('param', [Tree('param_item', [Token('TYPE_INT', 'int'), Token('IDENT', 'a')])]), Token('TYPE_INT', 'int'), Tree('return', [Token('IDENT', 'a')])]), Tree('assign', [Token('IDENT', 'a'), Tree('call', [Token('IDENT', 'myfunc'), Token('NA', 'NA')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     #What the syntax_tree represents
@@ -183,7 +182,7 @@ def test_napropagation_parameter_parsing():
 def test_function_with_return():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('func_def_ret', [Token('IDENT', 'myfunc'), Tree('param', [Tree('param_item', [Token('TYPE_INT', 'int'), Token('IDENT', 'a')])]), Token('TYPE_INT', 'int'), Tree('return', [Token('IDENT', 'a')])]), Tree('assign', [Token('IDENT', 'val'), Tree('call', [Token('IDENT', 'myfunc'), Token('INT', '5')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -202,7 +201,7 @@ def test_function_with_return():
 def test_static_scoperule_function():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Token('INT', '0')]), Tree('func_def', [Token('IDENT', 'myfunc'), Tree('param', []), Tree('assign', [Token('IDENT', 'a'), Token('INT', '22')])]), Tree('call', [Token('IDENT', 'myfunc')])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -222,7 +221,7 @@ def test_static_scoperule_function():
 def test_recursive_function():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('func_def_ret', [Token('IDENT', 'factorial'), Tree('param', [Tree('param_item', [Token('TYPE_INT', 'int'), Token('IDENT', 'n')])]), Token('TYPE_INT', 'int'), Tree('body', [Tree('if', [Tree('leq', [Token('IDENT', 'n'), Token('INT', '1')]), Tree('then', [Tree('return', [Token('INT', '1')])])]), Tree('return', [Tree('mult', [Token('IDENT', 'n'), Tree('call', [Token('IDENT', 'factorial'), Tree('sub', [Token('IDENT', 'n'), Token('INT', '1')])])])])])]), Tree('assign', [Token('IDENT', 'result'), Tree('call', [Token('IDENT', 'factorial'), Token('INT', '5')])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -243,7 +242,7 @@ def test_recursive_function():
 def test_if_statement_then():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Token('INT', '0')]), Tree('if', [Token('TRUE', 'true'), Tree('then', [Tree('assign', [Token('IDENT', 'a'), Token('INT', '1')])])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -260,7 +259,7 @@ def test_if_statement_then():
 def test_if_statement_else():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Token('INT', '0')]), Tree('if', [Token('FALSE', 'false'), Tree('then', [Tree('assign', [Token('IDENT', 'a'), Token('INT', '1')])]), Tree('else', [Tree('assign', [Token('IDENT', 'a'), Token('INT', '2')])])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -282,7 +281,7 @@ def test_if_statement_else():
 def test_while_true():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Token('INT', '0')]), Tree('while', [Tree('less', [Token('IDENT', 'a'), Token('INT', '10')]), Tree('assign', [Token('IDENT', 'a'), Tree('add', [Token('IDENT', 'a'), Token('INT', '1')])])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -301,7 +300,7 @@ def test_while_false():
 
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Token('INT', '0')]), Tree('while', [Token('FALSE', 'false'), Tree('assign', [Token('IDENT', 'a'), Tree('add', [Token('IDENT', 'a'), Token('INT', '1')])])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -319,7 +318,7 @@ def test_while_false():
 def test_stop_in_while():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Token('INT', '0')]), Tree('while', [Token('TRUE', 'true'), Tree('if', [Tree('equal', [Token('IDENT', 'a'), Token('INT', '5')]), Tree('then', [Tree('stop', [Token('STOP', 'stop')])])]), Tree('assign', [Token('IDENT', 'a'), Tree('add', [Token('IDENT', 'a'), Token('INT', '1')])])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     evaluator.PEval(syntax_tree)
 
     # What the syntax_tree represents
@@ -339,7 +338,7 @@ def test_stop_in_while():
 def test_undeclared_variable():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Token('IDENT', 'b')])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     with pytest.raises(Exception) as excinfo:
         evaluator.PEval(syntax_tree)
 
@@ -358,7 +357,7 @@ def test_duplicate_function_definition():
         Tree('func_def', [Token('IDENT', 'myfunc'), Tree('param', []), Tree('assign', [Token('IDENT', 'a'), Token('INT', '1')])]),
         Tree('func_def', [Token('IDENT', 'myfunc'), Tree('param', []), Tree('assign', [Token('IDENT', 'a'), Token('INT', '2')])]),
     ])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     with pytest.raises(Exception) as excinfo:
         evaluator.PEval(syntax_tree)
 
@@ -375,7 +374,7 @@ def test_duplicate_function_definition():
 def test_if_na_condition():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('if', [Token('NA', 'NA'), Tree('then', [Tree('assign', [Token('IDENT', 'a'), Token('INT', '1')])])])])
-    evaluator = Interpreter()
+    evaluator = Evaluator()
     with pytest.raises(Exception) as excinfo:
         evaluator.PEval(syntax_tree)
 

@@ -2,8 +2,6 @@ from lark import Tree, Token
 from tadpole.type_checker import Typechecker
 import pytest
 
-
-
 def test_assign():
     # Testing assignment of a variable
 
