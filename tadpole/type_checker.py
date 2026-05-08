@@ -11,36 +11,37 @@ class Typechecker():
             "L" : False
         }
         self.ptable = { 
-            "read":         ('tbl'),    # virker
+            "read":         ('tbl'),    
             "readfill":     ('tbl'),
-            "replaceNA":    ('tbl'),    # self
-            "getcol":       ([]),       #
-            "getfirst":     ([]),       #
-            "getlast":      ([]),       #
-            "mean" :        (int),      # num - weird floats? str err
-            "head" :        ((int, float, str, bool)),  # 
-            "tail" :        ((int, float, str, bool)),  #
-            "sum" :         (float),    # num - str err
-            "frequency" :   (float),    #
-            "filter" :      ('tbl'),    # 
-            "median" :      (float),    # udeluk str
-            "lowerq" :      (float),    # -||-
-            "upperq" :      (float),    # -||-
-            "min" :         (float),    # -||-
-            "max" :         (float),    # -||-
-            "span" :        ('tbl'),    # -||-
-            "rename" :      ('tbl'),    # self
-            "sort" :        ('tbl'),    # validate column
-            "sortcol":      ([]),       # validate column
-            "round":        ('tbl'),    # self
-            "roundcol":     ([]),       # valid col
-            "keys":         ([]),       # vali tbl validate table
-            "length":       (int),      # måske ændre til at tage table istedet
-            "append":       ('tbl'),    #
-            "remove":       ('tbl'),    #
-            "mutate":       ('tbl'),    #
-            "variance":     (float),    #
-            "stddev":       (float),    #
+            "replaceNA":    ('tbl'),    
+            "getcol":       ([]),       
+            "getfirst":     ([]),       
+            "getlast":      ([]),       
+            "mean" :        (int),      
+            "head" :        ((int, float, str, bool)),
+            "tail" :        ((int, float, str, bool)),
+            "sum" :         (float),    
+            "frequency" :   (float),    
+            "filter" :      ('tbl'),    
+            "filtercol":    ([]),
+            "median" :      (float),    
+            "lowerq" :      (float),    
+            "upperq" :      (float),    
+            "min" :         (float),    
+            "max" :         (float),    
+            "span" :        ('tbl'),    
+            "rename" :      ('tbl'),    
+            "sort" :        ('tbl'),    
+            "sortcol":      ([]),       
+            "round":        ('tbl'),    
+            "roundcol":     ([]),       
+            "keys":         ([]),       
+            "length":       (int),      
+            "append":       ('tbl'),    
+            "remove":       ('tbl'),    
+            "mutate":       ('tbl'),    
+            "variance":     (float),    
+            "stddev":       (float),    
         }
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
@@ -117,7 +118,7 @@ class Typechecker():
         Checks to see if...
 
         Args:
-            one:
+            one: does this
 
         Returns:
             
