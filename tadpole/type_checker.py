@@ -229,7 +229,7 @@ class Typechecker():
         if self.comparison_compatible(t1,t2):
             return bool
         else: # Otherwise, raise exception
-            raise Exception(f'Values {left.value} and {right.value} must both be of type int, float or string')
+            raise Exception(f'Values {left.value} and {right.value} must both be of type int or float, or only string')
 
     def check_logical(self, node, env, RL):
         # Validates logical statements, all of which are treated the same
