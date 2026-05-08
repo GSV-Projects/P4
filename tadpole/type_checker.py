@@ -10,23 +10,37 @@ class Typechecker():
             "R" : None,
             "L" : False
         }
-        self.ptable = { # "name" : (return type)
-            "mean" :        (int),
-            "first" :       ('tbl'),
-            "last" :        ('tbl'),
-            "sum" :         (float),
-            "frequency" :   (float),
-            "filter" :      ('tbl'),
-            "median" :      (float),
-            "lowerq" :      (float),
-            "upperq" :      (float),
-            "min" :         (float),
-            "max" :         (float),
-            "span" :        ('tbl'),
-            "read" :        ('tbl'),
-            "replaceNA":    ('tbl'),
-            "sort":         ('tbl'),
-            "sortcol":      ('tbl')
+        self.ptable = { 
+            "read":         ('tbl'),    
+            "readfill":     ('tbl'),
+            "replaceNA":    ('tbl'),    
+            "getcol":       ([]),       
+            "getfirst":     ([]),       
+            "getlast":      ([]),       
+            "mean" :        (int),      
+            "head" :        ((int, float, str, bool)),
+            "tail" :        ((int, float, str, bool)),
+            "sum" :         (float),    
+            "frequency" :   (float),    
+            "filter" :      ('tbl'),    
+            "median" :      (float),    
+            "lowerq" :      (float),    
+            "upperq" :      (float),    
+            "min" :         (float),    
+            "max" :         (float),    
+            "span" :        ('tbl'),    
+            "rename" :      ('tbl'),    
+            "sort" :        ('tbl'),    
+            "sortcol":      ([]),       
+            "round":        ('tbl'),    
+            "roundcol":     ([]),       
+            "keys":         ([]),       
+            "length":       (int),      
+            "append":       ('tbl'),    
+            "remove":       ('tbl'),    
+            "mutate":       ('tbl'),    
+            "variance":     (float),    
+            "stddev":       (float),    
         }
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
@@ -102,7 +116,7 @@ class Typechecker():
         Checks to see if...
 
         Args:
-            one:
+            one: does this
 
         Returns:
             
@@ -131,8 +145,8 @@ class Typechecker():
     def check_greater(self, node, env, RL): return self.check_comparison(node, env, RL)
     def check_leq(self, node, env, RL):     return self.check_comparison(node, env, RL)
     def check_geq(self, node, env, RL):     return self.check_comparison(node, env, RL)
-    def check_equal(self, node, env, RL):   return self.check_comparison(node, env, RL)
     def check_neq(self, node, env, RL):     return self.check_comparison(node, env, RL)
+    def check_equal(self, node, env, RL):   return self.check_comparison(node, env, RL)
 
     def check_or(self, node, env, RL):      return self.check_logical(node, env, RL)
     def check_and(self, node, env, RL):     return self.check_logical(node, env, RL)
@@ -225,11 +239,11 @@ class Typechecker():
         t1 = self.check(left, env, RL)
         t2 = self.check(right, env, RL)
 
-        # Check if t1 and t2 are numercially compatible meaning atleast one is either float or int. The other can optionally be NA
-        if self.numeric_compatible(t1,t2):
+        # Check if t1 and t2 are comparison compatible meaning atleast one is either float, int or string. The other can optionally be NA
+        if self.comparison_compatible(t1,t2):
             return bool
         else: # Otherwise, raise exception
-            raise Exception(f'Values {left.value} and {right.value} must both be of type int or float')
+            raise Exception(f'Values {left.value} and {right.value} must both be of type int or float, or only string')
 
     def check_logical(self, node, env, RL):
         # Validates logical statements, all of which are treated the same
@@ -240,7 +254,7 @@ class Typechecker():
         t1 = self.check(left, env, RL)
         t2 = self.check(right, env, RL)
         
-        # Ensure that both argumentss are of type bool, otherwive, raise exception
+        # Ensure that both argumentss are of type bool, otherwise, raise exception
         if (t1 == bool and t2 == bool):
             return bool
         elif (t1 is na_type and t2 == bool):
@@ -248,8 +262,22 @@ class Typechecker():
         elif (t1 == bool and t2 == t1 is na_type):
             return bool
         else:
-            raise Exception(f'Values {left.value} and {right.value} must be of type bool')
+            raise Exception(f'Values {left.value} and {right.value} must be of type bool')        
+
+    def comparison_compatible(self, t1, t2):
+        # Check if both expressions are NA. If so determining type is ambigious an NA doesn't have a real type
+        if t1 is na_type and t2 is na_type:
+            return False
         
+        # Check that either both expressions are float/int, or at least one
+        numeric = (int, float)
+        return ((t1 in numeric and t2 in numeric) or 
+                (t1 is str and t2 is str) or
+                (t1 is str and t2 is na_type) or
+                (t1 is na_type and t2 is str) or
+                (t1 is na_type and t2 in numeric) or 
+                (t2 is na_type and t1 in numeric))
+    
     def check_not(self, node, env, RL):
         # Validates the use of the "not" operator
 
@@ -333,10 +361,8 @@ class Typechecker():
 
             # Turn the use of dot-notation into an identifier that the array can be assigned to
             token = Token('IDENT', f'{table_id} {c_id.value}')
-            print(token)
             stmt = Tree("assign", [token, col])
             self.check(stmt, env, RL)
- 
 
         # Ending the check_function with setting the id == "tbl" since all tables would be of type "tbl"
         token = Token('IDENT', f'{table_id}')
@@ -390,7 +416,7 @@ class Typechecker():
             return
 
         if (f_id not in self.ftable):
-            raise Exception(f'Function not previously defined')
+            raise Exception(f'Function {f_id} not previously defined')
 
 
         formal_params, return_type = self.ftable[f_id] # Get info on current function

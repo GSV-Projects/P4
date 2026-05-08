@@ -15,6 +15,8 @@ class Evaluator():
     def init_ptable(self):
         return {
             "read":         Table.read,
+            "readfill":     Table.readfill,
+            "replaceNA":    Table.replaceNAvalues,
             "getcol":       Table.getcol,
             "getfirst":     Table.getfirst,
             "getlast":      Table.getlast,
@@ -33,13 +35,15 @@ class Evaluator():
             "rename" :      Table.rename,
             "sort" :        Table.sort,
             "sortcol":      Table.sortcol,
-            "round":        Table.round,
+            "round":        Table.roundtable,
+            "roundcol":     Table.roundcol,
             "keys":         Table.keys,
             "length":       Table.lenCol,
-            "replaceNA":    Table.replaceNAvalues,
             "append":       Table.append,
             "remove":       Table.remove,
-            "mutate":       Table.mutate
+            "mutate":       Table.mutate,
+            "variance":     Table.variance,
+            "stddev":       Table.stddev,
         }
 
     # --- Run program ---
@@ -392,7 +396,7 @@ class Evaluator():
         if (method_name not in self.env_pd):
             raise Exception(f'Tried to call function {method_name}, which does not exist')
         
-        expressions = {"equal", "not_equal", "less", "less_eq", "greater", "greater_eq", "and", "or", "not", 
+        expressions = {"equal", "neq", "less", "leq", "greater", "geq", "and", "or", "not", 
                        "add", "sub", "mult", "divide", "mod", "exp"}
 
         for actual_params in tree.children[1].children[1:]:
