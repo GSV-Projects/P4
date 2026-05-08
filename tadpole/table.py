@@ -204,21 +204,6 @@ class Table():
     
         return new_table
     
-    # array - Returns a given column, filtered bades on given parameters - WIP
-    def filtercol(self, column, arg = None):
-        # Reroute arg as either a value or an expr,
-        #   as only one of either can be called at a time.
-        expr = None
-        value = None
-        if callable(arg): expr = arg
-        else: value = arg
-
-        self._validate_column
-        self._validate_not_empty
-        self._validate_expression(expr, True)
-        
-        # get the desired column
-
     # number - Number at 50% of column 
     def median(self, column):
         self._validate_column(column)

@@ -23,7 +23,6 @@ class Typechecker():
             "sum" :         (float),    
             "frequency" :   (float),    
             "filter" :      ('tbl'),    
-            "filtercol":    ([]),
             "median" :      (float),    
             "lowerq" :      (float),    
             "upperq" :      (float),    

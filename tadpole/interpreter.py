@@ -26,7 +26,6 @@ class Interpreter():
             "sum" :         Table.sum,
             "frequency" :   Table.frequency,
             "filter" :      Table.filter,
-            "filtercol":    Table.filtercol,
             "median" :      Table.median,
             "lowerq" :      Table.lowerq,
             "upperq" :      Table.upperq,
