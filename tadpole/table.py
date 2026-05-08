@@ -1,9 +1,9 @@
-from utils.NAliteral import NA
+from tadpole.utils.NAliteral import NA
 import math
 import pandas as pd
 import urllib.request
 import copy
-from utils.NAliteral import NA
+from tadpole.utils.NAliteral import NA
 
 class Table():
     def __init__(self, columns):

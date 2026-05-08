@@ -1,8 +1,8 @@
 from lark import Tree, Token
-from table import Table
-from utils.returnClass import return_value
-from utils.NAliteral import NA
-from utils.stopClass import stop
+from tadpole.table import Table
+from tadpole.utils.returnClass import return_value
+from tadpole.utils.stopClass import stop 
+from tadpole.utils.NAliteral import NA
 import copy, math
 
 class Interpreter():
@@ -113,7 +113,6 @@ class Interpreter():
     def SEval_stop(self, tree, env_v, env_p):
         raise stop
         
-    
     # While loop
     def SEval_while(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
@@ -124,7 +123,8 @@ class Interpreter():
                 try: 
                     self.SEval(child, env_v, env_p)
                 except stop:
-                    return            
+                    return    
+            self.SEval(tree, env_v, env_p)
             
     def SEval_if(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
@@ -247,6 +247,17 @@ class Interpreter():
             if (v2 == 0):
                 raise Exception(f"Division by zero not allowed!")
             return v1 / v2
+
+    def Eval_mod(self, tree, env):
+        v1 = self.Eval(tree.children[0], env)
+        v2 = self.Eval(tree.children[1], env)
+        if (v1 is NA or v2 is NA):
+            return NA
+        else:
+            if (v2 == 0):
+                raise Exception("Modulo by zero is undefined")
+            else:
+                return v1 % v2
     
     def Eval_exp(self, tree, env):
         v1 = self.Eval(tree.children[0], env)
@@ -320,14 +331,6 @@ class Interpreter():
             return NA
         else:
             return v1 or v2
-    
-    def Eval_mod(self, tree, env):
-        v1 = self.Eval(tree.children[0], env)
-        v2 = self.Eval(tree.children[1], env)
-        if (v1 is NA or v2 is NA):
-            return NA
-        else:
-            return v1 % v2
     
     def Eval_not(self, tree, env):
         v = self.Eval(tree.children[0], env)
@@ -464,7 +467,7 @@ class Interpreter():
         raise Exception(f"No handler for node type: '{node.data}'")
     
     def amogus(self):
-        a = '''⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣤⣤⣤⣤⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀ 
+        a = '''⠀⠀⠀⠀⠀ ⣠⣤⣤⣤⣤⣤⣤⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠋⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠈⢻⣿⣿⡄⠀⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⣸⣿⡏⠀⠀⠀⣠⣶⣾⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣄⠀⠀⠀ 

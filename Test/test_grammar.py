@@ -1,5 +1,7 @@
-from tadpole.parser_lexer_lark import parser
+from tadpole.grammar import grammar
+from lark import Lark
 
+parser = Lark(grammar, parser="lalr", strict=True)
 
 # Testing grammar if its parseable
 def test_assign():

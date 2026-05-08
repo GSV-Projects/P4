@@ -1,5 +1,5 @@
 from lark import Lark, Transformer, v_args, Tree, Token
-from utils.NAliteral import na_type
+from .utils.NAliteral import na_type
 import copy
 
 class Typechecker():
@@ -58,13 +58,13 @@ class Typechecker():
         if token.type == 'TYPE_TABLE' or token.type == 'tbl':
             return 'tbl'
         if token.type == 'NA':
-            print("hello na")
             return na_type
         return 'unknown type shihahhaha'
 
 
  # --- Check program ---
     def check_p(self, c):
+        print(c)
         # Build ftable
         self.build_ft(c, self.vtable, self.RL)
 
@@ -140,13 +140,14 @@ class Typechecker():
     def check_sub(self, node, env, RL):     return self.check_additive(node, env, RL)
     def check_mod(self, node, env, RL):     return self.check_additive(node, env, RL)
     def check_mult(self, node, env, RL):    return self.check_additive(node, env, RL)
+    def check_exp(self, node, env, RL):     return self.check_additive(node, env, RL)
 
     def check_less(self, node, env, RL):    return self.check_comparison(node, env, RL)
     def check_greater(self, node, env, RL): return self.check_comparison(node, env, RL)
     def check_leq(self, node, env, RL):     return self.check_comparison(node, env, RL)
     def check_geq(self, node, env, RL):     return self.check_comparison(node, env, RL)
-    def check_equal(self, node, env, RL):   return self.check_comparison(node, env, RL)
     def check_neq(self, node, env, RL):     return self.check_comparison(node, env, RL)
+    def check_equal(self, node, env, RL):   return self.check_comparison(node, env, RL)
 
     def check_or(self, node, env, RL):      return self.check_logical(node, env, RL)
     def check_and(self, node, env, RL):     return self.check_logical(node, env, RL)
@@ -239,11 +240,11 @@ class Typechecker():
         t1 = self.check(left, env, RL)
         t2 = self.check(right, env, RL)
 
-        # Check if t1 and t2 are numercially compatible meaning atleast one is either float or int. The other can optionally be NA
-        if self.numeric_compatible(t1,t2):
+        # Check if t1 and t2 are comparison compatible meaning atleast one is either float, int or string. The other can optionally be NA
+        if self.comparison_compatible(t1,t2):
             return bool
         else: # Otherwise, raise exception
-            raise Exception(f'Values {left.value} and {right.value} must both be of type int or float')
+            raise Exception(f'Values {left.value} and {right.value} must both be of type int or float, or only string')
 
     def check_logical(self, node, env, RL):
         # Validates logical statements, all of which are treated the same
@@ -254,12 +255,30 @@ class Typechecker():
         t1 = self.check(left, env, RL)
         t2 = self.check(right, env, RL)
         
-        # Ensure that both argumentss are of type bool, otherwive, raise exception
+        # Ensure that both argumentss are of type bool, otherwise, raise exception
         if (t1 == bool and t2 == bool):
             return bool
+        elif (t1 is na_type and t2 == bool):
+            return bool
+        elif (t1 == bool and t2 == t1 is na_type):
+            return bool
         else:
-            raise Exception(f'Values {left.value} and {right.value} must be of type bool')
+            raise Exception(f'Values {left.value} and {right.value} must be of type bool')        
+
+    def comparison_compatible(self, t1, t2):
+        # Check if both expressions are NA. If so determining type is ambigious an NA doesn't have a real type
+        if t1 is na_type and t2 is na_type:
+            return False
         
+        # Check that either both expressions are float/int, or at least one
+        numeric = (int, float)
+        return ((t1 in numeric and t2 in numeric) or 
+                (t1 is str and t2 is str) or
+                (t1 is str and t2 is na_type) or
+                (t1 is na_type and t2 is str) or
+                (t1 is na_type and t2 in numeric) or 
+                (t2 is na_type and t1 in numeric))
+    
     def check_not(self, node, env, RL):
         # Validates the use of the "not" operator
 
@@ -339,7 +358,7 @@ class Typechecker():
             check_arr = self.check(arr, env, RL) # Get the type of the array held in current column
 
             # Create a custom tree structure to assign a custom type to a custom variable in our environment
-            col = Tree("column_sapling", f'{check_arr}')
+            col = Tree("column_sapling", check_arr)
 
             # Turn the use of dot-notation into an identifier that the array can be assigned to
             token = Token('IDENT', f'{table_id} {c_id.value}')

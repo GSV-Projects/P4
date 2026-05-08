@@ -144,37 +144,3 @@ STRING: /"([^"\\]|\\.)*"/
 %ignore WS
 """
 
-code = """
-mytab1 = {};
-
-mytab = {
-col1: [5, 2, 1, 11, 10];
-col2: [NA, NA, 4.2, NA, 5.6];
-col3: ["abe", "slange", "lllabel", "a", "b"];
-col4: [false, true, false, false, true];
-};
-
-fixed = mytab.filter(1);
-
-
-"""
-
-from lark import Lark
-from parsertransformer import MyTrans
-from interpreter import Interpreter
-from type_checker import Typechecker
-
-def transformtree(tree):
-    return MyTrans().transform(tree)
-
-parser = Lark(grammar, parser="lalr", strict=True)
-
-parsetree = parser.parse(code)
-ast = transformtree(parsetree)
-
-print("Parse \n", parsetree.pretty())
-print("AST \n", ast.pretty())
-
-Typechecker().check_p(ast)
-fortolker = Interpreter()
-fortolker.PEval(ast)
