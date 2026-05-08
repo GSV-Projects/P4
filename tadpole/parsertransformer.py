@@ -69,7 +69,6 @@ class MyTrans(Transformer):
         return Tree("greater", c)
 
     def greater_eq(self, c):
-        c = self.fold(c)
         return Tree("geq", c)
 
     # Plus expressions

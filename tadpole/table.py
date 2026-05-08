@@ -1,8 +1,8 @@
 from tadpole.utils.NAliteral import NA
 import math
-import csv
 import pandas as pd
 import urllib.request
+import copy
 from tadpole.utils.NAliteral import NA
 
 class Table():
@@ -12,15 +12,9 @@ class Table():
     def __repr__(self):
         return f"{self.columns}"
 
-    # Method that reads from a URL and saves it in the table object.
+    # Method that reads from a URL and saves it in the table object
     def read(self, url):
-        # Check if the URL is viable and working
-        if not url != "":
-            raise Exception("URL cannot be empty")
-        try: # Establish connection to check validity of URL.
-            urllib.request.urlopen(url, timeout=5) 
-        except urllib.error.URLError as e:
-            raise Exception(f"Incorrect URL: '{url}") # If error occurs, URL is incorrect
+        self._validate_url
         
         # Check if the CSV has headers for each column
         header_peek = pd.read_csv(url, nrows=1, header=None) # Read csv
@@ -38,109 +32,157 @@ class Table():
         self.cleanValues(self.columns)
         return self
     
-    # Table - loops through each column and checks whether a value is NA
+    # Reads exactly like above, with the added functionality 
+    #   of filling out NA valies based on surrounding values.
+    def readfill(self, url):
+        self._validate_url
+        
+        header_peek = pd.read_csv(url, nrows=1, header=None)
+        first_row = header_peek.iloc[0].tolist() 
+        has_header = all(isinstance(v, (str)) for v in first_row)
+        if has_header:
+            df = pd.read_csv(url)
+        else:
+            df = pd.read_csv(url, header=None)
+            df.columns = [f"col{i+1}" for i in range(len(df.columns))]
+
+        # only change made, pandas' ffill and bfill take care of filling NA values
+        df = df.ffill().bfill()
+
+        self.columns = df.to_dict(orient="list")
+        self.cleanValues(self.columns)
+        return self
+    
+    # tbl - Loops through each column and checks whether a value is NA
     def cleanValues(self, columns):
+        self._validate_column
+        
         for column in columns:
             self.columns[column] = [self.replaceNaN(v) for v in self.columns[column]]
         return self
 
-    # var - replaces missing values with our own literal 'NA'
+    # var - Replaces missing values with our own literal 'NA'
     def replaceNaN(self, value):
         if value in ('nan', 'NaN', 'na', 'NAN', 'NA', None, '', 'N/A') or value != value:  # value != value catches float NaN
             return NA
         return value
     
+    # arr - Returns a column with NA values replaced with the given value
     def replaceNAvalues(self, column, value):
-        for key in self.columns[column]:
-            if key == NA:
-                self.columns[column] = value
-        return self
+        self._validate_column(column)
+        col = self.columns[column]
+        col_type = next((type(v) for v in col if v != NA), None)
+        if not isinstance(value, col_type):
+            raise Exception(f"Type mismatch")
+        new_col = [value if v == NA else v for v in col]
+        return new_col
         
     # array - Returns a column requested by string name
     def getcol(self, column):
+        self._validate_table
+        self._validate_column(column)
+    
         col = self.columns[column]
         return col
     
     # array - Returns the first column of a table
     def getfirst(self):
+        self._validate_table
+
         key_list = list(self.columns.keys())
         first = key_list[0]
         return self.columns[first]
 
     # array - Returns the last column of a table
     def getlast(self):
+        self._validate_table
+    
         key_list = list(self.columns.keys())
         last = key_list[len(key_list) - 1]
         return self.columns[last]
     
     # number - Returns the mean of all values in a given column
     def mean(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "mean")
+    
         col = self.columns[column]
         return sum(col) / len(col)
     
     # var - Returns the first element in a column of the table 
     def head(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+    
         col = self.columns[column]
         return col[0]
     
     # var - Returns the last element in a column of the table 
     def tail(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+
         col = self.columns[column]
         last = len(col) - 1
         return col[last]
     
-    # dictionary - Returns the first row in the table
+    # tbl - Returns the first row in the table
     def first(self):
+        self._validate_table
+
         row = {col: vals[0] for col, vals in self.columns.items()}
         return row
 
-    # dictionary - Returns the last row in the table
+    # tbl - Returns the last row in the table
     def last(self):
+        self._validate_table
+
         row = {col: vals[-1] for col, vals in self.columns.items()}
         return row
 
     # number - Total sum of all elements in column
     def sum(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "sum")
+
         col = self.columns[column]
-        if not all(isinstance(v, (int, float)) for v in col):
-            raise Exception("Given type is not a number and cannot be summed")
         return sum(col)
     
     # number - How often some value occurs within a column - WIP
     def frequency(self, column, arg = None): 
         # Reroute arg as either a value or an expr,
-        #   as only one of either can be called at a time
+        #   as only one of either can be called at a time.
         expr = None
         value = None
         if callable(arg): expr = arg
         else: value = arg
 
+        self._validate_key(column)
+        self._validate_expression(expr, True)
+
         count = 0
 
         for v in self.columns[column]:
-            # If expression was used, increment for each qualifying element
-            #   Pass the expression as a dictinoary to accomodate the Eval_dot in the interpreter
+            # If expression was used, increment for each qualifying element.
+            #   Pass the expression as a dictinoary to accomodate the Eval_dot in the interpreter.
             if expr is not None and expr({column: v}): count += 1 
             # If value was used, increment for each element that fulfills
             elif expr is None and v == value: count += 1 
         return count
 
     # tbl - Returns the cleaned versoin of the same table, excluding the row with NA or a given value
-    def filter(self, arg = None): 
+    def filter(self, arg = None):
         # Reroute arg as either a value or an expr,
-        #   as only one of either can be called at a time
+        #   as only one of either can be called at a time.
         expr = None
         value = None
         if callable(arg): expr = arg
         else: value = arg
 
-        # Make array of lengths of columns, then check if they're all the same
-        num_entries = [len(vals) for vals in self.columns.values()] 
-
-        # set() method turns array into set. 
-        #   If there are more than one element in the set, there are several lengths, therefore:
-        if len(set(num_entries)) != 1: 
-            raise Exception (f'Columns in the same table must be of the same length, current lengths: {num_entries}')
+        self._validate_uniform
+        self._validate_expression(expr, True)
         
         # Now that all lengths are the same, find number of rows through a column, by iterating through it
         num_rows = len(next(iter(self.columns.values()))) 
@@ -154,16 +196,20 @@ class Table():
             if any(v is NA or v == value for v in row.values()):
                 continue
             # If an expr is given, and expr(row) returns False, goto next i
-            if expr is not None and not expr(row): # expr(row) is a lambda, returning a bool
+            if expr is not None and expr(row): # expr(row) is a lambda, returning a bool
                 continue
             # Otherwise, all is good, paste row into our new_table
             for col, v in row.items():
                 new_table[col].append(v)
     
         return new_table
-
+    
     # number - Number at 50% of column 
     def median(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "median")
+    
         col_len = len(self.columns[column])
         if col_len % 2:
             # Length is uneven, return the exact middle element
@@ -171,12 +217,15 @@ class Table():
         else:
             # Length is even, return the average of the two elements around the middle
             halfway = math.floor(col_len/2)
-            print("half ", halfway)
             value = (self.columns[column][halfway] + self.columns[column][halfway - 1]) / 2
             return value
 
     # number - Number at 25% of column 
     def lowerq(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "lowerq")
+    
         # Find the middle of the column
         col_len = len(self.columns[column])
         mid_idx = math.floor(col_len/2)
@@ -195,11 +244,15 @@ class Table():
 
     # number - Number at 75% og column 
     def upperq(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "upperq")
+    
         # find the middle of the column
         col_len = len(self.columns[column])
         mid_idx = math.floor(col_len/2)
         # Using the middle, find the upper half and its length.
-        #   If col_len is odd, skip median element - even otherwise, then no median to skip
+        #   If col_len is odd, skip median element - even otherwise, then no median to skip.
         if col_len % 2:
             upper_half_array = self.columns[column][mid_idx + 1:]
         else:
@@ -217,75 +270,119 @@ class Table():
 
     # var - Minimum value in column
     def min(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "min")
+    
         col = self.columns[column]
         return min(col)
 
     # var - Maximum value in column
     def max(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "max")
+    
         col = self.columns[column]
         return max(col)
 
     # var - Numeral difference from min to max value
     def span(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "span")
+    
         col = self.columns[column]
         return max(col) - min(col)
 
-    # table - round a column to whole integers
-    def round(self, column):
-        if column not in self.columns:
-            raise Exception(f"Column '{column}' does not exist")
+    # table - Round a column to whole integers and return the whole
+    def roundtable(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "roundtable", True)
+
         col = self.columns[column]
+        new_columns = dict(self.columns)
+        new_columns[column] = [round(v) if v != NA else v for v in col]
+        return Table(new_columns)
+ 
+    # arr - Rounds a column and returns it as an array
+    def roundcol(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "roundcol", True)
+
+        col = self.columns[column]
+        rounded_col = []
+        rounded_col = [round(v) if v != NA else v for v in col]
+        return rounded_col
     
-        if not all(isinstance(v, (int, float)) for v in col):
-            raise Exception(f"Column '{column}' must only consist of integers or floats")
-
-        self.columns[column] = [round(v) for v in col]
-        return self
-
-    # column - rename the key of a given column
+    # column - Rename the key of a given column
     def rename(self, column, name):
+        self._validate_column(column)
+        self._validate_key(name)
+    
         if column not in self.columns:
             raise Exception(f"Column '{column}' does not exist")
-        self.columns = {
+        new_table = copy.deepcopy(self.columns)
+        new_table = {
             name if k == column else k: v 
-            for k, v in self.columns.items()}
-        return self
+            for k, v in new_table.items()}
+        return Table(new_table)
     
-    # array - returns array of all keys in a table
+    # array - Returns array of all keys in a table
     def keys(self):
+        self._validate_table
+    
         keys = []
         for column in self.columns:
             keys.append(column)
 
         return keys
 
-    # var - returns the length of a given column / number of rows in a table
+    # var - Returns the length of a given column / number of rows in a table
     def lenCol(self, column):
+        self._validate_column(column)
+    
         return len(self.columns[column])
     
-    # table - sort whole table from one column, numerically for numbers or
-    # alphabetically for strings.
-    def sort(self, column):
-        if column not in self.columns:
-            raise Exception(f"Column '{column}' does not exist")
+    # table - Sort whole table from one column, 
+    #   numerically for numbers or alphabetically for strings.
+    def sort(self, column, o = None):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        decr_keys = ('decr', 'decrease', 'd', True)
+        if o not in decr_keys and o != None:
+            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true, received: {o}')
         
-        col = self.columns[column]
+        new_table = copy.deepcopy(self.columns)
+        col = new_table[column]
 
         # Uses Python 'sorted' which takes the key 'lambda' to ensure it is sorted by values, not indecies
-        sorted_indices = sorted(range(len(col)), key=lambda i: col[i])
+        if(o in decr_keys):
+            # Decreasing order
+            sorted_indices = sorted(range(len(col)), key=lambda i: col[i], reverse=True)
+        else: 
+            # Increasing order
+            sorted_indices = sorted(range(len(col)), key=lambda i: col[i])
+     
         # Rebuild the table in new order
-        self.columns = {k: [v[i] for i in sorted_indices] for k, v in self.columns.items()}
-        return self
+        new = {k: [v[i] for i in sorted_indices] for k, v in new_table.items()}
+        return Table(new)
         
-    # array - given a column, returns an array of the column sorted
-    # sorted numerically for numbers and alphabetically for strings.
+    # array - Given a column, returns an array of the column sorted.
+    #   Sorted numerically for numbers and alphabetically for strings.
     def sortcol(self, column):
-        if column not in self.columns:
-            raise Exception(f"Column '{column}' does not exist")
-
+        self._validate_column(column)
+        self._validate_not_empty(column)
+    
         return sorted(self.columns[column])
-    # tbl - Appends a given array to the table, wlong with the given name
+    
+    # tbl - Appends a given array to the table, with the given name
     def append(self, array, key = None):
+        self._validate_key(key)
+        self._validate_uniform
+    
         new_table = dict(self.columns)
         if key is None:
             # Get amount of cols, and make new name "colx" where x is the nr of the new col
@@ -299,6 +396,9 @@ class Table():
 
     # tbl - Removes a given column from the table
     def remove(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+    
         new_table = {}
         for col in self.columns:
             if col == column:
@@ -309,6 +409,8 @@ class Table():
     
     # tbl - Manipulate existing column as given, and append as a new column, possibly with a given key
     def mutate(self, expr, key = None):
+        self._validate_expression(expr)
+    
         new_table = dict(self.columns)
         num_rows = len(next(iter(self.columns.values())))
         new_col = []
@@ -327,11 +429,16 @@ class Table():
     
     # number - Returns the value of the squared deviation from the mean
     def variance(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "variance")
+    
         # Get values and intialise array for differences in mean and elements
         col = self.columns[column]
-        mean = self.mean(col)
+        mean = self.mean(column)
         deviations = []
-        # For each column, square the difference. The sum of all these is the variance
+        # For each column, square the difference.
+        #   The sum of all these is the variance.
         for val in col:
             deviations.append((val - mean) ** 2)
 
@@ -339,11 +446,79 @@ class Table():
     
     # number - The average deviation from the mean
     def stddev(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "stddev")
+
         # Get the variance, and return the sqrt (the std dev)
         variance = self.variance(column)
 
         return math.sqrt(variance)
     
-    def fwdfill(self, column):
+    # --- ERROR HANDLING --- #
+    
+    # Ensure the column exists in the table
+    def _validate_column(self, column):
+        if column not in self.columns:
+            raise Exception(f'Column with key {column} does not exist in the given table')
+        
+    # Ensure table is not empty
+    def _validate_table(self):
+        if not self.columns:
+            raise Exception(f'Cannot find keys of columns, as table is empty')
+
+    # Ensure column in not empty or all NA
+    def _validate_not_empty(self, column):
         col = self.columns[column]
-        return col.ffill().bfill()
+        # Check if col is [], None or only contains NA
+        if not col or all(cell is NA for cell in col):
+            raise Exception(f'Column {column} is empty or only consists of {NA}')
+    
+    # Ensure the column only contains numbers
+    def _validate_number(self, column, method, passNA = None):
+        col = self.columns[column]
+        # Check for NA specifically
+        if (not all(c != NA for c in col)) and passNA != True:
+            raise Exception(f'Column {column} may not contain {NA} values to use function {method}') 
+        # Check that theyre all numbers
+        if not all(isinstance(c, (int, float)) or NA for c in col):
+            raise Exception(f'Column {column} must consist only of integers or floats to use function {method}') 
+        
+    def _validate_uniform(self):
+        # Make array of lengths of columns, then check if they're all the same
+        num_entries = [len(vals) for vals in self.columns.values()] 
+        # set() method turns array into set. If there are more than 
+        #   one element in the set, there are several lengths, therefore:
+        if len(set(num_entries)) != 1: 
+            raise Exception (f'Columns in the same table must be of the same length, current lengths: {num_entries}')
+
+    def _validate_expression(self, expr, is_bool = None):
+        # Check if the lambda can even be called
+        if not callable(expr):
+            raise Exception(f"Expected a callable function/expression, got {type(expr).__name__}")
+        
+        # Set up a row and try calling the function on the given row
+        row = {col: vals[0] for col, vals in self.columns.items()}
+        try:
+            result = expr(row)
+        except Exception as e:
+            raise Exception(f"Expression raised an error when called: {e}")    
+        
+        # Case for frequency and filter, that exprest the expr to return a bool
+        if is_bool and not isinstance(result, bool):
+            raise Exception(f"Expression must return a boolean, got {type(result).__name__}")
+
+
+    # Ensure key name is a valid identifier
+    def _validate_key(self, key):
+        if not key.isidentifier():
+            raise Exception(f'Attempted to use an invalid key, {key}, for column')
+    
+    # Ensure URL is viable and working
+    def _validate_url(self, url):
+        if url == "":
+            raise Exception("URL cannot be empty")
+        try: # Establish connection to check validity of URL
+            urllib.request.urlopen(url, timeout=5) 
+        except urllib.error.URLError as e:
+            raise Exception(f"Incorrect URL: '{url}") # If error occurs, URL is incorrect

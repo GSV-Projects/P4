@@ -10,23 +10,37 @@ class Typechecker():
             "R" : None,
             "L" : False
         }
-        self.ptable = { # "name" : (return type)
-            "mean" :        (int),
-            "first" :       ('tbl'),
-            "last" :        ('tbl'),
-            "sum" :         (float),
-            "frequency" :   (float),
-            "filter" :      ('tbl'),
-            "median" :      (float),
-            "lowerq" :      (float),
-            "upperq" :      (float),
-            "min" :         (float),
-            "max" :         (float),
-            "span" :        ('tbl'),
-            "read" :        ('tbl'),
-            "replaceNA":    ('tbl'),
-            "sort":         ('tbl'),
-            "sortcol":      ('tbl')
+        self.ptable = { 
+            "read":         ('tbl'),    
+            "readfill":     ('tbl'),
+            "replaceNA":    ('tbl'),    
+            "getcol":       ([]),       
+            "getfirst":     ([]),       
+            "getlast":      ([]),       
+            "mean" :        (int),      
+            "head" :        ((int, float, str, bool)),
+            "tail" :        ((int, float, str, bool)),
+            "sum" :         (float),    
+            "frequency" :   (float),    
+            "filter" :      ('tbl'),    
+            "median" :      (float),    
+            "lowerq" :      (float),    
+            "upperq" :      (float),    
+            "min" :         (float),    
+            "max" :         (float),    
+            "span" :        ('tbl'),    
+            "rename" :      ('tbl'),    
+            "sort" :        ('tbl'),    
+            "sortcol":      ([]),       
+            "round":        ('tbl'),    
+            "roundcol":     ([]),       
+            "keys":         ([]),       
+            "length":       (int),      
+            "append":       ('tbl'),    
+            "remove":       ('tbl'),    
+            "mutate":       ('tbl'),    
+            "variance":     (float),    
+            "stddev":       (float),    
         }
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
@@ -103,7 +117,7 @@ class Typechecker():
         Checks to see if...
 
         Args:
-            one:
+            one: does this
 
         Returns:
             
@@ -348,10 +362,8 @@ class Typechecker():
 
             # Turn the use of dot-notation into an identifier that the array can be assigned to
             token = Token('IDENT', f'{table_id} {c_id.value}')
-            print(token)
             stmt = Tree("assign", [token, col])
             self.check(stmt, env, RL)
- 
 
         # Ending the check_function with setting the id == "tbl" since all tables would be of type "tbl"
         token = Token('IDENT', f'{table_id}')
@@ -405,7 +417,7 @@ class Typechecker():
             return
 
         if (f_id not in self.ftable):
-            raise Exception(f'Function not previously defined')
+            raise Exception(f'Function {f_id} not previously defined')
 
 
         formal_params, return_type = self.ftable[f_id] # Get info on current function
