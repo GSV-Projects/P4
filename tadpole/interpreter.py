@@ -15,6 +15,7 @@ class Interpreter():
     def init_ptable(self):
         return {
             "read":         Table.read,
+            "readfill":     Table.readfill,
             "replaceNA":    Table.replaceNAvalues,
             "getcol":       Table.getcol,
             "getfirst":     Table.getfirst,
@@ -43,7 +44,6 @@ class Interpreter():
             "mutate":       Table.mutate,
             "variance":     Table.variance,
             "stddev":       Table.stddev,
-            "fwdfill":      Table.fwdfill
         }
 
     # --- Run program ---

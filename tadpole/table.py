@@ -38,6 +38,32 @@ class Table():
         self.cleanValues(self.columns)
         return self
     
+    # Reads exactly like above, with the added functionality 
+    #   of filling out NA valies based on surrounding values.
+    def readfill(self, url):
+        if not url != "":
+            raise Exception("URL cannot be empty")
+        try: 
+            urllib.request.urlopen(url, timeout=5) 
+        except urllib.error.URLError as e:
+            raise Exception(f"Incorrect URL: '{url}") 
+        
+        header_peek = pd.read_csv(url, nrows=1, header=None)
+        first_row = header_peek.iloc[0].tolist() 
+        has_header = all(isinstance(v, (str)) for v in first_row)
+        if has_header:
+            df = pd.read_csv(url)
+        else:
+            df = pd.read_csv(url, header=None)
+            df.columns = [f"col{i+1}" for i in range(len(df.columns))]
+
+        # only change made, pandas' ffill and bfill take care of filling NA values
+        df = df.ffill().bfill()
+
+        self.columns = df.to_dict(orient="list")
+        self.cleanValues(self.columns)
+        return self
+    
     # tbl - loops through each column and checks whether a value is NA
     def cleanValues(self, columns):
         for column in columns:
@@ -50,10 +76,12 @@ class Table():
             return NA
         return value
     
+    # arr - returns a column with NA values replaced with the given value
     def replaceNAvalues(self, column, value):
         for key in self.columns[column]:
-            if key == NA:
-                self.columns[column] = value
+            self.columns[column] = [value if v is NA else v for v in self.columns[column]]
+
+        return self.columns[column]
         
     # array - Returns a column requested by string name
     def getcol(self, column):
@@ -349,6 +377,3 @@ class Table():
 
         return math.sqrt(variance)
     
-    def fwdfill(self, column):
-        col = self.columns[column]
-        return col.ffill().bfill()

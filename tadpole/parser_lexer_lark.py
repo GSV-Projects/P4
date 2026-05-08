@@ -145,16 +145,24 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
+mytab1 = {};
+
+mytab1 = mytab1.read("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/mpg.csv");
+cleaned = mytab1.replaceNA("horsepower", 100);
+
+mytab1 = mytab1.readfill("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/mpg.csv");
+
+
 mytab = {
 col1: [1, 2, 3, 6, 10];
-col2: [NA, 2.2, 3.3, NA, 5.0];
+col2: [1.1, 2.2, 3.3, NA, 5.0];
 col3: ["abe", "slange", "lllabel", "a", "b"];
 col4: [false, true, false, false, true];
 };
 
 x = [1,4,7];
 
-newtab = mytab.stddev("col1");
+newtab = mytab.fwdfill();
 """
 
 from lark import Lark

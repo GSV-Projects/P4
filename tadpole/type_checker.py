@@ -11,7 +11,8 @@ class Typechecker():
             "L" : False
         }
         self.ptable = { 
-            "read":         ('tbl'),    # vent med + self
+            "read":         ('tbl'),    # virker
+            "readfill":     ('tbl'),
             "replaceNA":    ('tbl'),    # self
             "getcol":       ([]),       #
             "getfirst":     ([]),       #
@@ -40,7 +41,6 @@ class Typechecker():
             "mutate":       ('tbl'),    #
             "variance":     (float),    #
             "stddev":       (float),    #
-            "fwdfill":      ('tbl')     # ogs gerne for hele tbl
         }
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
@@ -71,8 +71,8 @@ class Typechecker():
         for statement in c.children:
             self.check(statement, self.vtable, self.RL)
 
-        #print("type_checker ftable:", self.ftable)
-        #print("type_checker vtable:", self.vtable)
+        print("type_checker ftable:", self.ftable)
+        print("type_checker vtable:", self.vtable)
 
     def build_ft(self, c, env, RL):
         for child in c.children:
@@ -398,7 +398,7 @@ class Typechecker():
             return
 
         if (f_id not in self.ftable):
-            raise Exception(f'Function not previously defined')
+            raise Exception(f'Function {f_id} not previously defined')
 
 
         formal_params, return_type = self.ftable[f_id] # Get info on current function
