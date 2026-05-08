@@ -5,9 +5,14 @@ from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
 
 code = """
-a = 3 + NA;
-b = 3;
-c = NA;
+string1 = "test";
+string2 = "test";
+string3 = "test1";
+
+isSame = string1 == string2;
+notSame = string1 /= string3;
+lessThan = string2 < string3;
+
 """
 
 def transformtree(tree):

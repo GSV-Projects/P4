@@ -34,6 +34,31 @@ def test_add_mix():
     # Expected output
     assert evaluator.env_v["a"] == 20.84
 
+# test that comparisons between strings is allowed and evaluates to the correct boolean
+def test_string_comparison():
+    # Setup
+    syntex_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'string1'), Token('STRING', '"test"')]), Tree('assign', [Token('IDENT', 'string2'), Token('STRING', '"test"')]), Tree('assign', [Token('IDENT', 'string3'), Token('STRING', '"test1"')]), Tree('assign', [Token('IDENT', 'isSame'), Tree('equal', [Token('IDENT', 'string1'), Token('IDENT', 'string2')])]), Tree('assign', [Token('IDENT', 'notSame'), Tree('neq', [Token('IDENT', 'string1'), Token('IDENT', 'string3')])]), Tree('assign', [Token('IDENT', 'lessThan'), Tree('leq', [Token('IDENT', 'string2'), Token('IDENT', 'string3')])])])
+    evaluator = Evaluator()
+    evaluator.PEval(syntex_tree)
+
+    # What the syntex_tree represents
+    '''
+    string1 = "test";
+    string2 = "test";
+    string3 = "test1";
+
+    isSame = string1 == string2;
+    notSame = string1 /= string3;
+    lessThan = string2 < string3;
+    '''
+
+    # Expected output
+    result1 = evaluator.env_v["notSame"] == True
+    result2 = evaluator.env_v["isSame"] == True
+    result3 = evaluator.env_v["lessThan"] == True
+    assert result1 and result2 and result3 == True
+
+
 # test that expressions follow the precidence rules for numbers
 def test_precidence_num():
     # Setup
