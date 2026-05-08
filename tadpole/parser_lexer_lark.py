@@ -145,12 +145,11 @@ STRING: /"([^"\\]|\\.)*"/
 """
 
 code = """
-a = 1;
+hej = "hej";
 
-while(a < 10) do {
-     a = a + 1;
-}
+hej2 = "Hej";
 
+detsamme = hej /= hej2;
 """
 
 from lark import Lark

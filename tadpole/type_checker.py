@@ -225,7 +225,7 @@ class Typechecker():
         t1 = self.check(left, env, RL)
         t2 = self.check(right, env, RL)
 
-        # Check if t1 and t2 are numercially compatible meaning atleast one is either float or int. The other can optionally be NA
+        # Check if t1 and t2 are comparison compatible meaning atleast one is either float, int or string. The other can optionally be NA
         if self.comparison_compatible(t1,t2):
             return bool
         else: # Otherwise, raise exception
@@ -260,7 +260,6 @@ class Typechecker():
                 (t1 is na_type and t2 in numeric) or 
                 (t2 is na_type and t1 in numeric))
     
-        
     def check_not(self, node, env, RL):
         # Validates the use of the "not" operator
 
