@@ -5,7 +5,9 @@ from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
 
 code = """
-a = 3;
+a = 3 + NA;
+b = 3;
+c = NA;
 """
 
 def transformtree(tree):

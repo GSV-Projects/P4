@@ -99,7 +99,7 @@ class Evaluator():
         value = tree.children[1]
         v = self.Eval(value, env_v)
 
-        if v is NA:
+        if v is NA and tree.children[1] is Token:
             raise Exception("Runtime error: Cannot assign NA to variable")
 
         env_v[identifier] = v
