@@ -1,14 +1,13 @@
-
 from tadpole.grammar import grammar
 from lark import Lark
 from tadpole.parsertransformer import MyTrans
-from tadpole.interpreter import Interpreter
+from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
 
-
-
 code = """
-a = 3;
+a = 3 + NA;
+b = 3;
+c = NA;
 """
 
 def transformtree(tree):
@@ -23,5 +22,5 @@ print("Parse \n", parsetree.pretty())
 print("AST \n", ast.pretty())
 
 Typechecker().check_p(ast)
-fortolker = Interpreter()
-fortolker.PEval(ast)
+evaluator = Evaluator()
+evaluator.PEval(ast)

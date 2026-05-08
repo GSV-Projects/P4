@@ -2,9 +2,8 @@ from tadpole.grammar import grammar
 import pytest
 from lark import Lark
 from tadpole.parsertransformer import MyTrans
-from tadpole.interpreter import Interpreter
+from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
-
 
 parser = Lark(grammar, parser="lalr", strict=True)
 
@@ -15,8 +14,6 @@ def transformtree(tree):
 def parse_to_ast(code):
     parsetree = parser.parse(code)
     return transformtree(parsetree)
-
-
 
 def test_long_program():
     # Setup
@@ -42,16 +39,15 @@ def test_long_program():
     ast = parse_to_ast(code)
     typechecker = Typechecker()
     typechecker.check_p(ast)
-    fortolker = Interpreter()
-    fortolker.PEval(ast)
+    evaluator = Evaluator()
+    evaluator.PEval(ast)
 
 
     # Assert 
-    a_result = fortolker.env_v["a"] == pytest.approx(0.000000000870350918695717)
-    b_result = fortolker.env_v["b"] == -1.75
+    a_result = evaluator.env_v["a"] == pytest.approx(0.000000000870350918695717)
+    b_result = evaluator.env_v["b"] == -1.75
 
     assert (a_result and b_result)
-    
     
 def test_recursion():
     # Setup
@@ -71,12 +67,12 @@ def test_recursion():
     ast = parse_to_ast(code)
     typechecker = Typechecker()
     typechecker.check_p(ast)
-    fortolker = Interpreter()
-    fortolker.PEval(ast)
+    evaluator = Evaluator()
+    evaluator.PEval(ast)
 
 
     # Assert 
     a_result = typechecker.vtable["ans"] == bool 
-    b_result = fortolker.env_v["ans"] == True
+    b_result = evaluator.env_v["ans"] == True
 
     assert (a_result and b_result)

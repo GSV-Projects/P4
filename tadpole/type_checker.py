@@ -59,8 +59,7 @@ class Typechecker():
             return 'tbl'
         if token.type == 'NA':
             return na_type
-        return 'unknown type shihahhaha'
-
+        raise Exception(f"unknown type '{token.type}'")
 
  # --- Check program ---
     def check_p(self, c):
