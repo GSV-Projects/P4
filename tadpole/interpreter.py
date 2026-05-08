@@ -36,7 +36,7 @@ class Interpreter():
             "round":        Table.round,
             "keys":         Table.keys,
             "length":       Table.lenCol,
-            "replaceNA":    Table.replaceNavalues,
+            "replaceNA":    Table.replaceNAvalues,
             "append":       Table.append,
             "remove":       Table.remove,
             "mutate":       Table.mutate
