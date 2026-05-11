@@ -454,33 +454,16 @@ class Typechecker():
             
         return return_type
     
-    # check_dot is the typechecking of predefined functions, as we go back and forth a bit with the implementation
-    #   we keep this commented incase we need it.
-    #   Currently, we only need the return type of the predefined function.
+    # For predefined functions we only want the return type of said function so we can store it in a variable
     def check_dot(self, node, env, RL):
-        # The leftmost node of the children is the name of which variable the dot funtions is called upon
-        #left = node.children[0]
+        # We want to extract the name of the called function so we can find the return type in the ptable
         right = node.children[1].children[0]
-        return_type = self.ptable[right] # Get formal info on current child
-        return return_type # Return type if its an assignment
-        # The rest of the children are the call node(s), that hold the predef. func. called and the params
-        
-#
-    #    # Checking each predefined function
-    #    for child in right:
-    #        child_left = child.children[0] # Name of predefined function called
-    #        actual_params = child.children[1:] # Actual parameters of predefined function
-    #        if child_left not in self.ptable: # Check if the function is in the enviroment of predefined functions
-    #            raise Exception(f'{child_left} is not a predefined function')
-    #        
-    #        input_type, formal_params, return_type = self.ptable[child_left] # Get formal info on current child
-#
-    #        if len(formal_params) != len(actual_params):
-    #            raise Exception("Amount of formal parameters do not match actual parameters")
-#
-#
-    #    return return_type # Return type if its an assignment  
-#
+
+        # Get formal info on current child and return it
+        return_type = self.ptable[right] 
+        return return_type 
+ 
+
     def check_stop(self, node, env, RL):
         # Raises an exception if we aren't in a loop currently
         # This can be seen using the key "L" in the enviroment "RL"
