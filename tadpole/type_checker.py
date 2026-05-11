@@ -40,7 +40,7 @@ class Typechecker():
             "remove":       ('tbl'),    
             "mutate":       ('tbl'),    
             "variance":     (float),    
-            "stddev":       (float),    
+            "stddev":       (float)
         }
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree

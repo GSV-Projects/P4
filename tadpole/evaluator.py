@@ -388,7 +388,7 @@ class Evaluator():
     # Handles the call of predefined dot functions
     def Eval_dot(self, tree, env):
         # Looks up the table in environment and the name of the function
-        table = self.lookup(tree.children[0].value, env) # Gets the table from vtable
+        table = self.lookup(tree.children[0].value, env) # Gets the table from variable environment
         method_name = tree.children[1].children[0].value # Gets the name of the method called
 
         parameters = [] # Will hold all params for the called method
@@ -396,6 +396,7 @@ class Evaluator():
         if (method_name not in self.env_pd):
             raise Exception(f'Tried to call function {method_name}, which does not exist')
         
+        # Set of possible operations that can be read when passing expressinos as parameters
         expressions = {"equal", "neq", "less", "leq", "greater", "geq", "and", "or", "not", 
                        "add", "sub", "mult", "divide", "mod", "exp"}
 
@@ -417,6 +418,7 @@ class Evaluator():
             else:
                 parameters.append(self.Eval(actual_params, env))
         
+        # Execute the function with the corresponding parameters and table
         execute = self.env_pd[method_name](table, *parameters)
         return execute
         
