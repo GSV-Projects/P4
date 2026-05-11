@@ -111,10 +111,14 @@ class Evaluator():
     # Return statement
     def SEval_return(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
+        # Raises an exception, as an alternative to a normal return, this is done to skip the stack of function calls.
+        #   And return directly to Eval_call
         raise return_value(v)
 
     # Stop statement to be used in loops
     def SEval_stop(self, tree, env_v, env_p):
+        # Same logic as for the return exception. The exception is caught in SEval_while, making the function return,
+        #   instead of evaluating the next statement in the while loop body
         raise stop
         
     # While loop
@@ -464,6 +468,8 @@ class Evaluator():
         if token.type == 'tbl':
             return 'tbl'
         if token.type == 'NA':
+            # The NA literal is a singleton instance of the NAliteral class
+            #   This means we can use "is" NA to check if a value is NA, as all NA values point to the same object in memory
             return NA
         raise Exception(f"unknown type '{token.type}'")
 
