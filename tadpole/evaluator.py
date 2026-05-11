@@ -17,8 +17,8 @@ class Evaluator():
     def init_ptable(self):
         return {
             "read":         Table.read,
-            "readfill":     Table.readfill,
-            "replaceNA":    Table.replaceNAvalues,
+            "readfill":     Table.read_fill,
+            "replaceNA":    Table.replace_na_values,
             "rename" :      Table.rename,
             "append":       Table.append,
             "remove":       Table.remove,
@@ -27,14 +27,14 @@ class Evaluator():
             "first":        Table.first,
             "last":         Table.last,
             "sort" :        Table.sort,
-            "round":        Table.roundtable,
-            "getcol":       Table.getcol,
-            "getfirst":     Table.getfirst,
-            "getlast":      Table.getlast,
-            "roundcol":     Table.roundcol,
+            "round":        Table.round_table,
+            "getcol":       Table.get_col,
+            "getfirst":     Table.get_first,
+            "getlast":      Table.get_last,
+            "roundcol":     Table.round_col,
             "keys":         Table.keys,
-            "sortcol":      Table.sortcol,
-            "length":       Table.lencol,
+            "sortcol":      Table.sort_col,
+            "length":       Table.len_col,
             "head" :        Table.head,
             "tail" :        Table.tail,
             "mean" :        Table.mean,
@@ -47,7 +47,7 @@ class Evaluator():
             "max" :         Table.max,
             "span" :        Table.span,
             "variance":     Table.variance,
-            "stddev":       Table.stddev,
+            "stddev":       Table.std_dev,
         }
 
     # Evaluate the programs definition and statements

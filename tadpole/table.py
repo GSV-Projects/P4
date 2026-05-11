@@ -30,13 +30,13 @@ class Table():
 
         # Save the CSV columns wise to the columns of the object, and return
         self.columns = df.to_dict(orient="list")
-        self.cleanValues(self.columns)
+        self.clean_values(self.columns)
         return self
     
     # Reads exactly like above, with the added functionality 
     #   of filling out NA valies based on surrounding values.
     # Returns: 'tbl'
-    def readfill(self, url):
+    def read_fill(self, url):
         self._validate_url
         
         header_peek = pd.read_csv(url, nrows=1, header=None)
@@ -52,28 +52,28 @@ class Table():
         df = df.ffill().bfill()
 
         self.columns = df.to_dict(orient="list")
-        self.cleanValues(self.columns)
+        self.clean_values(self.columns)
         return self
     
     # Loops through each column and checks whether a value is NA
     # Returns: 'tbl'
-    def cleanValues(self, columns):
+    def clean_values(self, columns):
         self._validate_column
         
         for column in columns:
-            self.columns[column] = [self.replaceNaN(v) for v in self.columns[column]]
+            self.columns[column] = [self.replace_nan(v) for v in self.columns[column]]
         return self
 
     # Replaces missing values with our own literal 'NA'
     # Returns: NA 
-    def replaceNaN(self, value):
+    def replace_nan(self, value):
         if value in ('nan', 'NaN', 'na', 'NAN', 'NA', None, '', 'N/A') or value != value:  # value != value catches float NaN
             return NA
         return value
     
     # Returns a column with NA values replaced with the given value
     # Returns: array 
-    def replaceNAvalues(self, column, value):
+    def replace_na_values(self, column, value):
         self._validate_column(column)
         col = self.columns[column]
         col_type = next((type(v) for v in col if v != NA), None)
@@ -225,7 +225,7 @@ class Table():
 
     # Round a column to whole integers and return the whole
     # Returns: 'tbl'
-    def roundtable(self, column):
+    def round_table(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
         self._validate_number(column, "roundtable", True)
@@ -235,18 +235,26 @@ class Table():
         new_columns[column] = [round(v) if v != NA else v for v in col]
         return Table(new_columns)       
          
-    # Given a column, returns an array of the column sorted.
+    # array - Given a column, returns an array of the column sorted.
     #   Sorted numerically for numbers and alphabetically for strings.
-    # Returns: array
-    def sortcol(self, column):
+    def sort_col(self, column,  o = None):
         self._validate_column(column)
         self._validate_not_empty(column)
+
+        decr_keys = ('decr', 'decrease', 'd', True)
+        if o not in decr_keys and o != None:
+            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true, received: {o}')
     
-        return sorted(self.columns[column])
+        if(o in decr_keys):
+            # Decreasing order
+            return sorted(self.columns[column], reverse=True)
+        else: 
+            # Increasing order
+            return sorted(self.columns[column])
 
     # Rounds a column and returns it as an array
     # Returns: array
-    def roundcol(self, column):
+    def round_col(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
         self._validate_number(column, "roundcol", True)
@@ -258,7 +266,7 @@ class Table():
 
     # Returns a column requested by string name
     # Returns: array 
-    def getcol(self, column):
+    def get_col(self, column):
         self._validate_table
         self._validate_column(column)
     
@@ -267,7 +275,7 @@ class Table():
     
     # Returns the first column of a table
     # Returns: array 
-    def getfirst(self):
+    def get_first(self):
         self._validate_table
 
         key_list = list(self.columns.keys())
@@ -276,7 +284,7 @@ class Table():
 
     # Returns the last column of a table
     # Returns: array 
-    def getlast(self):
+    def get_last(self):
         self._validate_table
     
         key_list = list(self.columns.keys())
@@ -296,7 +304,7 @@ class Table():
 
     # Returns the length of a given column / number of rows in a table
     # Returns: int
-    def lencol(self, column):
+    def len_col(self, column):
         self._validate_column(column)
     
         return len(self.columns[column])
@@ -480,7 +488,7 @@ class Table():
     
     # The average deviation from the mean
     # Returns: float
-    def stddev(self, column):
+    def std_dev(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
         self._validate_number(column, "stddev")

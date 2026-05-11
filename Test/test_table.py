@@ -19,7 +19,7 @@ def test_getcol():
     t = Table({"col1": [1.0, NA, 3.0], "col2": ["red", "green", "yellow"]})
 
     #Act
-    result = t.getcol("col1")
+    result = t.get_col("col1")
 
     #Assert
     assert result == [1.0, NA, 3.0]
@@ -30,7 +30,7 @@ def test_getfirst():
     t = Table({"col1": [1.0, NA, 3.0], "col2": ["red", "green", "yellow"]})
 
     #Act
-    result = t.getfirst()
+    result = t.get_first()
 
     #Assert
     assert result == [1.0, NA, 3.0]
@@ -41,7 +41,7 @@ def test_getlast():
     t = Table({"col1": [1.0, NA, 3.0], "col2": ["red", "green", "yellow"]})
 
     #Act
-    result = t.getlast()
+    result = t.get_last()
 
     #Assert
     assert result == ["red", "green", "yellow"]
@@ -108,7 +108,6 @@ def test_frequency():
 
     # Act
     result = t.frequency("col1", lambda row: row["col1"] > 2)
-    print(repr(result))
 
     # Assert
     assert result == 1
@@ -229,7 +228,7 @@ def test_sortcol():
     t = Table({"col1": [1.0, 7.0, 3.0], "col2": ["red", "green", "yellow"]})
 
     #Act
-    result = t.sortcol("col1")
+    result = t.sort_col("col1")
 
     #Assert
     assert result == [1.0, 3.0, 7.0]
@@ -240,7 +239,7 @@ def test_sortcol_desc():
     t = Table({"col1": [1.0, 7.0, 3.0], "col2": ["red", "green", "yellow"]})
 
     #Act
-    result = t.sortcol("col1", "d")
+    result = t.sort_col("col1", "d")
 
     #Assert
     assert result == [7.0, 3.0, 1.0]
@@ -251,7 +250,7 @@ def test_round():
     t = Table({"col1": [1.4, 7.5, 3.6], "col2": ["red", "green", "yellow"]})
 
     #Act
-    result = t.roundtable("col1")
+    result = t.round_table("col1")
 
     #Assert
     assert result.columns ==  {"col1": [1, 8, 4], "col2": ["red", "green", "yellow"]}
@@ -262,7 +261,7 @@ def test_roundcol():
     t = Table({"col1": [1.4, 7.5, 3.6], "col2": ["red", "green", "yellow"]})
 
     #Act
-    result = t.roundcol("col1")
+    result = t.round_col("col1")
 
     #Assert
     assert result == [1, 8, 4]
@@ -284,7 +283,7 @@ def test_lencol():
     t = Table({"col1": [1.4, 7.5, 3.6], "col2": ["red", "green", "yellow"], "col3": [1,2,3]})
 
     #Act
-    result = t.lenCol("col1")
+    result = t.len_col("col1")
 
     #Assert
     assert result == 3
@@ -296,7 +295,7 @@ def test_replaceNAvalues():
     t = Table({"col1": [1.0, NA, 3.0], "col2": ["red", "green", "yellow"]})
     
     # Act
-    result = t.replaceNAvalues("col1", 2.0)
+    result = t.replace_na_values("col1", 2.0)
     
     # Assert
     assert result == [1.0, 2.0, 3.0]
@@ -345,7 +344,7 @@ def test_stddev():
     t = Table({"col1": [1.0, 2.0, 3.0, 4.0, 5.0, 10.0]})
 
     # Act
-    result = t.stddev("col1")
+    result = t.std_dev("col1")
 
     # Assert
     assert result == 2.91070819942883
