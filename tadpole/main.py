@@ -5,13 +5,11 @@ from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
 
 code = """
-string1 = "test";
-string2 = "test";
-string3 = "test1";
 
-isSame = string1 == string2;
-notSame = string1 /= string3;
-lessThan = string2 < string3;
+y = [1,2,3];
+y[3] = 67;
+
+value = y[1];
 
 """
 
