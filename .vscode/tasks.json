@@ -4,8 +4,16 @@
         {
             "label": "Run Main (Root Context)",
             "type": "shell",
-            "command": "${workspaceFolder}/.venv/Scripts/python.exe", //"${workspaceFolder}/.venv/bin/python.exe" <-- if u mactard
+
+            // Windows path:
+            //  "${workspaceFolder}/.venv/Scripts/python.exe"
+            // macOS/Linux:
+            //  "${workspaceFolder}/.venv/bin/python"
+
+            "command": "${workspaceFolder}/.venv/Scripts/python.exe",
+
             "args": ["-m", "tadpole.main"],
+
             "group": {
                 "kind": "build",
                 "isDefault": true

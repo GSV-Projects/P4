@@ -15,7 +15,7 @@ program: (stmt | def)*
 ?ifelse:  "else" "{" stmt* "}"                   -> else
 
 ?rvalue: "[" (expr ("," expr)*)? "]"             -> array
-       | IDENT "." call ("." call)*              -> dot_call
+       | IDENT "." call ("." call)*              -> method_call
        | table
        | expr
 
@@ -144,3 +144,29 @@ STRING: /"([^"\\]|\\.)*"/
 %ignore WS
 """
 
+code = """
+mytab = {
+col1: [1,2,3];
+col2: [4,5,6];
+};
+"""
+
+from lark import Lark
+from parsertransformer import MyTrans
+from evaluator import Evaluator
+from type_checker import Typechecker
+
+def transformtree(tree):
+    return MyTrans().transform(tree)
+
+parser = Lark(grammar, parser="lalr", strict=True)
+
+parsetree = parser.parse(code)
+ast = transformtree(parsetree)
+
+print("Parse \n", parsetree.pretty())
+print("AST \n", ast.pretty())
+
+Typechecker().check_p(ast)
+fortolker = Evaluator()
+fortolker.PEval(ast)

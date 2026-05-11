@@ -3,19 +3,23 @@ from lark import Lark
 
 parser = Lark(grammar, parser="lalr", strict=True)
 
-# Testing grammar if its parseable
+## Testing grammar if its parseable ##
+
+# Testing grammar for assign
 def test_assign():
     input = '''
         b = 2+2;
     '''
     assert parser.parse(input)
 
+# Testing grammar for while loops
 def test_while():
     input = '''
         while ( 2 /= 4 ) do {x = x + 1;}
     '''
     assert parser.parse(input)
 
+# Testing grammar for creation of tables
 def test_tablecreation():
     input = '''
         mytab = {
@@ -25,6 +29,7 @@ def test_tablecreation():
     '''
     assert parser.parse(input)
     
+# Testing grammar for defining functions    
 def test_func_def():
     input = '''
         function myfunc (int eq, float mads) {
@@ -37,7 +42,7 @@ def test_func_def():
     '''
     assert parser.parse(input)
 
-    
+# Testing grammar for function calls    
 def test_func_call():
     input = '''
         function myfunc(){x = 1;}
@@ -46,7 +51,7 @@ def test_func_call():
     '''
     assert parser.parse(input)
     
-    
+# Testing grammar for equal expressions    
 def test_equal_expr():
     input = '''
         x = 5;
@@ -56,6 +61,7 @@ def test_equal_expr():
     '''
     assert parser.parse(input)
 
+# Testing grammar for arimetic expressions
 def test_mult_expr():
     input = '''
         x = 3; y = 4;
@@ -65,6 +71,7 @@ def test_mult_expr():
     '''
     assert parser.parse(input)
 
+# Testing grammar for unary expressions
 def test_unary_expr():
     input = '''
         x = -(2);
