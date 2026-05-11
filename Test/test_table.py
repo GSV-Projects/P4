@@ -5,10 +5,11 @@ def test_read():
     t = Table(None)
 
     #Act
-    result = t.read("https://raw.githubusercontent.com/GSV-Projects/P4/refs/heads/main/tadpole/Simple_example/cooldata.csv")
+    result = t.read("https://raw.githubusercontent.com/GSV-Projects/P4/refs/heads/test-table/tadpole/Simple_example/read_test.csv")
 
     #Assert
-    assert result == {"maker": ["Toyota", "Honda", "Ford", "Tesla", "BMW"], "model": ["Camry", "Civic", "Mustang", "Model 3", "X5"], "year": [2022, 2021, 2023, 2023, 2022]}
+    expected = {"maker": ["Toyota", "Honda", "Ford", "Tesla", "BMW"], "model": ["Camry", "Civic", "Mustang", "Model 3", "X5"], "year": [2022, 2021, 2023, 2023, 2022]}
+    assert result.columns == expected
     
 def test_getcol():
     #Arrange
@@ -80,23 +81,36 @@ def test_sum():
     #Assert
     assert result == 9
 
-#def test_frequency(): # vent med
-    ##Arrange 
-    #t = Table({"col1": [1.0, 5, 3.0, 1.0, 7, 1.0], "col2": ["red", "green", "yellow", "blue", "pink", "rosa"]})
-#
-    ##Act
-    #result = t.frequency("col1", col1 < 4)
-#
-    ##Assert
-    #assert result == 3
+def test_frequency_value():
+    # Arrange
+    t = Table({"col1": [1.0, 2.0, 3.0, 1.0]})
 
-def test_filter(): # vent med
-    pass
-    #Arrange 
+    # Act
+    result = t.frequency("col1", lambda row: row["col1"] == 1)
 
-    #Act
+    # Assert
+    assert result == 2
 
-    #Assert
+def test_frequency():
+    # Arrange
+    t = Table({"col1": [1.0, 2.0, 3.0, 1.0]})
+
+    # Act
+    result = t.frequency("col1", lambda row: row["col1"] > 2)
+    print(repr(result))
+
+    # Assert
+    assert result == 1
+
+def test_filter():
+    # Arrange
+    t = Table({"col1": [1.0, 2.0, 3.0, 1.0]})
+
+    # Act
+    result = t.filter(lambda row: row["col1"] == 1)
+
+    # Assert
+    assert result == {"col1": [2.0, 3.0]}
 
 def test_median():
     #Arrange 
@@ -282,12 +296,17 @@ def test_remove():
     #Assert
     assert result == {"col1": [1.0, NA, 3.0]}
 
-#def test_mutate():
-#    #Arrange 
-#    t = Table({"col1": [1.0, NA, 3.0], "col2": ["red", "green", "yellow"]})
-#
-#    #Act
-#    result = t.mutate()
-#
-#    #Assert tbc
+def test_mutate():
+    # Arrange
+    t = Table({"col1": [1.0, 2.0, 3.0], "col2": [4.0, 5.0, 6.0]})
+
+    # Act
+    result = t.mutate(lambda row: row["col1"] + row["col2"], "sum")
+
+    # Assert
+    assert result == {
+        "col1": [1.0, 2.0, 3.0],
+        "col2": [4.0, 5.0, 6.0],
+        "sum": [5.0, 7.0, 9.0]
+    }
     
