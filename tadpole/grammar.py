@@ -15,7 +15,7 @@ program: (stmt | def)*
 ?ifelse:  "else" "{" stmt* "}"                   -> else
 
 ?rvalue: "[" (expr ("," expr)*)? "]"             -> array
-       | IDENT "." call ("." call)*              -> method_call
+       | IDENT "." call ("." call)*              -> dot_call
        | table
        | expr
 
