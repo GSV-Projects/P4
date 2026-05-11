@@ -346,8 +346,9 @@ class Table():
     
         return len(self.columns[column])
     
-    # table - Sort whole table from one column, 
+    # Sort whole table from one column, 
     #   numerically for numbers or alphabetically for strings.
+    # Returns: 'tbl'
     def sort(self, column, o = None):
         self._validate_column(column)
         self._validate_not_empty(column)
