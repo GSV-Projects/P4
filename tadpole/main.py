@@ -11,6 +11,7 @@ hej = "hej";
 
 """
 
+
 # Transforms the parse tree into an AST using the class MyTrans and Larks transform method.
 # returns the transformed tree.
 def transformtree(tree):
