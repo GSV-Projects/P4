@@ -359,7 +359,8 @@ class Table():
         new_table = copy.deepcopy(self.columns)
         col = new_table[column]
 
-        # Uses Python 'sorted' which takes the key 'lambda' to ensure it is sorted by values, not indecies
+        # Uses Python 'sorted' which takes the key 'lambda'
+        #    to ensure it is sorted by values, not indecies.
         if(o in decr_keys):
             # Decreasing order
             sorted_indices = sorted(range(len(col)), key=lambda i: col[i], reverse=True)
