@@ -13,6 +13,7 @@ class Table():
         return f"{self.columns}"
 
     # Method that reads from a URL and saves it in the table object
+    # Returns: 'tbl'
     def read(self, url):
         self._validate_url
         
@@ -34,6 +35,7 @@ class Table():
     
     # Reads exactly like above, with the added functionality 
     #   of filling out NA valies based on surrounding values.
+    # Returns: 'tbl'
     def readfill(self, url):
         self._validate_url
         
@@ -53,7 +55,8 @@ class Table():
         self.cleanValues(self.columns)
         return self
     
-    # tbl - Loops through each column and checks whether a value is NA
+    # Loops through each column and checks whether a value is NA
+    # Returns: 'tbl'
     def cleanValues(self, columns):
         self._validate_column
         
@@ -61,13 +64,15 @@ class Table():
             self.columns[column] = [self.replaceNaN(v) for v in self.columns[column]]
         return self
 
-    # var - Replaces missing values with our own literal 'NA'
+    # Replaces missing values with our own literal 'NA'
+    # Returns: NA 
     def replaceNaN(self, value):
         if value in ('nan', 'NaN', 'na', 'NAN', 'NA', None, '', 'N/A') or value != value:  # value != value catches float NaN
             return NA
         return value
     
-    # arr - Returns a column with NA values replaced with the given value
+    # Returns a column with NA values replaced with the given value
+    # Returns: array 
     def replaceNAvalues(self, column, value):
         self._validate_column(column)
         col = self.columns[column]
@@ -76,103 +81,76 @@ class Table():
             raise Exception(f"Type mismatch")
         new_col = [value if v == NA else v for v in col]
         return new_col
+    
+    # Rename the key of a given column
+    # Returns: 'tbl'
+    def rename(self, column, name):
+        self._validate_column(column)
+        self._validate_key(name)
+    
+        if column not in self.columns:
+            raise Exception(f"Column '{column}' does not exist")
+        new_table = copy.deepcopy(self.columns)
+        new_table = {
+            name if k == column else k: v 
+            for k, v in new_table.items()}
+        return Table(new_table)
+    
+    # Appends a given array to the table, with the given name
+    # Returns: 'tbl'
+    def append(self, array, key = None):
+        self._validate_key(key)
+        self._validate_uniform
+    
+        new_table = dict(self.columns)
+        if key is None:
+            # Get amount of cols, and make new name "colx" where x is the nr of the new col
+            key = len(self.columns)
+            new_table.update({f'col{key + 1}' : array})
+        else:
+            # Else, use given name
+            new_table.update({key : array})
         
-    # array - Returns a column requested by string name
-    def getcol(self, column):
-        self._validate_table
-        self._validate_column(column)
-    
-        col = self.columns[column]
-        return col
-    
-    # array - Returns the first column of a table
-    def getfirst(self):
-        self._validate_table
+        return new_table
 
-        key_list = list(self.columns.keys())
-        first = key_list[0]
-        return self.columns[first]
-
-    # array - Returns the last column of a table
-    def getlast(self):
-        self._validate_table
-    
-        key_list = list(self.columns.keys())
-        last = key_list[len(key_list) - 1]
-        return self.columns[last]
-    
-    # number - Returns the mean of all values in a given column
-    def mean(self, column):
-        self._validate_column(column)
-        self._validate_not_empty(column)
-        self._validate_number(column, "mean")
-    
-        col = self.columns[column]
-        return sum(col) / len(col)
-    
-    # var - Returns the first element in a column of the table 
-    def head(self, column):
+    # Removes a given column from the table
+    # Returns: 'tbl'
+    def remove(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
     
-        col = self.columns[column]
-        return col[0]
+        new_table = {}
+        for col in self.columns:
+            if col == column:
+                pass
+            else:
+                new_table.update({col : self.columns[col]})
+        return new_table
     
-    # var - Returns the last element in a column of the table 
-    def tail(self, column):
-        self._validate_column(column)
-        self._validate_not_empty(column)
-
-        col = self.columns[column]
-        last = len(col) - 1
-        return col[last]
+    # Manipulate existing column as given, 
+    #   and append as a new column, possibly with a given key.
+    # Returns: 'tbl'
+    def mutate(self, expr, key = None):
+        self._validate_expression(expr)
     
-    # tbl - Returns the first row in the table
-    def first(self):
-        self._validate_table
+        new_table = dict(self.columns)
+        num_rows = len(next(iter(self.columns.values())))
+        new_col = []
+        # For reach row we want, contruct the original rows, and call expr on them
+        for i in range(num_rows):
+            row = {col: vals[i] for col, vals in self.columns.items()}
+            new_col.append(expr(row))
 
-        row = {col: vals[0] for col, vals in self.columns.items()}
-        return row
+        # If no key was given, create a key "colx" where x is its number 
+        if key is None:
+            key = f"col{len(new_table) + 1}"
+        # Otherwise it'll just use the given key
+        new_table.update({key: new_col})
+        
+        return new_table
 
-    # tbl - Returns the last row in the table
-    def last(self):
-        self._validate_table
-
-        row = {col: vals[-1] for col, vals in self.columns.items()}
-        return row
-
-    # number - Total sum of all elements in column
-    def sum(self, column):
-        self._validate_column(column)
-        self._validate_not_empty(column)
-        self._validate_number(column, "sum")
-
-        col = self.columns[column]
-        return sum(col)
-    
-    # number - How often some value occurs within a column - WIP
-    def frequency(self, column, arg = None): 
-        # Reroute arg as either a value or an expr,
-        #   as only one of either can be called at a time.
-        expr = None
-        value = None
-        if callable(arg): expr = arg
-        else: value = arg
-
-        self._validate_key(column)
-        self._validate_expression(expr, True)
-
-        count = 0
-
-        for v in self.columns[column]:
-            # If expression was used, increment for each qualifying element.
-            #   Pass the expression as a dictinoary to accomodate the Eval_dot in the interpreter.
-            if expr is not None and expr({column: v}): count += 1 
-            # If value was used, increment for each element that fulfills
-            elif expr is None and v == value: count += 1 
-        return count
-
-    # tbl - Returns the cleaned versoin of the same table, excluding the row with NA or a given value
+    # Returns the cleaned versoin of the same table, excluding the rows with NA or a given value
+    # Returns: 'tbl'
     def filter(self, arg = None):
         # Reroute arg as either a value or an expr,
         #   as only one of either can be called at a time.
@@ -184,7 +162,7 @@ class Table():
         self._validate_uniform
         self._validate_expression(expr, True)
         
-        # Now that all lengths are the same, find number of rows through a column, by iterating through it
+        # Find number of rows through a column, by iterating through it
         num_rows = len(next(iter(self.columns.values()))) 
         new_table = {col: [] for col in self.columns}
 
@@ -204,7 +182,189 @@ class Table():
     
         return new_table
     
-    # number - Number at 50% of column 
+    # Returns the first row in the table
+    # Returns: 'tbl'
+    def first(self):
+        self._validate_table
+
+        row = {col: vals[0] for col, vals in self.columns.items()}
+        return row
+
+    # Returns the last row in the table
+    # Returns: 'tbl'
+    def last(self):
+        self._validate_table
+
+        row = {col: vals[-1] for col, vals in self.columns.items()}
+        return row
+    
+    # Sort whole table from one column, 
+    #   numerically for numbers or alphabetically for strings.
+    # Returns: 'tbl'
+    def sort(self, column, o = None):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        decr_keys = ('decr', 'decrease', 'd', True)
+        if o not in decr_keys and o != None:
+            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true, received: {o}')
+        
+        new_table = copy.deepcopy(self.columns)
+        col = new_table[column]
+
+        # Uses Python 'sorted' which takes the key 'lambda' to ensure it is sorted by values, not indecies
+        if(o in decr_keys):
+            # Decreasing order
+            sorted_indices = sorted(range(len(col)), key=lambda i: col[i], reverse=True)
+        else: 
+            # Increasing order
+            sorted_indices = sorted(range(len(col)), key=lambda i: col[i])
+     
+        # Rebuild the table in new order
+        new = {k: [v[i] for i in sorted_indices] for k, v in new_table.items()}
+        return Table(new)
+
+    # Round a column to whole integers and return the whole
+    # Returns: 'tbl'
+    def roundtable(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "roundtable", True)
+
+        col = self.columns[column]
+        new_columns = dict(self.columns)
+        new_columns[column] = [round(v) if v != NA else v for v in col]
+        return Table(new_columns)       
+         
+    # Given a column, returns an array of the column sorted.
+    #   Sorted numerically for numbers and alphabetically for strings.
+    # Returns: array
+    def sortcol(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+    
+        return sorted(self.columns[column])
+
+    # Rounds a column and returns it as an array
+    # Returns: array
+    def roundcol(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "roundcol", True)
+
+        col = self.columns[column]
+        rounded_col = []
+        rounded_col = [round(v) if v != NA else v for v in col]
+        return rounded_col
+
+    # Returns a column requested by string name
+    # Returns: array 
+    def getcol(self, column):
+        self._validate_table
+        self._validate_column(column)
+    
+        col = self.columns[column]
+        return col
+    
+    # Returns the first column of a table
+    # Returns: array 
+    def getfirst(self):
+        self._validate_table
+
+        key_list = list(self.columns.keys())
+        first = key_list[0]
+        return self.columns[first]
+
+    # Returns the last column of a table
+    # Returns: array 
+    def getlast(self):
+        self._validate_table
+    
+        key_list = list(self.columns.keys())
+        last = key_list[len(key_list) - 1]
+        return self.columns[last]
+    
+    # Returns array of all keys in a table
+    # Returns: array
+    def keys(self):
+        self._validate_table
+    
+        keys = []
+        for column in self.columns:
+            keys.append(column)
+
+        return keys
+
+    # Returns the length of a given column / number of rows in a table
+    # Returns: int
+    def lencol(self, column):
+        self._validate_column(column)
+    
+        return len(self.columns[column])
+    
+    # Returns the first element in a column of the table 
+    # Returns: int / float / str / bool
+    def head(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+    
+        col = self.columns[column]
+        return col[0]
+    
+    # Returns the last element in a column of the table 
+    # Returns: int / float / str / bool
+    def tail(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+
+        col = self.columns[column]
+        last = len(col) - 1
+        return col[last]
+    
+    # number - Returns the mean of all values in a given column
+    # Returns: number
+    def mean(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "mean")
+    
+        col = self.columns[column]
+        return sum(col) / len(col)
+
+    # Total sum of all elements in column
+    # Returns: float
+    def sum(self, column):
+        self._validate_column(column)
+        self._validate_not_empty(column)
+        self._validate_number(column, "sum")
+
+        col = self.columns[column]
+        return sum(col)
+    
+    # How often some value occurs within a column
+    # Returns: float
+    def frequency(self, column, arg = None): # NOT WORKING - - - - - ! - ! - ! 
+        # Reroute arg as either a value or an expr,
+        #   as only one of either can be called at a time.
+        expr = None
+        value = None
+        if callable(arg): expr = arg
+        else: value = arg
+
+        self._validate_key(column)
+        self._validate_expression(expr, True)
+
+        count = 0
+
+        for v in self.columns[column]:
+            # If expression was used, increment for each qualifying element.
+            #   Pass the expression as a dictinoary to accomodate the Eval_dot in the interpreter.
+            if expr is not None and expr({column: v}): count += 1 
+            # If value was used, increment for each element that fulfills
+            elif expr is None and v == value: count += 1 
+        return count
+    
+    # Number at 50% of column 
+    # Returns: float
     def median(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
@@ -220,7 +380,8 @@ class Table():
             value = (self.columns[column][halfway] + self.columns[column][halfway - 1]) / 2
             return value
 
-    # number - Number at 25% of column 
+    # Number at 25% of column 
+    # Returns: float 
     def lowerq(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
@@ -242,7 +403,8 @@ class Table():
             value = (lower_half_array[quarterway] + lower_half_array[quarterway - 1]) / 2
             return value
 
-    # number - Number at 75% og column 
+    # Number at 75% og column 
+    # Returns: float
     def upperq(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
@@ -268,7 +430,8 @@ class Table():
             value = (upper_half_array[quarterway] + upper_half_array[quarterway - 1]) / 2
             return value
 
-    # var - Minimum value in column
+    # Minimum value in column
+    # Returns: float
     def min(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
@@ -277,7 +440,8 @@ class Table():
         col = self.columns[column]
         return min(col)
 
-    # var - Maximum value in column
+    # Maximum value in column
+    # Returns: float
     def max(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
@@ -286,7 +450,8 @@ class Table():
         col = self.columns[column]
         return max(col)
 
-    # var - Numeral difference from min to max value
+    # Numeral difference from min to max value
+    # Returns: float
     def span(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
@@ -294,149 +459,9 @@ class Table():
     
         col = self.columns[column]
         return max(col) - min(col)
-
-    # table - Round a column to whole integers and return the whole
-    def roundtable(self, column):
-        self._validate_column(column)
-        self._validate_not_empty(column)
-        self._validate_number(column, "roundtable", True)
-
-        col = self.columns[column]
-        new_columns = dict(self.columns)
-        new_columns[column] = [round(v) if v != NA else v for v in col]
-        return Table(new_columns)
- 
-    # arr - Rounds a column and returns it as an array
-    def roundcol(self, column):
-        self._validate_column(column)
-        self._validate_not_empty(column)
-        self._validate_number(column, "roundcol", True)
-
-        col = self.columns[column]
-        rounded_col = []
-        rounded_col = [round(v) if v != NA else v for v in col]
-        return rounded_col
     
-    # column - Rename the key of a given column
-    def rename(self, column, name):
-        self._validate_column(column)
-        self._validate_key(name)
-    
-        if column not in self.columns:
-            raise Exception(f"Column '{column}' does not exist")
-        new_table = copy.deepcopy(self.columns)
-        new_table = {
-            name if k == column else k: v 
-            for k, v in new_table.items()}
-        return Table(new_table)
-    
-    # array - Returns array of all keys in a table
-    def keys(self):
-        self._validate_table
-    
-        keys = []
-        for column in self.columns:
-            keys.append(column)
-
-        return keys
-
-    # var - Returns the length of a given column / number of rows in a table
-    def lenCol(self, column):
-        self._validate_column(column)
-    
-        return len(self.columns[column])
-    
-    # table - Sort whole table from one column, 
-    #   numerically for numbers or alphabetically for strings.
-    def sort(self, column, o = None):
-        self._validate_column(column)
-        self._validate_not_empty(column)
-        decr_keys = ('decr', 'decrease', 'd', True)
-        if o not in decr_keys and o != None:
-            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true, received: {o}')
-        
-        new_table = copy.deepcopy(self.columns)
-        col = new_table[column]
-
-        # Uses Python 'sorted' which takes the key 'lambda' to ensure it is sorted by values, not indecies
-        if(o in decr_keys):
-            # Decreasing order
-            sorted_indices = sorted(range(len(col)), key=lambda i: col[i], reverse=True)
-        else: 
-            # Increasing order
-            sorted_indices = sorted(range(len(col)), key=lambda i: col[i])
-     
-        # Rebuild the table in new order
-        new = {k: [v[i] for i in sorted_indices] for k, v in new_table.items()}
-        return Table(new)
-        
-    # array - Given a column, returns an array of the column sorted.
-    #   Sorted numerically for numbers and alphabetically for strings.
-    def sortcol(self, column,  o = None):
-        self._validate_column(column)
-        self._validate_not_empty(column)
-
-        decr_keys = ('decr', 'decrease', 'd', True)
-        if o not in decr_keys and o != None:
-            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true, received: {o}')
-    
-        if(o in decr_keys):
-            # Decreasing order
-            return sorted(self.columns[column], reverse=True)
-        else: 
-            # Increasing order
-            return sorted(self.columns[column])
-    
-    # tbl - Appends a given array to the table, with the given name
-    def append(self, array, key = None):
-        self._validate_key(key)
-        self._validate_uniform
-    
-        new_table = dict(self.columns)
-        if key is None:
-            # Get amount of cols, and make new name "colx" where x is the nr of the new col
-            key = len(self.columns)
-            new_table.update({f'col{key + 1}' : array})
-        else:
-            # Else, use given name
-            new_table.update({key : array})
-        
-        return new_table
-
-    # tbl - Removes a given column from the table
-    def remove(self, column):
-        self._validate_column(column)
-        self._validate_not_empty(column)
-    
-        new_table = {}
-        for col in self.columns:
-            if col == column:
-                pass
-            else:
-                new_table.update({col : self.columns[col]})
-        return new_table
-    
-    # tbl - Manipulate existing column as given, and append as a new column, possibly with a given key
-    def mutate(self, expr, key = None):
-        self._validate_expression(expr)
-    
-        new_table = dict(self.columns)
-        num_rows = len(next(iter(self.columns.values())))
-        new_col = []
-        # For reach row we want, contruct the original rows, and call expr on them
-        for i in range(num_rows):
-            row = {col: vals[i] for col, vals in self.columns.items()}
-            new_col.append(expr(row))
-
-        # If no key was given, create a key "colx" where x is its number 
-        if key is None:
-            key = f"col{len(new_table) + 1}"
-        # Otherwise it'll just use the given key
-        new_table.update({key: new_col})
-        
-        return new_table
-    
-    # number - Returns the value of the squared deviation from the mean
+    # Returns the value of the squared deviation from the mean
+    # Returns: float
     def variance(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
@@ -453,7 +478,8 @@ class Table():
 
         return sum(deviations) / len(col)
     
-    # number - The average deviation from the mean
+    # The average deviation from the mean
+    # Returns: float
     def stddev(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
