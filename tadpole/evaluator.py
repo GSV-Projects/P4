@@ -187,8 +187,11 @@ class Evaluator():
 
     # Assign indexing of arrays i.e. x[3] = 2;
     def SEval_assign_index(self, tree, env_v, env_p):
+        # Identifier of array
+        identifier = tree.children[0]
+        
         # Lookup the array
-        arr = self.Eval(tree.children[0], env_v)
+        arr = self.Eval(identifier, env_v)
 
         # Evaluate the index
         i = self.Eval(tree.children[1], env_v)
@@ -201,7 +204,7 @@ class Evaluator():
         # Check for out-of-bounds
         if (i > 0 and i <= len(arr)):
             arr[i-1] = v
-            env_v[name] = arr
+            env_v[identifier] = arr
         else:
             raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
 
@@ -420,13 +423,16 @@ class Evaluator():
     
     # Array indexing i.e. value = arr[2];
     def Eval_index(self, tree, env):
+        # Identifier of array
+        identifier = tree.children[0]
+        
         # Lookup the array
-        arr = self.Eval(tree.children[0], env)
+        arr = self.Eval(identifier, env)
         # Evaluate the index
         i = self.Eval(tree.children[1], env)
 
         if (i is NA):
-            raise Exception(f"Index cannot be NA, must be an integer between: '{1}'-'{len(arr)}'")
+            raise Exception(f"index cannot be NA, must be an integer between: '{1}'-'{len(arr)}'")
         elif (i > 0 and i <= len(arr)):
             return arr[math.floor(i-1)] # Gather element while adjusting for python zero indexing
         else:

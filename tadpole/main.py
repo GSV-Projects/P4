@@ -5,13 +5,11 @@ from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
 
 code = """
-function foo(int a, int b) returns int {
-    return 1;
-}
-x = 10;
 
-y = [1, 2, 3];
-h = y[2];
+y = [1,2,3];
+y[3] = 67;
+
+value = y[1];
 
 """
 
