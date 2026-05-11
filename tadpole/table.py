@@ -372,11 +372,20 @@ class Table():
         
     # array - Given a column, returns an array of the column sorted.
     #   Sorted numerically for numbers and alphabetically for strings.
-    def sortcol(self, column):
+    def sortcol(self, column,  o = None):
         self._validate_column(column)
         self._validate_not_empty(column)
+
+        decr_keys = ('decr', 'decrease', 'd', True)
+        if o not in decr_keys and o != None:
+            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true, received: {o}')
     
-        return sorted(self.columns[column])
+        if(o in decr_keys):
+            # Decreasing order
+            return sorted(self.columns[column], reverse=True)
+        else: 
+            # Increasing order
+            return sorted(self.columns[column])
     
     # tbl - Appends a given array to the table, with the given name
     def append(self, array, key = None):
