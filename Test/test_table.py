@@ -5,10 +5,10 @@ def test_read():
     t = Table(None)
 
     #Act
-    result = t.read("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv")
+    result = t.read("https://raw.githubusercontent.com/GSV-Projects/P4/refs/heads/main/tadpole/Simple_example/cooldata.csv")
 
     #Assert
-    assert result == "forkert"
+    assert result == {"make": ["Toyota", "Honda", "Ford", "Tesla", "BMW"], "model": ["Camry", "Civic", "Mustang", "Model 3", "X5"], "year": [2022, 2021, 2023, 2023, 2022]}
     
 def test_getcol():
     #Arrange
