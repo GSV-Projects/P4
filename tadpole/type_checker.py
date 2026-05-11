@@ -1,8 +1,12 @@
-from lark import Lark, Transformer, v_args, Tree, Token
+from lark import Tree, Token
 from .utils.NAliteral import na_type
 import copy
 
+
+# Typechecker class which has the purpose of checking through a AST to make sure the typing is correct.
+#   Should catch all compile time errors.
 class Typechecker():
+    # Initializing different environments to save variables in
     def __init__(self):
         self.vtable = {}
         self.ftable = {}
@@ -10,6 +14,7 @@ class Typechecker():
             "R" : None,
             "L" : False
         }
+        # ptable is the table for predefined functions and consists of their return type
         self.ptable = { 
             "read":         ('tbl'),    
             "readfill":     ('tbl'),
@@ -42,7 +47,7 @@ class Typechecker():
             "max" :         (float),    
             "span" :        (float),    
             "variance":     (float),    
-            "stddev":       (float),    
+            "stddev":       (float)
         }
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
@@ -65,8 +70,8 @@ class Typechecker():
 
  # --- Check program ---
     def check_p(self, c):
-        print(c)
-        # Build ftable
+    
+        # Go through program to build the ftable
         self.build_ft(c, self.vtable, self.RL)
 
         for statement in c.children:
@@ -75,10 +80,10 @@ class Typechecker():
         print("type_checker ftable:", self.ftable)
         print("type_checker vtable:", self.vtable)
 
+    # To build the ftable we loop through the program to check for function declarations
     def build_ft(self, c, env, RL):
         for child in c.children:
             if isinstance(child, Tree) and (child.data == 'func_def' or child.data == 'func_def_ret'):
-                # TODO Tilføj child.data for returns og uden
 
                 # Signature holds a list of elements: a tuple of input type, parameter types and the return type
                 func_id, signature = self.get_fun(child, env, RL)
@@ -89,8 +94,8 @@ class Typechecker():
                 # Functions are added to the global ftable.
                 self.ftable[func_id] = signature
 
+    # build_vt creates a local environment for variables
     def build_vt(self, node, env, RL):
-        #vtable = env.copy()
         vtable = copy.deepcopy(env)
     
         # Parameters are added to the local vtable.
@@ -98,9 +103,11 @@ class Typechecker():
             vtable[child.children[1].value] = self.check(child.children[0],env, RL)
         return vtable
 
+    # Function for extracting formel parameters, return type and function name
     def get_fun(self, node, env, RL):
         func_name = node.children[0].value
         paramsnode = node.children[1]
+        # If the length of the AST node is four, there is a return type
         if len(node.children) == 4:
             return_type = self.check(node.children[2], env, RL)
         else:
@@ -110,24 +117,21 @@ class Typechecker():
         for x in paramsnode.children:
             params.append(self.check(x.children[0], env, RL))
 
-        # Returns (id, (t1, ..., tn) -> t)
+        # Returns a function signature: (id, (t1, ..., tn), t)
         return func_name, (tuple(params), return_type)
         
+    # check is a recursive function that delegates the typechecking of a node to its appropriate function
     def check(self, node, env, RL):
-        """
-        Checks to see if...
-
-        Args:
-            one: does this
-
-        Returns:
-        """
-
+        # If the node is a token, we handle it seperatly
         if isinstance(node, Token):
             return self.read_token(node, env)
         
+        # Accessing an arbitrary node
         method_name = f'check_{node.data}'
+        # Uses the method name string to find the associated method in the current object to be called.
+        #   Throws an error if it wasn't found.
         check_method = getattr(self, method_name, self.check_unknown)
+        # Calling the needed function
         return check_method(node, env, RL)
 
     
@@ -158,10 +162,10 @@ class Typechecker():
     def check_then(self, node, env, RL):    return self.check_if_cases(node, env, RL)
     def check_else(self, node, env, RL):    return self.check_if_cases(node, env, RL)
     
-    # --- check implements ---
+    # --- check implementations ---
+
+    # Checking if an identifier exists in the specified environment
     def check_IDENT(self, node, env):
-        print("Node:", node)
-        print("Env", env)
         if (node.value not in env):
             raise Exception(f'{node.value} not defined')
         else: 
@@ -174,8 +178,8 @@ class Typechecker():
         left = node.children[0]
         right = node.children[1]
 
-        # When trying to assign a table to an identifier, we forego ll. 150 and on
-        #   This is because TODO
+        # When trying to assign a table to an identifier, we run a custom assignment function,
+        #   since we have to assign columns as well.
         if isinstance(right, Tree) and right.data == "table":
             self.check_table(right, env, RL, table_id=left.value)
             return
@@ -186,17 +190,18 @@ class Typechecker():
         if (t1 == None or t1 is na_type):
             raise Exception(f'Cannot assign variable {left.value} as void or NA')
 
-        # If not already in global vtable, place it there
+        # If not already in the local vtable, place it there (can be global)
         if (left.value not in env):
            env[left.value] = t1
-        # Else, check to see if it exists in some local vtable
-        elif (env is self.vtable): # "is" and not "==" since we need to check if the object is different and not the values that is inside
-            # Furthermore, if the existing type does not match the one presently attempted assigned, raise exception
-            if not (isinstance(env[left.value], dict) and t1 == 'tbl') and env[left.value] != t1:
-                raise Exception(f'{left.value} is of type {env[left.value]} and cannot be declared as type {t1}')
-            #if (env[left.value] != t1): 
-            #    raise Exception(f'{left.value} is of type {env[left.value]} and cannot be declared as type {t1}')  
-        # Else, the variable already exists in the global environment, and the type is changed as given
+        # Check if the environment is the global environment.
+        #   If it is we can't reassign a variable to a new type.
+        elif (env is self.vtable): 
+            # M.I.S.
+            #if not (isinstance(env[left.value], dict) and t1 == 'tbl') and env[left.value] != t1:
+            #    raise Exception(f'{left.value} is of type {env[left.value]} and cannot be declared as type {t1}')
+            if (env[left.value] != t1): 
+                raise Exception(f'{left.value} is of type {env[left.value]} and cannot be declared as type {t1}')  
+        # Else, the environment is local and the reassignment of a type is approved
         else:
             env[left.value] = t1
     
@@ -315,15 +320,15 @@ class Typechecker():
 
         # Compare the first element to the rest, ensuring they are all the same as the first or NA
         if (all((self.check(x, env, RL) == type_of_array) or (self.check(x, env, RL) == na_type) and (array_check_count := array_check_count + 1) for x in node.children)):
-            return [type_of_array] # return as array of type T - [T], NOT simply T
+            # return as array of type [T], NOT simply T
+            return [type_of_array] 
         # Otherwise, raise exception
         else: 
-            #raise Exception("Not all elems of array are of the same type")
             raise Exception(f'Not all elements of array are of the same type - Element {array_check_count} is not of type {type_of_array}')
 
     def check_array_type(self, node, env, RL):
-        # Validates cases of using one of the datatypes as an array variant
-        #   For example, an array of integers: [int]
+        # Validates cases of using one of the datatypes as an array variant.
+        #   For example, an array of integers: [int].
 
         # Run check to find the type for the array, returning that type as an array type, [T]
         array_type = self.check(node.children[0], env, RL)
@@ -332,8 +337,11 @@ class Typechecker():
     def check_index(self, node, env, RL):
         # Validates to ensure, that indexing into an array is done using only integers
 
-        type_id = self.check(node.children[0], env, RL) # find the type for the array itself
-        type_idx = self.check(node.children[1], env, RL) # find the type for the indexing nr
+        # Find the type for the array itself
+        type_id = self.check(node.children[0], env, RL) 
+
+        # Find the type for the indexing nr
+        type_idx = self.check(node.children[1], env, RL) 
 
         # If indexing was done using an int, proceed with the type of the array, otherwise, raise exception
         if type_idx == int:
@@ -342,8 +350,8 @@ class Typechecker():
             raise Exception(f'Did not parse an integer for array indexing')
 
     def check_column_sapling(self, node, env, RL):
-        # This check method serves as a helper-check for check_table
-        #   Enters a column, to return the array/children of that column
+        # This check method serves as a helper-check for check_table.
+        #   Enters a column, to return the array/children of that column.
         return node.children
   
     def check_table(self, node, env, RL, table_id = None):
@@ -352,10 +360,14 @@ class Typechecker():
             table_id = node.data
 
         for col in node.children:
-            c_id = col.children[0] # Get the name of the current column
-            arr = col.children[1] # Get the array related to that same column name 
+            # Get the name of the current column
+            c_id = col.children[0] 
+
+            # Get the array related to that same column name 
+            arr = col.children[1] 
             
-            check_arr = self.check(arr, env, RL) # Get the type of the array held in current column
+            # Get the type of the array held in current column
+            check_arr = self.check(arr, env, RL) 
 
             # Create a custom tree structure to assign a custom type to a custom variable in our environment
             col = Tree("column_sapling", check_arr)
@@ -373,14 +385,20 @@ class Typechecker():
     
     def check_f(self, node, env, RL):
         # "check_f" is used to check the declaration of a function and its body
-        paramsnode = node.children[1] # A node containing all the parameters of the function
+
+        # A node containing all the parameters of the function
+        paramsnode = node.children[1]
+
         # If the amount of children of a function node is 4, that means it has a return type
         if len(node.children) == 4: 
             return_type = self.check(node.children[2], env, RL)
-            RL["R"] = return_type # Save the return type in the functions "RL" enviroment
+            # Save the return type in the functions "RL" enviroment
+            RL["R"] = return_type 
             body = node.children[3]
-        else: # Goes through if the function does not have a return type
-            return_type = None # RL["R"] is already "None" to begin with so no reason to change it here
+        # Goes through if the function does not have a return type
+        else: 
+            # RL["R"] is already "None" to begin with so no reason to change it here
+            return_type = None 
             body = node.children[2]
         
         # Builds the local variable enviroment for the function with the formal parameters
@@ -401,26 +419,28 @@ class Typechecker():
             self.check(child, env, RL)
         
     def check_return(self, node, env, RL):
-        t1 = self.check(node.children[0], env, RL) # Check the type of the expression after "return"
+        # Check the type of the expression after "return"
+        t1 = self.check(node.children[0], env, RL) 
 
-        # Check if the return type matches with "R" in enviroment "RL"
-        # This enviroment tracks if we are currently inside a function and what the function is supposed to return
+        # Check if the return type matches with "R" in enviroment "RL".
+        #   This enviroment tracks if we are currently inside a function and what the function is supposed to return.
         if (t1 != RL["R"] and t1 is not na_type):
             raise Exception(f'{t1} doesnt match with function return type')
 
         return t1
     
     def check_call(self, node, env, RL):
-        f_id = node.children[0] # Name of the function called
+        f_id = node.children[0] 
 
+        # print is a reserved function name so we just return if we call print
         if(node.children[0] == 'print'):
             return
 
         if (f_id not in self.ftable):
             raise Exception(f'Function {f_id} not previously defined')
 
-
-        formal_params, return_type = self.ftable[f_id] # Get info on current function
+        # Get info on current function
+        formal_params, return_type = self.ftable[f_id] 
         actual_params = node.children[1:]
 
         if len(formal_params) != len(actual_params):
@@ -436,30 +456,16 @@ class Typechecker():
             
         return return_type
     
+    # For predefined functions we only want the return type of said function so we can store it in a variable
     def check_dot(self, node, env, RL):
-        # The leftmost node of the children is the name of which variable the dot funtions is called upon
-        #left = node.children[0]
+        # We want to extract the name of the called function so we can find the return type in the ptable
         right = node.children[1].children[0]
-        return_type = self.ptable[right] # Get formal info on current child
-        return return_type # Return type if its an assignment
-        # The rest of the children are the call node(s), that hold the predef. func. called and the params
-        
-#
-    #    # Checking each predefined function
-    #    for child in right:
-    #        child_left = child.children[0] # Name of predefined function called
-    #        actual_params = child.children[1:] # Actual parameters of predefined function
-    #        if child_left not in self.ptable: # Check if the function is in the enviroment of predefined functions
-    #            raise Exception(f'{child_left} is not a predefined function')
-    #        
-    #        input_type, formal_params, return_type = self.ptable[child_left] # Get formal info on current child
-#
-    #        if len(formal_params) != len(actual_params):
-    #            raise Exception("Amount of formal parameters do not match actual parameters")
-#
-#
-    #    return return_type # Return type if its an assignment  
-#
+
+        # Get formal info on current child and return it
+        return_type = self.ptable[right] 
+        return return_type 
+ 
+
     def check_stop(self, node, env, RL):
         # Raises an exception if we aren't in a loop currently
         # This can be seen using the key "L" in the enviroment "RL"
@@ -480,6 +486,7 @@ class Typechecker():
         for child in body:
             self.check(child, env, RL)
 
+    # If cases handle both then and else since we just need to check every statement anyways
     def check_if_cases(self, node, env, RL):
 
         # The children of the if-statement in the tree are just the statements to be executed when a then/else goes through
@@ -506,11 +513,15 @@ class Typechecker():
         for child in body:
             self.check(child, env, RL_new)
             
+    # When doing assignment to a position in an array we need to handle it separately
     def check_assign_index(self, node, env, RL):
 
-        type_id = self.check(node.children[0], env, RL) # find the type for the array itself
-        type_idx = self.check(node.children[1], env, RL) # find the type for the indexing nr
-        type_ass = self.check(node.children[2], env, RL) # find the type for the assignment
+        # find the type for the array itself
+        type_id = self.check(node.children[0], env, RL) 
+        # find the type for the indexing nr
+        type_idx = self.check(node.children[1], env, RL) 
+        # find the type for the assignment
+        type_ass = self.check(node.children[2], env, RL) 
 
         if type_idx != int:
             raise Exception(f'Did not parse an integer for array indexing')
@@ -518,7 +529,7 @@ class Typechecker():
         if type_id[0] != type_ass and type_ass is not na_type:
             raise Exception (f'Trying to assign {type_ass} to an array of type{type_id[0]}')
         
-    '''Helper functions, Should probably be moved to another folder and imported later, or maybe not'''
+    # Helper functions for NA values
     def numeric_compatible(self, t1, t2):
         # Check if both expressions are NA. If so determining type is ambigious an NA doesn't have a real type
         if t1 is na_type and t2 is na_type:
@@ -543,6 +554,7 @@ class Typechecker():
         # else t1 and t2 must both be int, and the resulting type is int
         return int
     
+    # For an array, we need to find the first non-NA type
     def first_valid_type(self, node, env, RL):
         for child in node:
             x = self.check(child, env, RL)

@@ -3,7 +3,7 @@ from tadpole.evaluator import Evaluator
 from tadpole.utils.NAliteral import NA
 import pytest
 
-## Aritmetic test ##
+## Tests with Aritmetic ##
 # test normal integer addition
 def test_add_int():
     # Setup
@@ -113,7 +113,7 @@ def test_bigexponent():
     assert evaluator.env_v["a"] == 1606938044258990275541962092341162602522202993782792835301376
 
 
-## Test with NA ##
+## Tests with NA ##
 # test that NA is properly propagated in "or" expressions
 def test_na_propagation_boolean_or():
     # Setup
@@ -177,7 +177,7 @@ def test_napropagation_parameter_parsing():
     # Expected output
     assert evaluator.env_v["a"] is NA
 
-## Test with functions ##
+## Tests with functions ##
 # test that functions return the excepted value
 def test_function_with_return():
     # Setup
@@ -237,7 +237,7 @@ def test_recursive_function():
     # Expected output
     assert evaluator.env_v["result"] == 120
 
-## Test with if statements ##
+## Tests with if statements ##
 # test that true if-statements run then case
 def test_if_statement_then():
     # Setup
@@ -255,7 +255,7 @@ def test_if_statement_then():
     # Expected output
     assert evaluator.env_v["a"] == 1
 
-# test that flase if-statements run else case
+# test that false if-statements run else case
 def test_if_statement_else():
     # Setup
     syntax_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'a'), Token('INT', '0')]), Tree('if', [Token('FALSE', 'false'), Tree('then', [Tree('assign', [Token('IDENT', 'a'), Token('INT', '1')])]), Tree('else', [Tree('assign', [Token('IDENT', 'a'), Token('INT', '2')])])])])
@@ -276,7 +276,7 @@ def test_if_statement_else():
     # Expected output
     assert evaluator.env_v["a"] == 2
 
-## Test with while loops ##
+## Tests with while loops ##
 # test that the body of a while loop executes the correct amount of times
 def test_while_true():
     # Setup
@@ -333,7 +333,7 @@ def test_stop_in_while():
     # Expected output
     assert evaluator.env_v["a"] == 5
 
-## Test for exceptions ##
+## Tests for exceptions ##
 # test that using an undeclared variable correctly raises an exception
 def test_undeclared_variable():
     # Setup
@@ -385,3 +385,28 @@ def test_if_na_condition():
 
     # Expected output
     assert "If condition evaluated to NA" in str(excinfo.value)
+
+## Tests for strings ##
+# test that comparisons between strings is allowed and evaluates to the correct boolean
+def test_string_comparison():
+    # Setup
+    syntex_tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'string1'), Token('STRING', '"test"')]), Tree('assign', [Token('IDENT', 'string2'), Token('STRING', '"test"')]), Tree('assign', [Token('IDENT', 'string3'), Token('STRING', '"test1"')]), Tree('assign', [Token('IDENT', 'isSame'), Tree('equal', [Token('IDENT', 'string1'), Token('IDENT', 'string2')])]), Tree('assign', [Token('IDENT', 'notSame'), Tree('neq', [Token('IDENT', 'string1'), Token('IDENT', 'string3')])]), Tree('assign', [Token('IDENT', 'lessThan'), Tree('leq', [Token('IDENT', 'string2'), Token('IDENT', 'string3')])])])
+    evaluator = Evaluator()
+    evaluator.PEval(syntex_tree)
+
+    # What the syntex_tree represents
+    '''
+    string1 = "test";
+    string2 = "test";
+    string3 = "test1";
+
+    isSame = string1 == string2;
+    notSame = string1 /= string3;
+    lessThan = string2 < string3;
+    '''
+
+    # Expected output
+    result1 = evaluator.env_v["notSame"] == True
+    result2 = evaluator.env_v["isSame"] == True
+    result3 = evaluator.env_v["lessThan"] == True
+    assert result1 and result2 and result3 == True

@@ -5,6 +5,14 @@ from tadpole.parsertransformer import MyTrans
 from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
 
+# The integration test are meant to test that all the larger units which make up the interpreter work together as excepted.
+#   These larger unit can be seens as
+#       * The parse generator and lexor
+#       * The AST transformer
+#       * The type checker
+#       * The evaluator
+#   The integration test are designed to test a larger piece of code, using a variety of different statements
+
 parser = Lark(grammar, parser="lalr", strict=True)
 
 def transformtree(tree):
@@ -15,6 +23,7 @@ def parse_to_ast(code):
     parsetree = parser.parse(code)
     return transformtree(parsetree)
 
+# A longer program using most of the statement possible in the language
 def test_long_program():
     # Setup
     code = '''
@@ -49,6 +58,7 @@ def test_long_program():
 
     assert (a_result and b_result)
     
+# An integration test, that tests a recursive program executes with the expected result
 def test_recursion():
     # Setup
     code = '''

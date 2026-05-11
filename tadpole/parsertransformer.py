@@ -1,11 +1,12 @@
-from lark import Lark, Transformer, v_args, Tree, Token
+from lark import Transformer, v_args, Tree, Token
 
+# Class for folding unnecessary nodes in the AST,
+#   for each function it returns either the left node,
+#   or the current tree with a label.
 class MyTrans(Transformer):
 
 # Terminals for types
-
-    # REMEMBER YOU DELETED SOMETHING HERE BUD
-    
+    # Methods for types simply return the left node of the AST and are not presented in the AST
     def type_int(self, c):
         return c[0]
 
@@ -17,7 +18,9 @@ class MyTrans(Transformer):
 
     def type_string(self, c):
         return c[0]
-    
+
+    # Methods for types return the left node of the AST and are presented in the AST,
+    #   with a label.
     def type_column(self, c):
         return Tree("clmn", c)
     
@@ -28,21 +31,31 @@ class MyTrans(Transformer):
         return c[0]
 
     def param_item(self, c):
-        return Tree("param_item", c)  # c[0] = type, c[1] = ident
+        return Tree("param_item", c)
 
 # Statements
-    def method_call(self, c):
-        return Tree("dot", c)    
-    
+    # Print nodes in the AST for dot functions call, assigments and function calls.
     def assign(self, c):
         return Tree("assign", c)
-    
-    def func_call(self, c):
-        return Tree("call", c)
+
+    def array_assign(self, c):
+        return Tree("assign_index", c)
+
+    def while_stmt(self, c):
+        return Tree("while", c)
+
+    def if_stmt(self, c):
+        return Tree("if", c)
+
+    def else_stmt(self, c):
+        return Tree("else", c)
+
+    def return_stmt(self, c):
+        return Tree("return", c)
     
 # Expressions
-
-    # Logical expressions
+# For each expression a node is needed, to match the operator to an operation.
+    # Logical expressions- returns label and tree.
     def expr(self, c):
         return Tree("or", c)
     
@@ -52,7 +65,7 @@ class MyTrans(Transformer):
     def not_expr(self, c):
         return Tree("not", [c[1]])
     
-    # Equal expressions
+    # Equal expressions - returns label and tree.
     def equal(self, c):
         return Tree("equal", c)
     
@@ -71,14 +84,14 @@ class MyTrans(Transformer):
     def greater_eq(self, c):
         return Tree("geq", c)
 
-    # Plus expressions
+    # Plus expressions - returns label and tree.
     def add(self, c):
         return Tree("add", c)
     
     def sub(self, c):
         return Tree("sub", c)
 
-    # Mult expressions
+    # Mult expressions - returns label and tree.
     def mult(self, c):
         return Tree("mult", c)
 
@@ -88,14 +101,20 @@ class MyTrans(Transformer):
     def mod(self, c):
         return Tree("mod", c)
     
-    # Misc expressions
+    # Misc expressions - returns label and tree.
     def exp_expr(self, c):
         return Tree("exp", c)
     
     def unary_expr(self, c):
         return Tree("neg", [c[1]])
 
-# Functions
+# Functions, array/column and tables.
+    # Function methods - returns label and tree.
+    def dot_call(self, c):
+        return Tree("dot", c)
+
+    def func_call(self, c):
+        return Tree("call", c)
 
     def func_def(self, c):
         return Tree("func_def", c)
@@ -103,26 +122,15 @@ class MyTrans(Transformer):
     def func_def_ret(self, c):
         return Tree("func_def_ret", c)
 
-    def while_stmt(self, c):
-        return Tree("while", c)
-
-    def if_stmt(self, c):
-        return Tree("if", c)
-    
-    def else_stmt(self, c):
-        return Tree("else", c)
-    
-    def param(self, c):
-        return Tree("param", c)
-    
-    def array(self, c):
-        return Tree("array", c)  
-    
-    def return_stmt(self, c):
-        return Tree("return", c)
-
     def body(self, c):
         return Tree("body", c)
+
+    def param(self, c):
+        return Tree("param", c)
+
+    # Table, columns and arrays - returns label and tree.
+    def array(self, c):
+        return Tree("array", c)
     
     def array_indexing(self, c):
         return Tree("index", c)
@@ -132,6 +140,3 @@ class MyTrans(Transformer):
     
     def column(self, c):
         return Tree("column", c)
-    
-    def array_assign(self, c):
-        return Tree("assign_index", c)
