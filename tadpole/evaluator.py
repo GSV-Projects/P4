@@ -401,15 +401,19 @@ class Evaluator():
 
         for actual_params in tree.children[1].children[1:]:
             # If the argument is a boolean expression, consider the tree data, 
-            #   and ensure the expression is constructed using the above operators
+            #   and ensure the expression is constructed using the operators in expressions
             if isinstance(actual_params, Tree) and actual_params.data in expressions:
-                # 
-                def make_lambda(expr_tree, captured_env):
+                # Trivially a closure, to ensure new references to actual params for row_expr
+                def make_lambda(expr_tree, env):
+                    # Make a closure function, meaning it only works with the params given for the current iteration,
+                    #   thus working on a new scope each iteration, where the expr_tree and env vary.
                     def row_expr(row):
-                        return self.Eval(expr_tree, {**captured_env, **row})
+                        # Merge (** operator) program's variables with row's columns, making a combined environment.
+                        #   Eval will operationally evaluate the exprression in the combined env. 
+                        return self.Eval(expr_tree, {**env, **row}) 
                     return row_expr
+                # Calling make_lambda to pass actual_params at this moment for current iteration
                 parameters.append(make_lambda(actual_params, env))
-            
             else:
                 parameters.append(self.Eval(actual_params, env))
         
