@@ -4,28 +4,36 @@ from tadpole.parsertransformer import MyTrans
 from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
 
-code = """
-string1 = "test";
-string2 = "test";
-string3 = "test1";
 
-isSame = string1 == string2;
-notSame = string1 /= string3;
-lessThan = string2 < string3;
+# The code to be executed:
+code = """
+hej = "hej";
 
 """
 
+
+# Transforms the parse tree into an AST using the class MyTrans and Larks transform method.
+# returns the transformed tree.
 def transformtree(tree):
     return MyTrans().transform(tree)
 
+# Defines the grammar as parser
 parser = Lark(grammar, parser="lalr", strict=True)
 
+# Parses the grammar through Larks parser and lexer
 parsetree = parser.parse(code)
+
+# Transforms the parse tree to an AST
 ast = transformtree(parsetree)
 
-print("Parse \n", parsetree.pretty())
+# Prints the AST
 print("AST \n", ast.pretty())
 
+# AST is parsed through the typechecker
 Typechecker().check_p(ast)
+
+# Interpreter is defined as the class evaluator
 evaluator = Evaluator()
+
+# The AST is parsed through the interpreter
 evaluator.PEval(ast)
