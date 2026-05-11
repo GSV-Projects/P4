@@ -149,7 +149,8 @@ class Table():
         
         return new_table
 
-    # Returns the cleaned versoin of the same table, excluding the rows with NA or a given value
+    # Returns the cleaned versoin of the same table, 
+    #   excluding the rows with NA or a given value for *all columns*.
     # Returns: 'tbl'
     def filter(self, arg = None):
         # Reroute arg as either a value or an expr,
@@ -160,7 +161,7 @@ class Table():
         else: value = arg
 
         self._validate_uniform
-        self._validate_expression(expr, True)
+        if not expr == None : self._validate_expression(expr, True)
         
         # Find number of rows through a column, by iterating through it
         num_rows = len(next(iter(self.columns.values()))) 
@@ -172,6 +173,44 @@ class Table():
 
             # If any of the values in the row are NA or a given filter param, goto next i
             if any(v is NA or v == value for v in row.values()):
+                continue
+            # If an expr is given, and expr(row) returns False, goto next i
+            if expr is not None and expr(row): # expr(row) is a lambda, returning a bool
+                continue
+            # Otherwise, all is good, paste row into our new_table
+            for col, v in row.items():
+                new_table[col].append(v)
+    
+        return new_table
+    
+    # Returns the cleaned versoin of the same table,
+    #   excluding the rows with NA or a given value for a *given column*.
+    # Returns: 'tbl'
+    def filtercol(self, column, arg = None):
+        # Reroute arg as either a value or an expr,
+        #   as only one of either can be called at a time.
+        expr = None
+        value = None
+        if callable(arg): expr = arg
+        else: value = arg
+
+        self._validate_column(column)
+        self._validate_uniform
+        if not expr == None : self._validate_expression(expr, True)
+        
+        # Find number of rows through a column, by iterating through it
+        num_rows = len(next(iter(self.columns.values()))) 
+        new_table = {col: [] for col in self.columns}
+
+        for i in range(num_rows):
+            # Extract the row, we are currently considering
+            row = {col: vals[i] for col, vals in self.columns.items()}
+
+            # If any of the values in the row are NA or a given filter param, goto next i
+            if any(v is NA for v in row.values()):
+                continue
+            # If a value was given and equal to the value in the given column for current row, goto next i 
+            if value is not None and row[column] == value:
                 continue
             # If an expr is given, and expr(row) returns False, goto next i
             if expr is not None and expr(row): # expr(row) is a lambda, returning a bool

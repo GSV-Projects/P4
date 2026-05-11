@@ -390,7 +390,7 @@ class Evaluator():
     # Handles the call of predefined dot functions
     def Eval_dot(self, tree, env):
         # Looks up the table in environment and the name of the function
-        table = self.lookup(tree.children[0].value, env) # Gets the table from vtable
+        table = self.lookup(tree.children[0].value, env) # Gets the table from variable environment
         method_name = tree.children[1].children[0].value # Gets the name of the method called
 
         parameters = [] # Will hold all params for the called method
@@ -398,25 +398,32 @@ class Evaluator():
         if (method_name not in self.env_pd):
             raise Exception(f'Tried to call function {method_name}, which does not exist')
         
+        # Set of possible operations that can be read when passing expressinos as parameters
         expressions = {"equal", "neq", "less", "leq", "greater", "geq", "and", "or", "not", 
                        "add", "sub", "mult", "divide", "mod", "exp"}
 
         for actual_params in tree.children[1].children[1:]:
             # If the argument is a boolean expression, consider the tree data, 
-            #   and ensure the expression is constructed using the above operators
+            #   and ensure the expression is constructed using the operators in expressions
             if isinstance(actual_params, Tree) and actual_params.data in expressions:
-                # 
-                def make_lambda(expr_tree, captured_env):
+                # Trivially a closure, to ensure new references to actual params for row_expr
+                def make_lambda(expr_tree, env):
+                    # Make a closure function, meaning it only works with the params given for the current iteration,
+                    #   thus working on a new scope each iteration, where the expr_tree and env vary.
                     def row_expr(row):
-                        return self.Eval(expr_tree, {**captured_env, **row})
+                        # Merge (** operator) program's variables with row's columns, making a combined environment.
+                        #   Eval will operationally evaluate the exprression in the combined env. 
+                        return self.Eval(expr_tree, {**env, **row}) 
                     return row_expr
+                # Calling make_lambda to pass actual_params at this moment for current iteration
                 parameters.append(make_lambda(actual_params, env))
-            
             else:
                 parameters.append(self.Eval(actual_params, env))
         
+        # Execute the function with the corresponding parameters and table
         execute = self.env_pd[method_name](table, *parameters)
         return execute
+
         
     def Eval_table(self, tree, env):
         columns = {}

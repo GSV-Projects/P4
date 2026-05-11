@@ -121,7 +121,6 @@ class Typechecker():
             one: does this
 
         Returns:
-            
         """
 
         if isinstance(node, Token):
