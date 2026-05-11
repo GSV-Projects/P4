@@ -1,6 +1,6 @@
 from tadpole.table import Table, NA
 
-
+# Tests the predefined function "replaceNA" which looks for NA values in a specific column, and replaces them we a specific value
 def test_replaceNA():
     # Arrange
     t = Table({"col1": [1.0, NA, 3.0]})
