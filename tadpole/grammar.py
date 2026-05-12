@@ -3,8 +3,8 @@ grammar = r"""
 
 program: (stmt | def)*
 
-?stmt: IDENT "=" rvalue ";"                      -> assign
-     | IDENT "[" expr "]" "=" rvalue ";"         -> array_assign
+?stmt: IDENT "=" expr ";"                      -> assign
+     | IDENT "[" expr "]" "=" expr ";"         -> array_assign
      | call ";"                                  
      | "while" "(" expr ")" "do" "{" stmt* "}"   -> while_stmt
      | "if" "(" expr ")" ifthen (ifelse)?        -> if_stmt
@@ -13,17 +13,6 @@ program: (stmt | def)*
 
 ?ifthen:  "then" "{" stmt* "}"                   -> then
 ?ifelse:  "else" "{" stmt* "}"                   -> else
-
-?rvalue: "[" (expr ("," expr)*)? "]"             -> array
-       | IDENT "." call ("." call)*              -> dot_call
-       | table
-       | expr
-
-?table: "{" column* "}" -> table
-       
-?column: ( IDENT ":" "[" column_content "]" ";" )      -> column
-
-?column_content: (expr ("," expr)*)?                    -> array
 
 ?call: IDENT "(" (expr ("," expr)*)? ")"                -> func_call
 
@@ -85,6 +74,15 @@ param: (param_item ("," param_item)*)?
      | FALSE
      | NA
      | "(" expr ")"
+     | "[" (expr ("," expr)*)? "]"             -> array
+     | IDENT "." call ("." call)*              -> dot_call
+     | table
+
+?table: "{" column* "}" -> table
+       
+?column: ( IDENT ":" "[" column_content "]" ";" )      -> column
+
+?column_content: (expr ("," expr)*)?                    -> array
 
 // --- Keywords ----
 WHILE: "while"
@@ -130,7 +128,6 @@ NA: "NA"
 
 // --- Identifiers ---
 IDENT: /[A-Za-z_][A-Za-z0-9_]*/
-COLUMN: /[A-Za-z_][A-Za-z0-9_]*/
 
 // --- Numbers ---
 FLOAT: /((0|[1-9][0-9]*)\.[0-9]+)([eE][+-]?[0-9]+)?/
@@ -143,4 +140,3 @@ STRING: /"([^"\\]|\\.)*"/
 %import common.WS
 %ignore WS
 """
-
