@@ -24,6 +24,7 @@ class Typechecker():
             "remove":       ('tbl'),    
             "mutate":       ('tbl'),    
             "filter" :      ('tbl'),
+            "filtercol":    ('tbl'),
             "first":        ('tbl'),
             "last":         ('tbl'),
             "sort" :        ('tbl'),    
