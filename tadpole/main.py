@@ -8,6 +8,9 @@ from tadpole.type_checker import Typechecker
 # The code to be executed:
 code = """
 
+tab = {col : ["a","b"];};
+
+
 """
 
 

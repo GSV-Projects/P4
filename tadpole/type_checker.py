@@ -1,5 +1,7 @@
 from lark import Tree, Token
 from .utils.NAliteral import na_type
+from tadpole.column import column
+from tadpole.table import Table
 import copy
 
 
@@ -181,9 +183,6 @@ class Typechecker():
 
         # When trying to assign a table to an identifier, we run a custom assignment function,
         #   since we have to assign columns as well.
-        if isinstance(right, Tree) and right.data == "table":
-            self.check_table(right, env, RL, table_id=left.value)
-            return
 
         t1 = self.check(right, env, RL)
         
@@ -355,34 +354,23 @@ class Typechecker():
         #   Enters a column, to return the array/children of that column.
         return node.children
   
-    def check_table(self, node, env, RL, table_id = None):
+    def check_table(self, node, env, RL):
         # If the table name is not parsed on method call, find it through the node
-        if table_id == None:
-            table_id = node.data
+        tab = Table()
+        for child in node.children:
+           col_type = self.check(child, env, RL)
+           tab.columns.append(col_type)
+           
+           print("hej", col_type)
 
-        for col in node.children:
-            # Get the name of the current column
-            c_id = col.children[0] 
+        return 
 
-            # Get the array related to that same column name 
-            arr = col.children[1] 
-            
-            # Get the type of the array held in current column
-            check_arr = self.check(arr, env, RL) 
+    def check_column(self, node, env, RL):
+        array_type = self.check(node.children[1],env, RL)
 
-            # Create a custom tree structure to assign a custom type to a custom variable in our environment
-            col = Tree("column_sapling", check_arr)
 
-            # Turn the use of dot-notation into an identifier that the array can be assigned to
-            token = Token('IDENT', f'{table_id} {c_id.value}')
-            stmt = Tree("assign", [token, col])
-            self.check(stmt, env, RL)
-
-        # Ending the check_function with setting the id == "tbl" since all tables would be of type "tbl"
-        token = Token('IDENT', f'{table_id}')
-        tbl_token = Token('TYPE_TABLE', 'tbl')
-        S = Tree("assign", [token, tbl_token])
-        self.check(S, env, RL)    
+        col = column(array_type)
+        return col
     
     def check_f(self, node, env, RL):
         # "check_f" is used to check the declaration of a function and its body
@@ -465,6 +453,19 @@ class Typechecker():
         # Get formal info on current child and return it
         return_type = self.ptable[right] 
         return return_type 
+    
+        '''
+    dot
+      tab
+      call
+        mean
+        "col"
+
+    hvad forventer mean?
+    hvad er typen af col?
+
+    mean.forventing != col.type --> raise exception
+        '''
  
 
     def check_stop(self, node, env, RL):
