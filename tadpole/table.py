@@ -186,13 +186,13 @@ class Table():
     # Returns the cleaned versoin of the same table,
     #   excluding the rows with NA or a given value for a *given column*.
     # Returns: 'tbl'
-    def filtercol(self, column, arg = None):
+    def filtercol(self, column, param = None):
         # Reroute arg as either a value or an expr,
         #   as only one of either can be called at a time.
         expr = None
         value = None
-        if callable(arg): expr = arg
-        else: value = arg
+        if callable(param): expr = param
+        else: value = param
 
         self._validate_column(column)
         self._validate_uniform
