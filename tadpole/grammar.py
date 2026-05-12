@@ -21,7 +21,7 @@ program: (stmt | def)*
 
 ?table: "{" column* "}" -> table
        
-?column: ( COLUMN ":" "[" column_content "]" ";" )      -> column
+?column: ( IDENT ":" "[" column_content "]" ";" )      -> column
 
 ?column_content: (expr ("," expr)*)?                    -> array
 
