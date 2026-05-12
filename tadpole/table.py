@@ -207,13 +207,13 @@ class Table():
             row = {col: vals[i] for col, vals in self.columns.items()}
 
             # If any of the values in the row are NA or a given filter param, goto next i
-            if any(v is NA for v in row.values()):
+            if row[column] is NA:
                 continue
             # If a value was given and equal to the value in the given column for current row, goto next i 
             if value is not None and row[column] == value:
                 continue
             # If an expr is given, and expr(row) returns False, goto next i
-            if expr is not None and expr(row): # expr(row) is a lambda, returning a bool
+            if expr is not None and expr(row[column]): # expr(row) is a lambda, returning a bool
                 continue
             # Otherwise, all is good, paste row into our new_table
             for col, v in row.items():
