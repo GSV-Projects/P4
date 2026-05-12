@@ -15,7 +15,7 @@ class Table():
     # Method that reads from a URL and saves it in the table object
     # Returns: 'tbl'
     def read(self, url):
-        self._validate_url
+        self._validate_url(url)
         
         # Check if the CSV has headers for each column
         header_peek = pd.read_csv(url, nrows=1, header=None) # Read csv
@@ -37,7 +37,7 @@ class Table():
     #   of filling out NA valies based on surrounding values.
     # Returns: 'tbl'
     def read_fill(self, url):
-        self._validate_url
+        self._validate_url()
         
         header_peek = pd.read_csv(url, nrows=1, header=None)
         first_row = header_peek.iloc[0].tolist() 
@@ -58,8 +58,7 @@ class Table():
     # Loops through each column and checks whether a value is NA
     # Returns: 'tbl'
     def clean_values(self, columns):
-        self._validate_column
-        
+
         for column in columns:
             self.columns[column] = [self.replace_nan(v) for v in self.columns[column]]
         return self
@@ -100,7 +99,7 @@ class Table():
     # Returns: 'tbl'
     def append(self, array, key = None):
         self._validate_key(key)
-        self._validate_uniform
+        self._validate_uniform()
     
         new_table = dict(self.columns)
         if key is None:
@@ -160,7 +159,7 @@ class Table():
         if callable(arg): expr = arg
         else: value = arg
 
-        self._validate_uniform
+        self._validate_uniform()
         if not expr == None : self._validate_expression(expr, True)
         
         # Find number of rows through a column, by iterating through it
@@ -195,7 +194,7 @@ class Table():
         else: value = param
 
         self._validate_column(column)
-        self._validate_uniform
+        self._validate_uniform()
         if not expr == None : self._validate_expression(expr, True)
         
         # Find number of rows through a column, by iterating through it
@@ -224,7 +223,7 @@ class Table():
     # Returns the first row in the table
     # Returns: 'tbl'
     def first(self):
-        self._validate_table
+        self._validate_table()
 
         row = {col: vals[0] for col, vals in self.columns.items()}
         return row
@@ -232,7 +231,7 @@ class Table():
     # Returns the last row in the table
     # Returns: 'tbl'
     def last(self):
-        self._validate_table
+        self._validate_table()
 
         row = {col: vals[-1] for col, vals in self.columns.items()}
         return row
@@ -306,7 +305,7 @@ class Table():
     # Returns a column requested by string name
     # Returns: array 
     def get_col(self, column):
-        self._validate_table
+        self._validate_table()
         self._validate_column(column)
     
         col = self.columns[column]
@@ -315,7 +314,7 @@ class Table():
     # Returns the first column of a table
     # Returns: array 
     def get_first(self):
-        self._validate_table
+        self._validate_table()
 
         key_list = list(self.columns.keys())
         first = key_list[0]
@@ -324,7 +323,7 @@ class Table():
     # Returns the last column of a table
     # Returns: array 
     def get_last(self):
-        self._validate_table
+        self._validate_table()
     
         key_list = list(self.columns.keys())
         last = key_list[len(key_list) - 1]
@@ -333,7 +332,7 @@ class Table():
     # Returns array of all keys in a table
     # Returns: array
     def keys(self):
-        self._validate_table
+        self._validate_table()
     
         keys = []
         for column in self.columns:
@@ -389,7 +388,7 @@ class Table():
     
     # How often some value occurs within a column
     # Returns: float
-    def frequency(self, column, arg = None): # NOT WORKING - - - - - ! - ! - ! 
+    def frequency(self, column, arg = None):
         # Reroute arg as either a value or an expr,
         #   as only one of either can be called at a time.
         expr = None
@@ -398,7 +397,7 @@ class Table():
         else: value = arg
 
         self._validate_key(column)
-        self._validate_expression(expr, True)
+        if not expr == None: self._validate_expression(expr, True)
 
         count = 0
 
