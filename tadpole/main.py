@@ -8,11 +8,6 @@ from tadpole.type_checker import Typechecker
 # The code to be executed:
 code = """
 
-if(true) then {
-    a = 3;
-}
-else {a = 5;}
-
 """
 
 
