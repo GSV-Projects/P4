@@ -5,6 +5,7 @@ description = "My interpreter"
 dependencies = [
     "pandas",
     "lark",
+    "lark[interegular]",
     "pydot",
     "pyparsing"
 ]
