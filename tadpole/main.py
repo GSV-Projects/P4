@@ -64,3 +64,8 @@ def main():
 
     # The AST is parsed through the interpreter
     evaluator.PEval(ast)
+
+    
+
+if __name__=="__main__":
+    main()

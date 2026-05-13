@@ -1,10 +1,10 @@
 [project]
 name = "tadpole"
-version = "0.11.2"
+version = "0.1.0"
 description = "My interpreter"
 dependencies = [
     "pandas",
-    "lark[interegular]",
+    "lark",
     "pydot",
     "pyparsing"
 ]
@@ -17,4 +17,5 @@ dev = [
 [project.scripts]
 tadpole = "tadpole.main:main"
 
-
+[tool.setuptools.packages.find]
+include = ["tadpole*"]
