@@ -433,23 +433,14 @@ class Typechecker():
     def check_dot(self, node, env, RL):
         # We want to extract the name of the called function so we can find the return type in the ptable
         right = node.children[1].children[0]
+        left = node.children[0]
+
+        if self.vtable[left.value] != 'tbl':
+            raise Exception(f'"{left.value}" is of type {self.vtable[left.value]}, must be a "table"')
 
         # Get formal info on current child and return it
         return_type = self.ptable[right] 
         return return_type 
-    
-        '''
-    dot
-      tab
-      call
-        mean
-        "col"
-
-    hvad forventer mean?
-    hvad er typen af col?
-
-    mean.forventing != col.type --> raise exception
-        '''
  
 
     def check_stop(self, node, env, RL):
