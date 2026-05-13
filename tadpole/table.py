@@ -100,6 +100,7 @@ class Table():
     def append(self, array, key = None):
         self._validate_key(key)
         self._validate_uniform()
+        self._validate_length(array)
     
         new_table = dict(self.columns)
         if key is None:
@@ -572,6 +573,14 @@ class Table():
         #   one element in the set, there are several lengths, therefore:
         if len(set(num_entries)) != 1: 
             raise Exception (f'Columns in the same table must be of the same length, current lengths: {num_entries}')
+        
+    def _validate_length(self, array):
+        keys = self.keys()
+        table_entries = len(self.columns[keys[1]])
+        array_entries = len(array)
+
+        if table_entries != array_entries:
+            raise Exception (f'Column must be of the same length as in the table, current lengths: {table_entries} : {array_entries}')
 
     def _validate_expression(self, expr, is_bool = None):
         # Check if the lambda can even be called

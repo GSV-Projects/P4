@@ -88,20 +88,41 @@ def test_recursion():
 
     assert (a_result and b_result)
 
-
-def test_functions_and_tables():
+# An integration test, that tests the math operations and their precedence
+def test_math_operations_and_precedence():
+    # Setup
     code = '''
+    a = not 2 ^ 3 * 4 / 2 mod 3 + 5 - 1 <= 10 and true or 50 / 5 == 10;
+
+    '''
+    ast = parse_to_ast(code)
+    typechecker = Typechecker()
+    typechecker.check_p(ast)
+    evaluator = Evaluator()
+    evaluator.PEval(ast)
+
+
+    # Assert 
+    a_result = evaluator.env_v["a"] == True
+
+    assert a_result
+
+# Integration test for checking returning a table from a function to a variable
+def test_return_tbl_from_function():
+    # Setup
+    code = '''
+    
     function myfunc() returns tbl {
-                mytab = {
-                col1 : [1,2,3];
-                col2 : ["one", "two", "three"];
-                };
-                return mytab;
-            }
+        mytab = {
+        col1 : [1,2,3];
+        col2 : ["one", "two", "three"];
+        };
+        return mytab;
+    }
 
-            a = myfunc();
-'''
+    a = myfunc();
 
+    '''
     ast = parse_to_ast(code)
     typechecker = Typechecker()
     typechecker.check_p(ast)
