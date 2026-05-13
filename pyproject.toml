@@ -1,0 +1,20 @@
+[project]
+name = "tadpole"
+version = "0.11.2"
+description = "My interpreter"
+dependencies = [
+    "pandas",
+    "lark[interegular]",
+    "pydot",
+    "pyparsing"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest"
+]
+
+[project.scripts]
+tadpole = "tadpole.main:main"
+
+
