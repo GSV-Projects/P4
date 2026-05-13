@@ -12,6 +12,9 @@ mytab = {};
 mytab = mytab.read("https://github.com/GSV-Projects/P4/blob/tabletest/tadpole/Simple_example/read_test.csv");
 
 
+tab = {col : ["a","b"];};
+
+
 """
 
 

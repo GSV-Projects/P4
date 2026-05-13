@@ -63,7 +63,7 @@ class Typechecker():
             return str
         if token.type == 'TYPE_BOOL' or token.type == 'FALSE' or token.type == 'TRUE':
             return bool
-        if token.type == 'TYPE_TABLE' or token.type == 'tbl':
+        if token.type == 'TYPE_TABLE':
             return 'tbl'
         if token.type == 'NA':
             return na_type
@@ -178,12 +178,6 @@ class Typechecker():
         
         left = node.children[0]
         right = node.children[1]
-
-        # When trying to assign a table to an identifier, we run a custom assignment function,
-        #   since we have to assign columns as well.
-        if isinstance(right, Tree) and right.data == "table":
-            self.check_table(right, env, RL, table_id=left.value)
-            return
 
         t1 = self.check(right, env, RL)
         
@@ -350,39 +344,17 @@ class Typechecker():
         else: 
             raise Exception(f'Did not parse an integer for array indexing')
 
-    def check_column_sapling(self, node, env, RL):
-        # This check method serves as a helper-check for check_table.
-        #   Enters a column, to return the array/children of that column.
-        return node.children
   
-    def check_table(self, node, env, RL, table_id = None):
-        # If the table name is not parsed on method call, find it through the node
-        if table_id == None:
-            table_id = node.data
+    def check_table(self, node, env, RL):
+        # Check_table is used to check that each column only contains a single type
 
-        for col in node.children:
-            # Get the name of the current column
-            c_id = col.children[0] 
+        # Loops through each column node, and checks the array of each column
+        #   If no exceptions are thrown it means all arrays were typed correctly, and we can return 'tbl' as the type
+        for child in node.children:
+            self.check(child.children[1], env, RL)
+        
+        return 'tbl'
 
-            # Get the array related to that same column name 
-            arr = col.children[1] 
-            
-            # Get the type of the array held in current column
-            check_arr = self.check(arr, env, RL) 
-
-            # Create a custom tree structure to assign a custom type to a custom variable in our environment
-            col = Tree("column_sapling", check_arr)
-
-            # Turn the use of dot-notation into an identifier that the array can be assigned to
-            token = Token('IDENT', f'{table_id} {c_id.value}')
-            stmt = Tree("assign", [token, col])
-            self.check(stmt, env, RL)
-
-        # Ending the check_function with setting the id == "tbl" since all tables would be of type "tbl"
-        token = Token('IDENT', f'{table_id}')
-        tbl_token = Token('TYPE_TABLE', 'tbl')
-        S = Tree("assign", [token, tbl_token])
-        self.check(S, env, RL)    
     
     def check_f(self, node, env, RL):
         # "check_f" is used to check the declaration of a function and its body
@@ -461,6 +433,10 @@ class Typechecker():
     def check_dot(self, node, env, RL):
         # We want to extract the name of the called function so we can find the return type in the ptable
         right = node.children[1].children[0]
+        left = node.children[0]
+
+        if self.vtable[left.value] != 'tbl':
+            raise Exception(f'"{left.value}" is of type {self.vtable[left.value]}, must be a "table"')
 
         # Get formal info on current child and return it
         return_type = self.ptable[right] 
