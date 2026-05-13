@@ -18,13 +18,13 @@ class Table():
     # Returns: 'tbl'
     def read(self, path):
         if (self.is_url(path)): # If path leads to URL, call function that reads from URL
-            self._validate_url(path)
             df = self.read_from_url(path)
         else: # Else, read from filepath
             df = self.read_from_file(path)
 
         # Save the CSV columns wise to the columns of the object, and return
         self.columns = df.to_dict(orient="list")
+        # Insert our NA_literal for missing values
         self.clean_values()
         return self
     
@@ -32,10 +32,10 @@ class Table():
     #   of filling out NA values based on surrounding values.
     # Returns: 'tbl'
     def read_fill(self, path):
-        if (self.is_url(path)): # If path leads to URL, call function that reads from URL
+        if (self.is_url(path)): 
             self._validate_url(path)
             df = self.read_from_url(path)
-        else: # Else, read from filepath
+        else:
             df = self.read_from_file(path)
 
         # Only change made, pandas' ffill and bfill take care of filling NA values
@@ -46,22 +46,25 @@ class Table():
         return self
     
     def read_from_url(self, url):
+        self._validate_url(url)
+
         # Check if the CSV has headers for each column
         header_peek = pd.read_csv(url, nrows=1, header=None) # Read csv
         first_row = header_peek.iloc[0].tolist() # First row, should hold string of headers
-        has_header = all(isinstance(v, (str)) for v in first_row)
+        has_header = all(isinstance(v, (str)) for v in first_row) # Boolean, does all entries have a header?
         if has_header:
             df = pd.read_csv(url)
-        else:
+        else: # If columns have no header, create customs in col1, col2... format
             df = pd.read_csv(url, header=None)
-            # If columns have no header, create customs in col1, col2... format
             df.columns = [f"col{i+1}" for i in range(len(df.columns))]
+        
+        # Return pandas dataframe
         return df
     
     # Function that reads CSV with pandas from a filepath
     def read_from_file(self, path):
-        # Check if the CSV has headers for each column
         self._validate_filepath(path)
+
         header_peek = pd.read_csv(path, nrows=1, header=None)
         first_row = header_peek.iloc[0].tolist()
         has_header = all(isinstance(v, str) for v in first_row)
@@ -70,14 +73,17 @@ class Table():
             df = pd.read_csv(path)
         else:
             df = pd.read_csv(path, header=None)
-            # If columns have no header, create customs in col1, col2... format
             df.columns = [f"col{i+1}" for i in range(len(df.columns))]
 
-        # Return dataframe
         return df
         
+    # Helper function to check if the parsed string is a URL
+    # Returns: boolean
     def is_url(self, url):
+        # Use urlparse library which segments the segment into URL chunks
         result = urlparse(url)
+        
+        # If it contains any of these strings, it is a URL
         return result.scheme in ("http", "https", "ftp")
     
     # Loops through each column and checks whether a value is NA
@@ -590,6 +596,7 @@ class Table():
         if not all(isinstance(c, (int, float)) or NA for c in col):
             raise Exception(f'Column {column} must consist only of integers or floats to use function {method}') 
         
+    # Ensure all columns in a table are the same length
     def _validate_uniform(self):
         # Make array of lengths of columns, then check if they're all the same
         num_entries = [len(vals) for vals in self.columns.values()] 
@@ -598,14 +605,18 @@ class Table():
         if len(set(num_entries)) != 1: 
             raise Exception (f'Columns in the same table must be of the same length, current lengths: {num_entries}')
         
+    # Ensures the array sent is the same length as the columns of the table
     def _validate_length(self, array):
+        # Get key to index and get length of a column
         keys = self.keys()
-        table_entries = len(self.columns[keys[1]])
+        column_entries = len(self.columns[keys[1]])
         array_entries = len(array)
 
-        if table_entries != array_entries:
-            raise Exception (f'Column must be of the same length as in the table, current lengths: {table_entries} : {array_entries}')
+        # If the column and array do not have matching lengths, throw an error
+        if column_entries != array_entries:
+            raise Exception (f'Column must be of the same length as in the table, current lengths: {column_entries} : {array_entries}')
 
+    # Ensure the expression sent is viable and returns a boolean
     def _validate_expression(self, expr, is_bool = None):
         # Check if the lambda can even be called
         if not callable(expr):
@@ -640,5 +651,6 @@ class Table():
     def _validate_filepath(self, path):
         if path == "":
             raise Exception("Path cannot be empty")
+        # Use 'os' library to check that a filepath leads to a file and not a directory
         if not os.path.isfile(path):
             raise Exception(f"No file found at path: '{path}'")
