@@ -7,14 +7,6 @@ from tadpole.type_checker import Typechecker
 
 # The code to be executed:
 code = """
-mytab = {};
-
-mytab = mytab.read("https://github.com/GSV-Projects/P4/blob/tabletest/tadpole/Simple_example/read_test.csv");
-
-
-tab = {col : ["a","b"];};
-
-
 """
 
 
