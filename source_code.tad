@@ -1,0 +1,9 @@
+
+
+
+Mads = "dumb";
+
+
+print("Mads er:");
+print(Mads);
+print("67");

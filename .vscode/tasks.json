@@ -12,7 +12,7 @@
 
             "command": "${workspaceFolder}/.venv/Scripts/python.exe",
 
-            "args": ["-m", "tadpole.main"],
+            "args": ["-m", "tadpole.main", "source_code.tad"],
 
             "group": {
                 "kind": "build",
