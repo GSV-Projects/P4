@@ -3,10 +3,13 @@ from lark import Lark
 from tadpole.parsertransformer import MyTrans
 from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
+from lark import UnexpectedToken
 
 
 # The code to be executed:
 code = """
+ 
+print("67");
 
 """
 
@@ -18,9 +21,17 @@ def transformtree(tree):
 
 # Defines the grammar as parser
 parser = Lark(grammar, parser="lalr", strict=True)
+    
 
 # Parses the grammar through Larks parser and lexer
-parsetree = parser.parse(code)
+try:
+    parsetree = parser.parse(code)
+except UnexpectedToken as e:
+    print("Unexpected token on line:", e.line, "at position", e.pos_in_stream, "in token stream")
+    print(e.get_context(code))
+    exit()
+
+    
 
 # Transforms the parse tree to an AST
 ast = transformtree(parsetree)
