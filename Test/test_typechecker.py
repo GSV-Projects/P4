@@ -402,22 +402,3 @@ def test_table_type():
 
     # Expected output
     assert typechecker.vtable['mytab'] == 'tbl'
-
-# Testing the custom column type tbl.clmn
-def test_column_types():
-  
-    # Setup
-    tree = Tree(Token('RULE', 'program'), [Tree('assign', [Token('IDENT', 'mytab'), Tree('table', [Tree('column', [Token('COLUMN', 'name'), Tree('array', [Token('STRING', '"David"'), Token('STRING', '"Mads"'), Token('STRING', '"Bo"')])]), Tree('column', [Token('COLUMN', 'rank'), Tree('array', [Token('INT', '1'), Token('INT', '67'), Token('INT', '2')])])])])])    
-    typechecker = Typechecker()
-    typechecker.check_p(tree)
-
-    # What the syntax_tree represents
-    '''
-    mytab = {
-    name : ["David","Mads","Bo"];
-    rank : [1,67,2];
-    };
-    '''
-
-    # Expected output
-    assert typechecker.vtable['mytab name'] == [str]

@@ -29,7 +29,7 @@ class Table():
         return self
     
     # Reads exactly like above, with the added functionality 
-    #   of filling out NA valies based on surrounding values.
+    #   of filling out NA values based on surrounding values.
     # Returns: 'tbl'
     def read_fill(self, path):
         if (self.is_url(path)): # If path leads to URL, call function that reads from URL
@@ -636,7 +636,7 @@ class Table():
         except urllib.error.URLError as e:
             raise Exception(f"Incorrect URL: '{url}") # If error occurs, URL is incorrect
         
-    # Ensure URL is viable and working
+    # Ensure filepath is viable
     def _validate_filepath(self, path):
         if path == "":
             raise Exception("Path cannot be empty")
