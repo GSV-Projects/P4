@@ -26,7 +26,6 @@ program: (stmt | def)*
      | TYPE_INT                                 -> type_int
      | TYPE_STRING                              -> type_string
      | TYPE_TABLE                               -> type_table
-     | "clmn" "[" type "]"                      -> type_column
      | "[" type "]"                             -> type_array
 
 param: (param_item ("," param_item)*)?

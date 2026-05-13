@@ -1,7 +1,5 @@
 from lark import Tree, Token
 from .utils.NAliteral import na_type
-from tadpole.column import column
-from tadpole.table import Table
 import copy
 
 
@@ -65,7 +63,7 @@ class Typechecker():
             return str
         if token.type == 'TYPE_BOOL' or token.type == 'FALSE' or token.type == 'TRUE':
             return bool
-        if token.type == 'TYPE_TABLE' or token.type == 'tbl':
+        if token.type == 'TYPE_TABLE':
             return 'tbl'
         if token.type == 'NA':
             return na_type
@@ -180,9 +178,6 @@ class Typechecker():
         
         left = node.children[0]
         right = node.children[1]
-
-        # When trying to assign a table to an identifier, we run a custom assignment function,
-        #   since we have to assign columns as well.
 
         t1 = self.check(right, env, RL)
         
@@ -349,28 +344,17 @@ class Typechecker():
         else: 
             raise Exception(f'Did not parse an integer for array indexing')
 
-    def check_column_sapling(self, node, env, RL):
-        # This check method serves as a helper-check for check_table.
-        #   Enters a column, to return the array/children of that column.
-        return node.children
   
     def check_table(self, node, env, RL):
-        # If the table name is not parsed on method call, find it through the node
-        tab = Table()
+        # Check_table is used to check that each column only contains a single type
+
+        # Loops through each column node, and checks the array of each column
+        #   If no exceptions are thrown it means all arrays were typed correctly, and we can return 'tbl' as the type
         for child in node.children:
-           col_type = self.check(child, env, RL)
-           tab.columns.append(col_type)
-           
-           print("hej", col_type)
+            self.check(child.children[1], env, RL)
+        
+        return 'tbl'
 
-        return 
-
-    def check_column(self, node, env, RL):
-        array_type = self.check(node.children[1],env, RL)
-
-
-        col = column(array_type)
-        return col
     
     def check_f(self, node, env, RL):
         # "check_f" is used to check the declaration of a function and its body

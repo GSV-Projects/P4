@@ -4,6 +4,7 @@ from lark import Lark
 from tadpole.parsertransformer import MyTrans
 from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
+from tadpole.table import Table
 
 # The integration test are meant to test that all the larger units which make up the interpreter work together as excepted.
 #   These larger unit can be seens as
@@ -86,3 +87,28 @@ def test_recursion():
     b_result = evaluator.env_v["ans"] == True
 
     assert (a_result and b_result)
+
+
+def test_functions_and_tables():
+    code = '''
+    function myfunc() returns tbl {
+                mytab = {
+                col1 : [1,2,3];
+                col2 : ["one", "two", "three"];
+                };
+                return mytab;
+            }
+
+            a = myfunc();
+'''
+
+    ast = parse_to_ast(code)
+    typechecker = Typechecker()
+    typechecker.check_p(ast)
+    evaluator = Evaluator()
+    evaluator.PEval(ast)
+
+    type_result = typechecker.vtable["a"] == 'tbl'
+    value_result = evaluator.env_v["a"].columns == {'col1': [1, 2, 3], 'col2': ['one', 'two', 'three']}
+
+    assert (type_result and value_result)

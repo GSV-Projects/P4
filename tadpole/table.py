@@ -34,7 +34,7 @@ class Table():
         return self
     
     # Reads exactly like above, with the added functionality 
-    #   of filling out NA valies based on surrounding values.
+    #   of filling out NA values based on surrounding values.
     # Returns: 'tbl'
     def read_fill(self, url):
         self._validate_url()
