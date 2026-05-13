@@ -12,6 +12,17 @@ def test_read():
     #Assert
     expected = {"maker": ["Toyota", "Honda", "Ford", "Tesla", "BMW"], "model": ["Camry", "Civic", "Mustang", "Model 3", "X5"], "year": [2022, 2021, 2023, 2023, 2022]}
     assert result.columns == expected
+
+def test_read_from_file():
+    #Arrange 
+    t = Table(None)
+
+    #Act
+    result = t.read("Test/read_test.csv")
+
+    #Assert
+    expected = {"maker": ["Toyota", "Honda", "Ford", "Tesla", "BMW"], "model": ["Camry", "Civic", "Mustang", "Model 3", "X5"], "year": [2022, 2021, 2023, 2023, 2022]}
+    assert result.columns == expected
     
 # Test for getter function that returns a column as an array.
 def test_getcol():

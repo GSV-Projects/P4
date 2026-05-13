@@ -2,6 +2,8 @@ from tadpole.utils.NAliteral import NA
 import math
 import pandas as pd
 import urllib.request
+from urllib.parse import urlparse
+import os
 import copy
 from tadpole.utils.NAliteral import NA
 
@@ -14,9 +16,36 @@ class Table():
 
     # Method that reads from a URL and saves it in the table object
     # Returns: 'tbl'
-    def read(self, url):
-        self._validate_url(url)
-        
+    def read(self, path):
+        if (self.is_url(path)): # If path leads to URL, call function that reads from URL
+            self._validate_url(path)
+            df = self.read_from_url(path)
+        else: # Else, read from filepath
+            df = self.read_from_file(path)
+
+        # Save the CSV columns wise to the columns of the object, and return
+        self.columns = df.to_dict(orient="list")
+        self.clean_values()
+        return self
+    
+    # Reads exactly like above, with the added functionality 
+    #   of filling out NA valies based on surrounding values.
+    # Returns: 'tbl'
+    def read_fill(self, path):
+        if (self.is_url(path)): # If path leads to URL, call function that reads from URL
+            self._validate_url(path)
+            df = self.read_from_url(path)
+        else: # Else, read from filepath
+            df = self.read_from_file(path)
+
+        # Only change made, pandas' ffill and bfill take care of filling NA values
+        df = df.ffill().bfill()
+
+        self.columns = df.to_dict(orient="list")
+        self.clean_values()
+        return self
+    
+    def read_from_url(self, url):
         # Check if the CSV has headers for each column
         header_peek = pd.read_csv(url, nrows=1, header=None) # Read csv
         first_row = header_peek.iloc[0].tolist() # First row, should hold string of headers
@@ -27,39 +56,34 @@ class Table():
             df = pd.read_csv(url, header=None)
             # If columns have no header, create customs in col1, col2... format
             df.columns = [f"col{i+1}" for i in range(len(df.columns))]
-
-        # Save the CSV columns wise to the columns of the object, and return
-        self.columns = df.to_dict(orient="list")
-        self.clean_values(self.columns)
-        return self
+        return df
     
-    # Reads exactly like above, with the added functionality 
-    #   of filling out NA valies based on surrounding values.
-    # Returns: 'tbl'
-    def read_fill(self, url):
-        self._validate_url()
-        
-        header_peek = pd.read_csv(url, nrows=1, header=None)
-        first_row = header_peek.iloc[0].tolist() 
-        has_header = all(isinstance(v, (str)) for v in first_row)
+    # Function that reads CSV with pandas from a filepath
+    def read_from_file(self, path):
+        # Check if the CSV has headers for each column
+        self._validate_filepath(path)
+        header_peek = pd.read_csv(path, nrows=1, header=None)
+        first_row = header_peek.iloc[0].tolist()
+        has_header = all(isinstance(v, str) for v in first_row)
+
         if has_header:
-            df = pd.read_csv(url)
+            df = pd.read_csv(path)
         else:
-            df = pd.read_csv(url, header=None)
+            df = pd.read_csv(path, header=None)
+            # If columns have no header, create customs in col1, col2... format
             df.columns = [f"col{i+1}" for i in range(len(df.columns))]
 
-        # only change made, pandas' ffill and bfill take care of filling NA values
-        df = df.ffill().bfill()
-
-        self.columns = df.to_dict(orient="list")
-        self.clean_values(self.columns)
-        return self
+        # Return dataframe
+        return df
+        
+    def is_url(self, url):
+        result = urlparse(url)
+        return result.scheme in ("http", "https", "ftp")
     
     # Loops through each column and checks whether a value is NA
     # Returns: 'tbl'
-    def clean_values(self, columns):
-
-        for column in columns:
+    def clean_values(self):
+        for column in self.columns:
             self.columns[column] = [self.replace_nan(v) for v in self.columns[column]]
         return self
 
@@ -83,15 +107,15 @@ class Table():
     
     # Rename the key of a given column
     # Returns: 'tbl'
-    def rename(self, column, name):
+    def rename(self, column, key):
         self._validate_column(column)
-        self._validate_key(name)
+        self._validate_key(key)
     
         if column not in self.columns:
             raise Exception(f"Column '{column}' does not exist")
         new_table = copy.deepcopy(self.columns)
         new_table = {
-            name if k == column else k: v 
+            key if k == column else k: v 
             for k, v in new_table.items()}
         return Table(new_table)
     
@@ -152,13 +176,13 @@ class Table():
     # Returns the cleaned versoin of the same table, 
     #   excluding the rows with NA or a given value for *all columns*.
     # Returns: 'tbl'
-    def filter(self, arg = None):
+    def filter(self, param = None):
         # Reroute arg as either a value or an expr,
         #   as only one of either can be called at a time.
         expr = None
         value = None
-        if callable(arg): expr = arg
-        else: value = arg
+        if callable(param): expr = param
+        else: value = param
 
         self._validate_uniform()
         if not expr == None : self._validate_expression(expr, True)
@@ -186,7 +210,7 @@ class Table():
     # Returns the cleaned versoin of the same table,
     #   excluding the rows with NA or a given value for a *given column*.
     # Returns: 'tbl'
-    def filtercol(self, column, param = None):
+    def filter_col(self, column, param = None):
         # Reroute arg as either a value or an expr,
         #   as only one of either can be called at a time.
         expr = None
@@ -389,13 +413,13 @@ class Table():
     
     # How often some value occurs within a column
     # Returns: float
-    def frequency(self, column, arg = None):
+    def frequency(self, column, param = None):
         # Reroute arg as either a value or an expr,
         #   as only one of either can be called at a time.
         expr = None
         value = None
-        if callable(arg): expr = arg
-        else: value = arg
+        if callable(param): expr = param
+        else: value = param
 
         self._validate_key(column)
         if not expr == None: self._validate_expression(expr, True)
@@ -598,7 +622,6 @@ class Table():
         if is_bool and not isinstance(result, bool):
             raise Exception(f"Expression must return a boolean, got {type(result).__name__}")
 
-
     # Ensure key name is a valid identifier
     def _validate_key(self, key):
         if not key.isidentifier():
@@ -612,3 +635,10 @@ class Table():
             urllib.request.urlopen(url, timeout=5) 
         except urllib.error.URLError as e:
             raise Exception(f"Incorrect URL: '{url}") # If error occurs, URL is incorrect
+        
+    # Ensure URL is viable and working
+    def _validate_filepath(self, path):
+        if path == "":
+            raise Exception("Path cannot be empty")
+        if not os.path.isfile(path):
+            raise Exception(f"No file found at path: '{path}'")
