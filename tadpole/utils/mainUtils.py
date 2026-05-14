@@ -17,7 +17,7 @@ def readfile(file_path):
     file_extension = split_up[1]
 
     if file_extension != '.tad':
-        raise WrongFileTypeError("Expected a .tad file")
+        raise WrongFileTypeError(f"Passed a {file_extension} file, ""expected a .tad file")
     
     try:
         with open(file_path, 'r') as file:
