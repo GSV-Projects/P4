@@ -66,7 +66,7 @@ def test_not_in_loop():
     '''
 
     # Expected output
-    assert "Cannot stop, not in loop" in str(excinfo.value)
+    assert "Cannot use stop outside a loop" in str(excinfo.value)
 
 # Testing nested while loops with stop inside
 def test_nested_loops():
@@ -143,7 +143,7 @@ def test_array_indexing_with_float():
     '''
 
     # Expected output
-    assert "Did not parse an integer for array indexing" in str(excinfo.value)
+    assert "Index must be an integer to index the array" in str(excinfo.value)
 
 # Testing value that is returned and type of array
 def test_array_indexing_value():
@@ -239,7 +239,28 @@ def test_func_return_out_of_scope():
     '''
 
     # Expected output
-    assert "doesnt match with function return type" in str(excinfo.value)
+    assert "Not possible to use return outside of a function or inside of a void function" in str(excinfo.value)
+
+# Testing return out of a function 
+def test_func_return_in_void_function():
+
+    # Setup
+    tree = Tree(Token('RULE', 'program'), [Tree('func_def', [Token('IDENT', 'myfunc'), Tree('param', [Tree('param_item', [Token('TYPE_FLOAT', 'float'), Token('IDENT', 'a')])]), Tree('body', [Tree('assign', [Token('IDENT', 'a'), Token('FLOAT', '5.5')]), Tree('return', [Token('IDENT', 'a')])])])])
+    typechecker = Typechecker()
+
+    with pytest.raises(Exception) as excinfo:
+        typechecker.check_p(tree)
+
+    # What the syntax_tree represents
+    '''
+    function myfunc(float a) {
+        a = 5.5;
+        return a;
+    }
+    '''
+
+    # Expected output
+    assert "Not possible to use return outside of a function or inside of a void function" in str(excinfo.value)
 
 # Testing return with wrong type 
 def test_func_return_wrong_type():
@@ -262,7 +283,7 @@ def test_func_return_wrong_type():
     '''
 
     # Expected output
-    assert "doesnt match with function return type" in str(excinfo.value)
+    assert "The return statement returns value of type" in str(excinfo.value)
 
 # Testing if its possible to use a non bool in the if stmt
 def test_if_not_bool():
@@ -284,7 +305,7 @@ def test_if_not_bool():
     '''
 
     # Expected output
-    assert "is not a boolean expression" in str(excinfo.value)
+    assert "must be a boolean expression" in str(excinfo.value)
 
 # Testing if we get an error is amont of actual and formal doesnt match
 def test_func_multiple_params():
@@ -306,7 +327,7 @@ def test_func_multiple_params():
     '''
 
     # Expected output
-    assert "Amount of formal parameters do not match actual parameters" in str(excinfo.value)
+    assert "Amount of function parameters do not match the amount of passed parameters to the function" in str(excinfo.value)
 
 # function f() { x = 10; } x = 5; f(); x should still be 5
 def test_func_scope_isolation():
@@ -382,7 +403,7 @@ def test_while_not_bool():
     '''
 
     # Expected output
-    assert "is not a boolean expression" in str(excinfo.value)
+    assert "must be a boolean expression" in str(excinfo.value)
 
 # Testing tbl type
 def test_table_type():
