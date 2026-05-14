@@ -4,6 +4,7 @@ from lark import Lark
 from tadpole.parsertransformer import MyTrans
 from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
+from tadpole.table import Table
 
 # The integration test are meant to test that all the larger units which make up the interpreter work together as excepted.
 #   These larger unit can be seens as
@@ -157,3 +158,7 @@ def test_array_operations():
     a_result = evaluator.env_v["b"] == 4
 
     assert a_result
+    type_result = typechecker.vtable["a"] == 'tbl'
+    value_result = evaluator.env_v["a"].columns == {'col1': [1, 2, 3], 'col2': ['one', 'two', 'three']}
+
+    assert (type_result and value_result)
