@@ -23,7 +23,7 @@ def readfile(file_path):
         with open(file_path, 'r') as file:
             return file.read()
     except FileNotFoundError as e:
-        raise TadpoleFileError(f"File not found: {file_path} also test") 
+        raise TadpoleFileError(f"File not found: {file_path}") 
 
 
 def parse(parser, code):
