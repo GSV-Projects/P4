@@ -241,7 +241,7 @@ def test_func_return_out_of_scope():
     # Expected output
     assert "Not possible to use return outside of a function or inside of a void function" in str(excinfo.value)
 
-# Testing return out of a function 
+# Testing return inside a void function
 def test_func_return_in_void_function():
 
     # Setup
