@@ -1,4 +1,4 @@
-from lark import Transformer, v_args, Tree, Token
+from lark import Transformer, Tree
 
 # Class for folding unnecessary nodes in the AST,
 #   for each function it returns either the left node,
