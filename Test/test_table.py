@@ -7,7 +7,7 @@ def test_read():
     t = Table(None)
 
     #Act
-    result = t.read("https://raw.githubusercontent.com/GSV-Projects/P4/refs/heads/main/tadpole/Simple_example/read_test.csv")
+    result = t.read("https://raw.githubusercontent.com/GSV-Projects/P4/refs/heads/main/Test/read_test.csv")
 
     #Assert
     expected = {"maker": ["Toyota", "Honda", "Ford", "Tesla", "BMW"], "model": ["Camry", "Civic", "Mustang", "Model 3", "X5"], "year": [2022, 2021, 2023, 2023, 2022]}
