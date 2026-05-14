@@ -24,4 +24,4 @@ tadpole = "tadpole.main:main"
 
 # Include tadpole as a package when installing
 [tool.setuptools.packages.find]
-include = ["tadpole*", "Test"*] 
+include = ["tadpole*", "Test*"] 
