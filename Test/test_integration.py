@@ -86,3 +86,74 @@ def test_recursion():
     b_result = evaluator.env_v["ans"] == True
 
     assert (a_result and b_result)
+
+
+# An integration test, that tests the math operations and their precedence
+def test_math_operations_and_precedence():
+    # Setup
+    code = '''
+    a = not 2 ^ 3 * 4 / 2 mod 3 + 5 - 1 <= 10 and true or 50 / 5 == 10;
+
+    '''
+    ast = parse_to_ast(code)
+    typechecker = Typechecker()
+    typechecker.check_p(ast)
+    evaluator = Evaluator()
+    evaluator.PEval(ast)
+
+
+    # Assert 
+    a_result = evaluator.env_v["a"] == True
+
+    assert a_result
+
+# Integration test for checking returning a table from a function to a variable
+def test_return_tbl_from_function():
+    # Setup
+    code = '''
+    
+    function myfunc() returns tbl {
+        mytab = {
+        col1 : [1,2,3];
+        col2 : ["one", "two", "three"];
+        };
+        return mytab;
+    }
+
+    a = myfunc();
+
+    '''
+    ast = parse_to_ast(code)
+    typechecker = Typechecker()
+    typechecker.check_p(ast)
+    evaluator = Evaluator()
+    evaluator.PEval(ast)
+
+
+    # Assert 
+    a_result = typechecker.vtable["a"] == 'tbl'
+
+    assert a_result
+
+# Integration test for the different operations for an array
+def test_array_operations():
+    # Setup
+    code = '''
+    
+    arr = [3,6,12,24,48];
+    arr[5] = 4;
+
+    b = arr[5];
+
+    '''
+    ast = parse_to_ast(code)
+    typechecker = Typechecker()
+    typechecker.check_p(ast)
+    evaluator = Evaluator()
+    evaluator.PEval(ast)
+
+
+    # Assert 
+    a_result = evaluator.env_v["b"] == 4
+
+    assert a_result
