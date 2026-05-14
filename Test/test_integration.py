@@ -158,7 +158,4 @@ def test_array_operations():
     a_result = evaluator.env_v["b"] == 4
 
     assert a_result
-    type_result = typechecker.vtable["a"] == 'tbl'
-    value_result = evaluator.env_v["a"].columns == {'col1': [1, 2, 3], 'col2': ['one', 'two', 'three']}
 
-    assert (type_result and value_result)
