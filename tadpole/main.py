@@ -1,55 +1,32 @@
 from tadpole.grammar import grammar
 from lark import Lark
-from tadpole.parsertransformer import MyTrans
+from tadpole.utils.exceptions import *
 from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
-from lark import UnexpectedToken
+from tadpole.utils.mainUtils import *
 import sys
-import os
 
-def main():
+def run():
     # --- The code to be executed ---
 
     # Takes the first argument when running the interpreter
     file_path = sys.argv[1]
 
-    with open(file_path, 'r') as file:
-        # Splits the file path after the last dot to check the extension
-        split_tup = os.path.splitext(file_path)
-        file_extension = split_tup[1]
-
-        if file_extension != '.tad':
-            #raise WrongFileType
-            print("wrong file type, need .tad")
-            exit()
-
-        # Reads the .tad file as a string
-        code = file.read()
+    code = readfile(file_path)
 
 
     # --- Parsing and lexing ---
 
-    # Transforms the parse tree into an AST using the class MyTrans and Larks transform method.
-    # returns the transformed tree.
-    def transformtree(tree):
-        return MyTrans().transform(tree)
 
     # Defines the grammar as parser
     parser = Lark(grammar, parser="lalr", strict=True)
         
-
     # Parses the grammar through Larks parser and lexer
-    try:
-        parsetree = parser.parse(code)
-    except UnexpectedToken as e:
-        # Exception for syntax error in the source code
-        print("Unexpected token on line:", e.line, "at position", e.pos_in_stream, "in token stream")
-        print(e.get_context(code))
-        exit()
+    parsetree = parse(parser, code)
+
 
     # Transforms the parse tree to an AST
     ast = transformtree(parsetree)
-
 
     # --- Typechecking and evaluation ---
 
@@ -65,7 +42,33 @@ def main():
     # The AST is parsed through the interpreter
     evaluator.PEval(ast)
 
-    
 
+# This function is both called from the toml build config and when running it using python
+def main():
+    try:
+        run()
+
+    except TadpoleSyntaxError as e:
+        print(e)
+        sys.exit(1)
+
+    except TadpoleFileError as e:
+        print(e)
+        sys.exit(1)
+
+    except WrongFileTypeError as e:
+        print(e)
+        sys.exit(1)
+
+    except TadpoleException as e:
+        print(f"Tadpole Error\n{e}")
+        sys.exit(1)
+
+    except Exception as e:
+        print(f"python exception\n{e}")
+        sys.exit(1)
+
+
+# When running the program using python
 if __name__=="__main__":
     main()
