@@ -1,3 +1,5 @@
+
+# Project description and dependencies to be installed
 [project]
 name = "tadpole"
 version = "0.12.1"
@@ -10,13 +12,16 @@ dependencies = [
     "pyparsing"
 ]
 
+# Optional dependencies for devs
 [project.optional-dependencies]
 dev = [
     "pytest"
 ]
 
+# Custom script for running the interpreter
 [project.scripts]
 tadpole = "tadpole.main:main"
 
+# Include tadpole as a package when installing
 [tool.setuptools.packages.find]
-include = ["tadpole*"]
+include = ["tadpole*", "Test"*] 
