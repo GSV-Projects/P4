@@ -160,8 +160,10 @@ class Table():
     # Manipulate existing column as given, 
     #   and append as a new column, possibly with a given key.
     # Returns: 'tbl'
-    def mutate(self, expr, key = None):
+    def mutate(self, column, expr, key = None):
         self._validate_expression(expr)
+        self._validate_number(column, "mutate")
+        if not key == None: self._validate_key(key)
     
         new_table = dict(self.columns)
         num_rows = len(next(iter(self.columns.values())))
@@ -637,6 +639,8 @@ class Table():
     def _validate_key(self, key):
         if not key.isidentifier():
             raise Exception(f'Attempted to use an invalid key, {key}, for column')
+        if key in self.columns:
+            raise Exception(f'Key: {key} already exists in this table')
     
     # Ensure URL is viable and working
     def _validate_url(self, url):

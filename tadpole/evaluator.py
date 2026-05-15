@@ -24,7 +24,7 @@ class Evaluator():
             "remove":       Table.remove,
             "mutate":       Table.mutate,
             "filter" :      Table.filter,
-            "filtercol":    Table.filter_col,
+            "filterCol":    Table.filter_col,
             "first":        Table.first,
             "last":         Table.last,
             "sort" :        Table.sort,

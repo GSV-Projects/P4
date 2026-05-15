@@ -7,6 +7,12 @@ from tadpole.type_checker import Typechecker
 
 # The code to be executed:
 code = """
+mytab = {
+col1: [1,2,3];
+col2: ["hej", "hej1", "hej3"];
+};
+
+mytab1 = mytab.mutate("col1", col1 * "kat", "col5");
 """
 
 
