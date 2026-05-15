@@ -10,7 +10,7 @@
             // macOS/Linux:
             //  "${workspaceFolder}/.venv/bin/python"
 
-            "command": "${workspaceFolder}/.venv/bin/python",
+            "command": "${workspaceFolder}/.venv/Scripts/python.exe",
 
             "args": ["-m", "tadpole.main", "source_code.tad"],
 
