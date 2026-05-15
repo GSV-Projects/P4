@@ -79,7 +79,7 @@ def test_zerodivision():
     '''
     
     # Expected output
-    assert "Division by zero not allowed!" in str(excinfo.value)
+    assert "Division by zero not allowed" in str(excinfo.value)
 
 # test the zero modulo raises an exception
 def test_zeromodulo():
@@ -348,7 +348,7 @@ def test_undeclared_variable():
     '''
 
     # Expected output
-    assert "variable not declared: 'b'" in str(excinfo.value)
+    assert "Variable not declared: 'b'" in str(excinfo.value)
 
 # test that duplicating function names correctly raises an exception
 def test_duplicate_function_definition():
@@ -384,7 +384,7 @@ def test_if_na_condition():
     '''
 
     # Expected output
-    assert "If condition evaluated to NA" in str(excinfo.value)
+    assert "Condition evaluated to NA. Condition must evaluate to true or false" in str(excinfo.value)
 
 ## Tests for strings ##
 # test that comparisons between strings is allowed and evaluates to the correct boolean
