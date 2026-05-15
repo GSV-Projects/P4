@@ -63,11 +63,11 @@ class Typechecker():
             return str
         if token.type == 'TYPE_BOOL' or token.type == 'FALSE' or token.type == 'TRUE':
             return bool
-        if token.type == 'TYPE_TABLE' or token.type == 'tbl':
+        if token.type == 'TYPE_TABLE':
             return 'tbl'
         if token.type == 'NA':
             return na_type
-        raise Exception(f"unknown type '{token.type}'")
+        raise Exception(f"Unknown type '{token.type}', must be either INT, FLOAT, STRING, FALSE, TRUE, NA or tbl")
 
  # --- Check program ---
     def check_p(self, c):
@@ -90,7 +90,7 @@ class Typechecker():
                 func_id, signature = self.get_fun(child, env, RL)
                 
                 if func_id in self.ftable:
-                    raise Exception(f"Semantic Error: Definition '{func_id}' already exists")
+                    raise Exception(f"Definition '{func_id}' already exists")
                 
                 # Functions are added to the global ftable.
                 self.ftable[func_id] = signature
@@ -138,7 +138,7 @@ class Typechecker():
     
     # check method to fall back on, if the given node is unknown
     def check_unknown(self, node, env, RL):
-        raise Exception(f"No handler for node type: '{node.data}'")
+        raise Exception(f'Unknown language construct "{node.data}"')
 
     # --- directory --- # Rerouting, making similar checks re-use relevant methods
     def check_add(self, node, env, RL):     return self.check_additive(node, env, RL)
@@ -179,17 +179,11 @@ class Typechecker():
         left = node.children[0]
         right = node.children[1]
 
-        # When trying to assign a table to an identifier, we run a custom assignment function,
-        #   since we have to assign columns as well.
-        if isinstance(right, Tree) and right.data == "table":
-            self.check_table(right, env, RL, table_id=left.value)
-            return
-
         t1 = self.check(right, env, RL)
         
         # Do not assign an ident, that has no value and therefore no type
         if (t1 == None or t1 is na_type):
-            raise Exception(f'Cannot assign variable {left.value} as void or NA')
+            raise Exception(f'Cannot assign variable {left.value} as void or NA. Only possible if another type is in the expression such as: x = 5 + NA;')
 
         # If not already in the local vtable, place it there (can be global)
         if (left.value not in env):
@@ -325,7 +319,7 @@ class Typechecker():
             return [type_of_array] 
         # Otherwise, raise exception
         else: 
-            raise Exception(f'Not all elements of array are of the same type - Element {array_check_count} is not of type {type_of_array}')
+            raise Exception(f'Not all elements of array are of the same type! Element {array_check_count} is not of type {type_of_array}')
 
     def check_array_type(self, node, env, RL):
         # Validates cases of using one of the datatypes as an array variant.
@@ -348,41 +342,19 @@ class Typechecker():
         if type_idx == int:
             return type_id[0]
         else: 
-            raise Exception(f'Did not parse an integer for array indexing')
+            raise Exception(f'Index must be an integer to index the array')
 
-    def check_column_sapling(self, node, env, RL):
-        # This check method serves as a helper-check for check_table.
-        #   Enters a column, to return the array/children of that column.
-        return node.children
   
-    def check_table(self, node, env, RL, table_id = None):
-        # If the table name is not parsed on method call, find it through the node
-        if table_id == None:
-            table_id = node.data
+    def check_table(self, node, env, RL):
+        # Check_table is used to check that each column only contains a single type
 
-        for col in node.children:
-            # Get the name of the current column
-            c_id = col.children[0] 
+        # Loops through each column node, and checks the array of each column
+        #   If no exceptions are thrown it means all arrays were typed correctly, and we can return 'tbl' as the type
+        for child in node.children:
+            self.check(child.children[1], env, RL)
+        
+        return 'tbl'
 
-            # Get the array related to that same column name 
-            arr = col.children[1] 
-            
-            # Get the type of the array held in current column
-            check_arr = self.check(arr, env, RL) 
-
-            # Create a custom tree structure to assign a custom type to a custom variable in our environment
-            col = Tree("column_sapling", check_arr)
-
-            # Turn the use of dot-notation into an identifier that the array can be assigned to
-            token = Token('IDENT', f'{table_id} {c_id.value}')
-            stmt = Tree("assign", [token, col])
-            self.check(stmt, env, RL)
-
-        # Ending the check_function with setting the id == "tbl" since all tables would be of type "tbl"
-        token = Token('IDENT', f'{table_id}')
-        tbl_token = Token('TYPE_TABLE', 'tbl')
-        S = Tree("assign", [token, tbl_token])
-        self.check(S, env, RL)    
     
     def check_f(self, node, env, RL):
         # "check_f" is used to check the declaration of a function and its body
@@ -407,7 +379,7 @@ class Typechecker():
         vtable_local = self.build_vt(paramsnode, env, RL)
 
         if len(body.children) == 0:
-            raise Exception("function can't have an empty body")
+            raise Exception("Function can't have an empty body")
             
         self.check(body, vtable_local, RL) # Checks the body of the function with the local variable enviroment
         RL["R"] = None
@@ -423,11 +395,14 @@ class Typechecker():
         # Check the type of the expression after "return"
         t1 = self.check(node.children[0], env, RL) 
 
+        # This check makes sure that we are inside a non-void function before trying to return
+        if (RL["R"] == None):
+            raise Exception(f'Not possible to use return outside of a function or inside of a void function')
+
         # Check if the return type matches with "R" in enviroment "RL".
         #   This enviroment tracks if we are currently inside a function and what the function is supposed to return.
         if (t1 != RL["R"] and t1 is not na_type):
-            raise Exception(f'{t1} doesnt match with function return type')
-
+            raise Exception(f'The return statement returns value of type {t1.__name__}, but the function expects to return value of type {RL["R"].__name__}')
         return t1
     
     def check_call(self, node, env, RL):
@@ -438,14 +413,14 @@ class Typechecker():
             return
 
         if (f_id not in self.ftable):
-            raise Exception(f'Function {f_id} not previously defined')
+            raise Exception(f'Function {f_id} is not defined')
 
         # Get info on current function
         formal_params, return_type = self.ftable[f_id] 
         actual_params = node.children[1:]
 
         if len(formal_params) != len(actual_params):
-            raise Exception("Amount of formal parameters do not match actual parameters")
+            raise Exception("Amount of function parameters do not match the amount of passed parameters to the function")
 
         # For every parameter, check if formal and actual are of the same type
         for i in range(len(formal_params)):
@@ -453,7 +428,7 @@ class Typechecker():
             t2 = formal_params[i]
             
             if t1 != t2 and t1 is not na_type:
-                raise Exception(f'Formal and actual parameters of function {f_id} not of same type')
+                raise Exception(f'Formal and actual parameters of function "{f_id}" not of same type. Actual: {t1.__name__}, Formal: {t2.__name__}')
             
         return return_type
     
@@ -461,6 +436,10 @@ class Typechecker():
     def check_dot(self, node, env, RL):
         # We want to extract the name of the called function so we can find the return type in the ptable
         right = node.children[1].children[0]
+        left = node.children[0]
+
+        if self.vtable[left.value] != 'tbl':
+            raise Exception(f'"{left.value}" is of type {self.vtable[left.value]}, must be a table of type: tbl')
 
         # Get formal info on current child and return it
         return_type = self.ptable[right] 
@@ -471,7 +450,7 @@ class Typechecker():
         # Raises an exception if we aren't in a loop currently
         # This can be seen using the key "L" in the enviroment "RL"
         if RL["L"] == False:
-            raise Exception(f'Cannot stop, not in loop')
+            raise Exception(f'Cannot use stop outside a loop')
 
     def check_if(self, node, env, RL):
         # Checks the boolean condition in the if-statement
@@ -479,7 +458,7 @@ class Typechecker():
 
         # Raise exception if the condition is not a boolean
         if t1 != bool:
-            raise Exception(f'{node.children[0]} is not a boolean expression')
+            raise Exception(f'{node.children[0]} must be a boolean expression')
 
         # Set the body of the if-statement to be everything after the conditional statement
         body = node.children[1:]
@@ -502,7 +481,7 @@ class Typechecker():
         t1 = self.check(node.children[0], env, RL)
 
         if t1 != bool:
-            raise Exception(f'{node.children[0]} is not a boolean expression')
+            raise Exception(f'{node.children[0]} must be a boolean expression')
 
         body = node.children[1:]
 
@@ -525,10 +504,10 @@ class Typechecker():
         type_ass = self.check(node.children[2], env, RL) 
 
         if type_idx != int:
-            raise Exception(f'Did not parse an integer for array indexing')
+            raise Exception(f'Index must be an integer to index the array')
 
         if type_id[0] != type_ass and type_ass is not na_type:
-            raise Exception (f'Trying to assign {type_ass} to an array of type{type_id[0]}')
+            raise Exception (f'Trying to assign {type_ass} to an array of type {type_id[0]}')
         
     # Helper functions for NA values
     def numeric_compatible(self, t1, t2):
@@ -561,4 +540,4 @@ class Typechecker():
             x = self.check(child, env, RL)
             if x is not na_type:
                 return x
-        raise Exception("Array cannot consist of only NA")
+        raise Exception("Array cannot consist of only NA values")
