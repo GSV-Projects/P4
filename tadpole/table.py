@@ -162,7 +162,7 @@ class Table():
     # Returns: 'tbl'
     def mutate(self, column, expr, key = None):
         self._validate_expression(expr)
-        self._validate_number(column, "mutate")
+        self._validate_number(str(column), "mutate")
         if not key == None: self._validate_key(key)
     
         new_table = dict(self.columns)
@@ -595,7 +595,7 @@ class Table():
         if (not all(c != NA for c in col)) and passNA != True:
             raise Exception(f'Column {column} may not contain {NA} values to use function {method}') 
         # Check that theyre all numbers
-        if not all(isinstance(c, (int, float)) or NA for c in col):
+        if not all(isinstance(c, (int, float)) for c in col):
             raise Exception(f'Column {column} must consist only of integers or floats to use function {method}') 
         
     # Ensure all columns in a table are the same length
