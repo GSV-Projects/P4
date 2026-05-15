@@ -6,10 +6,12 @@ import os
 
 
 # Transforms the parse tree into an AST using the class MyTrans and Larks transform method.
-# returns the transformed tree.
+# Returns the transformed tree.
 def transformtree(tree):
     return MyTrans().transform(tree)
 
+
+# Function for opening a .tad file and returning the content as a string
 def readfile(file_path):
 
     # Splits the file path after the last dot to check the extension
@@ -19,6 +21,8 @@ def readfile(file_path):
     if file_extension != '.tad':
         raise WrongFileTypeError(f"Passed a {file_extension} file, ""expected a .tad file")
     
+    # Tries to open a file and return the content as a string.
+    # If the file doesn't exist, raise exception to be handled in main
     try:
         with open(file_path, 'r') as file:
             return file.read()
@@ -26,6 +30,8 @@ def readfile(file_path):
         raise TadpoleFileError(f"File not found: {file_path}") 
 
 
+# Function for lexing and parsing a string of code and returns a concrete parsetree.
+# Raises syntax exception if code isn't written according to the grammar
 def parse(parser, code):
 
     try:
