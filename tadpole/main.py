@@ -77,6 +77,6 @@ def main():
         sys.exit(1)
 
 
-# Entrypoint to the program when running the interpreter with python
+# Entrypoint to the program when running the interpreter with python or the tasks.json config
 if __name__=="__main__":
     main()
