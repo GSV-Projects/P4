@@ -429,7 +429,7 @@ class Table():
         if callable(param): expr = param
         else: value = param
 
-        self._validate_key(column)
+        self._validate_column(column)
         if not expr == None: self._validate_expression(expr, True)
 
         count = 0
