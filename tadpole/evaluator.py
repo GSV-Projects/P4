@@ -488,6 +488,7 @@ class Evaluator():
             #   and ensure the expression is constructed using the operators in expressions
             if isinstance(actual_params, Tree) and actual_params.data in expressions:
                 # Trivially a closure, to ensure new references to actual params for row_expr
+                mutate_col = actual_params.children[0]
                 def make_lambda(expr_tree, env):
                     # Make a closure function, meaning it only works with the params given for the current iteration,
                     #   thus working on a new scope each iteration, where the expr_tree and env vary.
@@ -501,8 +502,13 @@ class Evaluator():
             else:
                 parameters.append(self.Eval(actual_params, env))
         
-        # Execute the function with the corresponding parameters and table
-        execute = self.env_pd[method_name](table, *parameters)
+        # If method called is 'mutate', we send the name of the column as a parameter,
+        #   meaning the user does not have to type it themselves
+        if method_name == 'mutate':
+            execute = self.env_pd[method_name](table, mutate_col, *parameters)
+        else: 
+            # Execute the function with the corresponding parameters and table
+            execute = self.env_pd[method_name](table, *parameters)
         return execute
 
         

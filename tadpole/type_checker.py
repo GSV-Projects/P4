@@ -40,7 +40,7 @@ class Typechecker():
             "tail" :        ((int, float, str, bool)),
             "mean" :        (float),      
             "sum" :         (float),    
-            "frequency" :   (float),    
+            "frequency" :   (int),    
             "median" :      (float),    
             "lowerq" :      (float),    
             "upperq" :      (float),    

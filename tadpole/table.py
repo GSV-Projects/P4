@@ -160,8 +160,10 @@ class Table():
     # Manipulate existing column as given, 
     #   and append as a new column, possibly with a given key.
     # Returns: 'tbl'
-    def mutate(self, expr, key = None):
+    def mutate(self, column, expr, key = None):
         self._validate_expression(expr)
+        self._validate_number(str(column), "mutate")
+        if not key == None: self._validate_key(key)
     
         new_table = dict(self.columns)
         num_rows = len(next(iter(self.columns.values())))
@@ -593,7 +595,7 @@ class Table():
         if (not all(c != NA for c in col)) and passNA != True:
             raise Exception(f'Column {column} may not contain {NA} values to use function {method}') 
         # Check that theyre all numbers
-        if not all(isinstance(c, (int, float)) or NA for c in col):
+        if not all(isinstance(c, (int, float)) for c in col):
             raise Exception(f'Column {column} must consist only of integers or floats to use function {method}') 
         
     # Ensure all columns in a table are the same length
@@ -636,8 +638,9 @@ class Table():
     # Ensure key name is a valid identifier
     def _validate_key(self, key):
         if not key.isidentifier():
-            raise Exception(f'"{key}" is not a valid column name. Column names must start with a letter and cannot contain spaces or symbols.')
-
+            raise Exception(f'Attempted to use an invalid key, {key}, for column')
+        if key in self.columns:
+            raise Exception(f'Key: {key} already exists in this table')
     
     # Ensure URL is viable and working
     def _validate_url(self, url):
