@@ -340,13 +340,13 @@ def test_mutate():
     t = Table({"col1": [1.0, 2.0, 3.0], "col2": [4.0, 5.0, 6.0]})
 
     # Act
-    result = t.mutate(lambda row: row["col1"] + row["col2"], "sum")
+    result = t.mutate("col1", lambda row: row["col1"] + 2, "sum")
 
     # Assert
     assert result == {
         "col1": [1.0, 2.0, 3.0],
         "col2": [4.0, 5.0, 6.0],
-        "sum": [5.0, 7.0, 9.0]
+        "sum": [3.0, 4.0, 5.0]
     }
 
 # Ensures stddev returns the right standard deviation.
