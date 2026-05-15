@@ -1,11 +1,11 @@
-from tadpole.utils.NAliteral import NA
+
 import math
 import pandas as pd
 import urllib.request
-from urllib.parse import urlparse
 import os
 import copy
 from tadpole.utils.NAliteral import NA
+from urllib.parse import urlparse
 
 class Table():
     def __init__(self, columns):
@@ -107,7 +107,7 @@ class Table():
         col = self.columns[column]
         col_type = next((type(v) for v in col if v != NA), None)
         if not isinstance(value, col_type):
-            raise Exception(f"Type mismatch")
+            raise Exception(f"Column '{column}' expects values of type '{col_type.__name__}', but received '{type(value).__name__}'")
         new_col = [value if v == NA else v for v in col]
         return new_col
     
@@ -277,7 +277,7 @@ class Table():
         self._validate_not_empty(column)
         decr_keys = ('decr', 'decrease', 'd', True)
         if o not in decr_keys and o != None:
-            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true, received: {o}')
+            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true but received: {o}')
         
         new_table = copy.deepcopy(self.columns)
         col = new_table[column]
@@ -314,7 +314,7 @@ class Table():
 
         decr_keys = ('decr', 'decrease', 'd', True)
         if o not in decr_keys and o != None:
-            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true, received: {o}')
+            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true but received: {o}')
     
         if(o in decr_keys):
             # Decreasing order
@@ -574,7 +574,7 @@ class Table():
     # Ensure the column exists in the table
     def _validate_column(self, column):
         if column not in self.columns:
-            raise Exception(f'Column with key {column} does not exist in the given table')
+            raise Exception(f'Column "{column}" does not exist in table. Available columns: {list(self.columns.keys())}')
         
     # Ensure table is not empty
     def _validate_table(self):

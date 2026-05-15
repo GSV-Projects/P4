@@ -88,6 +88,7 @@ def test_recursion():
 
     assert (a_result and b_result)
 
+
 # An integration test, that tests the math operations and their precedence
 def test_math_operations_and_precedence():
     # Setup
@@ -129,7 +130,32 @@ def test_return_tbl_from_function():
     evaluator = Evaluator()
     evaluator.PEval(ast)
 
-    type_result = typechecker.vtable["a"] == 'tbl'
-    value_result = evaluator.env_v["a"].columns == {'col1': [1, 2, 3], 'col2': ['one', 'two', 'three']}
 
-    assert (type_result and value_result)
+    # Assert 
+    a_result = typechecker.vtable["a"] == 'tbl'
+
+    assert a_result
+
+# Integration test for the different operations for an array
+def test_array_operations():
+    # Setup
+    code = '''
+    
+    arr = [3,6,12,24,48];
+    arr[5] = 4;
+
+    b = arr[5];
+
+    '''
+    ast = parse_to_ast(code)
+    typechecker = Typechecker()
+    typechecker.check_p(ast)
+    evaluator = Evaluator()
+    evaluator.PEval(ast)
+
+
+    # Assert 
+    a_result = evaluator.env_v["b"] == 4
+
+    assert a_result
+

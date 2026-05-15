@@ -61,8 +61,8 @@ class Evaluator():
                 # Evaluation of statements
                 self.SEval(line, self.env_v, self.env_p)
 
-        print("Evaluator Env_P:", self.env_p)
-        print("Evaluator Env_V:", self.env_v)
+        #print("Evaluator Env_P:", self.env_p)
+        #print("Evaluator Env_V:", self.env_v)
 
 # Function evaluations
     # Function used to determine which evaluation method to be called
@@ -71,7 +71,7 @@ class Evaluator():
         method_name = f'FEval_{declaration.data}'
         # Uses the method name string to find the associated method in the current object to be called.
         #   Throws an error if it wasn't found.
-        Eval_method = getattr(self, method_name, self.check_unknown)
+        Eval_method = getattr(self, method_name, self.eval_unknown)
         # Calling the needed function
         Eval_method(declaration, env_v, env_p)
     
@@ -124,7 +124,7 @@ class Evaluator():
         method_name = f'SEval_{statement.data}'
         # Uses the method name string to find the associated method in the current object to be called.
         #   Throws an error if it wasn't found.
-        Eval_method = getattr(self, method_name, self.check_unknown)
+        Eval_method = getattr(self, method_name, self.eval_unknown)
         # Calling the needed function
         return Eval_method(statement, env_v, env_p)
 
@@ -139,7 +139,7 @@ class Evaluator():
 
         # Guard to check if value being assinged is only NA. This is only allowed if i.e. "x = 5 + NA;"
         if v is NA and tree.children[1] is Token:
-            raise Exception("Runtime error: Cannot assign NA to variable")
+            raise Exception(f"Cannot assign NA to variable: '{identifier}'. Only possible if another type is in the expression such as: x = 5 + NA;")
 
         # Update the variable environment
         env_v[identifier] = v
@@ -176,7 +176,7 @@ class Evaluator():
     def SEval_if(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
         if v is NA:
-            raise Exception("Runtime error: If condition evaluated to NA. Condition must evaluate to true or false")
+            raise Exception("Condition evaluated to NA. Condition must evaluate to true or false")
         elif v == True:
             self.SEval(tree.children[1], env_v, env_p) # Will evaluate SEval_then
         elif v == False and len(tree.children) == 3:
@@ -206,14 +206,14 @@ class Evaluator():
         v = self.Eval(tree.children[2], env_v)
 
         if (v is NA):
-            raise Exception(f"Cannot index by NA value")
+            raise Exception(f'Index must be an integer to index the array')
 
         # Check for out-of-bounds
         if (i > 0 and i <= len(arr)):
             arr[i-1] = v
             env_v[identifier] = arr
         else:
-            raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
+            raise Exception(f"Index out of bounds, must be between: '{1}'-'{len(arr)}'")
 
     # Statement for calling of void functions (not apart of an expression)
     def SEval_call(self, tree, caller_env_v, env_p):
@@ -224,10 +224,11 @@ class Evaluator():
             args = []
             for children in tree.children[1:]:
                 v = self.Eval(children, caller_env_v)
-                print(v)
                 if(v == 'sus'):
                     self.amogus()
                     return
+                if(v == "67"):
+                    self.sixseven()
                 args.append(v)
             print(*args)
             return
@@ -269,7 +270,7 @@ class Evaluator():
         method_name = f'Eval_{tree.data}'
         # Uses the method name string to find the associated method in the current object to be called.
         #   Throws an error if it wasn't found.
-        Eval_method = getattr(self, method_name, self.check_unknown)
+        Eval_method = getattr(self, method_name, self.eval_unknown)
         # Calling the needed function
         return Eval_method(tree, env)
 
@@ -308,7 +309,7 @@ class Evaluator():
             return NA
         else:
             if (v2 == 0):
-                raise Exception(f"Division by zero not allowed!")
+                raise Exception(f"Division by zero not allowed")
             return v1 / v2
 
     # Modulo (with zero guard)
@@ -439,11 +440,11 @@ class Evaluator():
         i = self.Eval(tree.children[1], env)
 
         if (i is NA):
-            raise Exception(f"index cannot be NA, must be an integer between: '{1}'-'{len(arr)}'")
+            raise Exception(f"Index cannot be NA, must be an integer between: '{1}'-'{len(arr)}'")
         elif (i > 0 and i <= len(arr)):
             return arr[math.floor(i-1)] # Gather element while adjusting for python zero indexing
         else:
-            raise Exception(f"index out of bounds, must be between: '{1}'-'{len(arr)}'")
+            raise Exception(f"Index out of bounds, must be between: '{1}'-'{len(arr)}'")
         
     # Calling of functions with returns (apart of an expression i.e. x = foo();)
     def Eval_call(self, tree, caller_env_v):
@@ -536,7 +537,7 @@ class Evaluator():
         elif token in self.env_v: # Fallback to the outermost environment
             return self.env_v[token]
         else:
-            raise Exception(f"variable not declared: '{token}'")
+            raise Exception(f"Variable not declared: '{token}'")
         
     # Binding method for binding actual parameters to formal parameters
     def bind(self, formal_params, actual_params, local_env, caller_env):
@@ -574,14 +575,15 @@ class Evaluator():
             # The NA literal is a singleton instance of the NAliteral class
             #   This means we can use "is" NA to check if a value is NA, as all NA values point to the same object in memory
             return NA
-        raise Exception(f"unknown type '{token.type}'")
+        raise Exception(f"Unknown type '{token.type}', must be either INT, FLOAT, STRING, FALSE, TRUE, NA or tbl")
 
     # Error function: if the method name taken from the AST doesn't correspond to an actual function in the evaluator
-    def check_unknown(self, node, env):
-        raise Exception(f"no handler for node type: '{node.data}'")
+    def eval_unknown(self, node, env):
+        raise Exception(f'Unknown language construct "{node.data}"')
     
     def amogus(self):
-        a = '''⠀⠀⠀⠀⠀ ⣠⣤⣤⣤⣤⣤⣤⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀ 
+        a = '''
+              ⠀⠀⠀⠀ ⣠⣤⣤⣤⣤⣤⣤⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠋⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠈⢻⣿⣿⡄⠀⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⣸⣿⡏⠀⠀⠀⣠⣶⣾⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣄⠀⠀⠀ 
@@ -599,5 +601,28 @@ class Evaluator():
         ⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⣽⣿⡏⠁⠀⠀⢸⣿⡇⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⢹⣿⡆⠀⠀⠀⣸⣿⠇⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⢿⣿⣦⣄⣀⣠⣴⣿⣿⠁⠀⠈⠻⣿⣿⣿⣿⡿⠏⠀⠀⠀⠀ 
-        ⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀'''
+        ⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        '''
+        print(a)
+
+    def sixseven(self):
+        a = '''
+⠀⠀⢀⠤⣂⣤⣬⣭⣭⣭⣔⡠⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠔⣵⣾⣿⣿⣿⢿⣿⣿⣿⣿⣎⢂⠀⢲⣤⣤⣤⣤⣀⣒⣒⣒⣒⣂⡠⠤⠤⣄
+⠐⣾⣿⣿⣿⡏⣾⡿⢎⣛⣫⣭⣴⣾⠆⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢼
+⡇⣿⣿⣿⣿⣟⡿⢀⣐⣻⣛⡩⢁⠀⠀⣘⣛⣛⡛⠿⠿⠿⢿⣿⣿⣿⣿⣿⢟⣾
+⡇⣿⣿⣿⣿⣷⣾⣿⣿⣿⣿⣿⣶⡕⠄⠉⠛⠛⠛⠛⡻⣣⣾⣿⣿⣿⢟⣵⣿⠛
+⠃⣿⣿⣿⣿⣿⢋⣥⠭⡻⣿⣿⣿⣿⡌⡄⠀⠀⠀⡐⣼⣿⣿⣿⡿⣣⣾⠏⠀⠀
+⠨⢻⣿⣿⣿⣧⢻⠁⠀⠘⢸⣿⣿⣿⡇⣿⠀⠀⠌⣼⣿⣿⣿⡿⢱⣿⠃⠀⠀⠀
+⠀⢦⢻⣿⣿⣿⣦⣐⣀⣊⣼⣿⣿⡿⢱⡿⠀⠰⣸⣿⣿⣿⣿⢣⣿⠃⠀⠀⠀⠀
+⠀⠀⠣⣙⠿⣿⣿⣿⣿⣿⣿⠿⢛⣵⡿⠃⢀⢃⣿⣿⣿⣿⡟⣾⡇⠀⠀⠀⠀⠀
+⠀⠀⠀⠈⠛⠶⣮⣭⣭⣴⣶⡿⠿⠋⠀⠀⢨⣘⣿⡻⠿⠿⢇⣿⠀⠀⠀⠀⠀⠀
+⠀⠀⢀⠔⠒⠂⠠⠤⠭⡀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠛⠛⠛⠻⠃⠀⠀⠀⠀⠀⠀
+⢀⠆⠁⠀⡄⠀⠀⠀⠀⠈⢂⠀⠀⠀⠀⠀⠀⠀⠀⢀⡤⠒⠁⠀⠀⠒⢤⡀⠀⠀
+⠣⠤⢤⠞⠂⠀⣀⠰⠃⠀⠘⣆⢀⣀⠀⠀⠀⠀⢀⠎⠀⢠⡀⠀⠀⠀⢀⠀⠙⡀
+⠀⠀⢸⠀⠈⠭⡀⢈⣡⠔⢶⠁⣹⢩⠃⠀⢀⠀⢸⠀⠀⠀⣑⣠⣤⠀⠙⡦⣀⠜
+⠀⠀⠀⠣⠀⢂⠞⠱⠴⣈⡸⠰⢇⠘⠀⠰⡭⠷⢝⡤⣂⣄⠒⢤⡐⠀⠀⡇⠀⠀
+⠀⠀⠀⠀⠱⠄⣀⢜⢁⡠⠥⠊⠀⠀⠀⠀⠡⡘⡄⠐⡂⠘⢌⡀⠉⠂⡸⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠄⠹⢅⣀⠹⠒⠊⠀⠀⠀⠠
+        '''
         print(a)

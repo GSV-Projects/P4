@@ -1,43 +1,74 @@
 from tadpole.grammar import grammar
 from lark import Lark
-from tadpole.parsertransformer import MyTrans
+from tadpole.utils.exceptions import *
 from tadpole.evaluator import Evaluator
 from tadpole.type_checker import Typechecker
+from tadpole.utils.mainUtils import *
+import sys
+
+def run():
+    # --- The code to be executed ---
+
+    # Takes the first argument when running the interpreter
+    file_path = sys.argv[1]
+
+    code = readfile(file_path)
 
 
-# The code to be executed:
-code = """
-mytab = {
-col1: [1,2,3];
-col2: ["hej", "hej1", "hej3"];
-};
-
-mytab1 = mytab.mutate("col1", col1 * "kat", "col5");
-"""
+    # --- Parsing and lexing ---
 
 
-# Transforms the parse tree into an AST using the class MyTrans and Larks transform method.
-# returns the transformed tree.
-def transformtree(tree):
-    return MyTrans().transform(tree)
+    # Defines the grammar as parser
+    parser = Lark(grammar, parser="lalr", strict=True)
+        
+    # Parses the grammar through Larks parser and lexer
+    parsetree = parse(parser, code)
 
-# Defines the grammar as parser
-parser = Lark(grammar, parser="lalr", strict=True)
 
-# Parses the grammar through Larks parser and lexer
-parsetree = parser.parse(code)
+    # Transforms the parse tree to an AST
+    ast = transformtree(parsetree)
 
-# Transforms the parse tree to an AST
-ast = transformtree(parsetree)
+    # --- Typechecking and evaluation ---
 
-# Prints the AST
-print("AST \n", ast.pretty())
+    # Prints the AST
+    #print("AST \n", ast.pretty())
 
-# AST is parsed through the typechecker
-Typechecker().check_p(ast)
+    # AST is parsed through the typechecker
+    Typechecker().check_p(ast)
 
-# Interpreter is defined as the class evaluator
-evaluator = Evaluator()
+    # Interpreter is defined as the class evaluator
+    evaluator = Evaluator()
 
-# The AST is parsed through the interpreter
-evaluator.PEval(ast)
+    # The AST is parsed through the interpreter
+    evaluator.PEval(ast)
+
+
+# This function is both called from the toml build config and when running it using python
+def main():
+    try:
+        run()
+
+    except TadpoleSyntaxError as e:
+        print(e)
+        sys.exit(1)
+
+    except TadpoleFileError as e:
+        print(e)
+        sys.exit(1)
+
+    except WrongFileTypeError as e:
+        print(e)
+        sys.exit(1)
+
+    except TadpoleException as e:
+        print(f"Tadpole Error\n{e}")
+        sys.exit(1)
+
+    except Exception as e:
+        print(f"python exception\n{e}")
+        sys.exit(1)
+
+
+# When running the program using python
+if __name__=="__main__":
+    main()
