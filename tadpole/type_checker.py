@@ -78,8 +78,8 @@ class Typechecker():
         for statement in c.children:
             self.check(statement, self.vtable, self.RL)
 
-        print("type_checker ftable:", self.ftable)
-        print("type_checker vtable:", self.vtable)
+        #print("type_checker ftable:", self.ftable)
+        #print("type_checker vtable:", self.vtable)
 
     # To build the ftable we loop through the program to check for function declarations
     def build_ft(self, c, env, RL):

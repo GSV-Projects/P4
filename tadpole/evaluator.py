@@ -61,8 +61,8 @@ class Evaluator():
                 # Evaluation of statements
                 self.SEval(line, self.env_v, self.env_p)
 
-        print("Evaluator Env_P:", self.env_p)
-        print("Evaluator Env_V:", self.env_v)
+        #print("Evaluator Env_P:", self.env_p)
+        #print("Evaluator Env_V:", self.env_v)
 
 # Function evaluations
     # Function used to determine which evaluation method to be called
@@ -224,7 +224,6 @@ class Evaluator():
             args = []
             for children in tree.children[1:]:
                 v = self.Eval(children, caller_env_v)
-                print(v)
                 if(v == 'sus'):
                     self.amogus()
                     return
@@ -577,7 +576,8 @@ class Evaluator():
         raise Exception(f'Unknown language construct "{node.data}"')
     
     def amogus(self):
-        a = '''⠀⠀⠀⠀⠀ ⣠⣤⣤⣤⣤⣤⣤⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀ 
+        a = '''
+              ⠀⠀⠀⠀ ⣠⣤⣤⣤⣤⣤⣤⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠋⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠈⢻⣿⣿⡄⠀⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⣸⣿⡏⠀⠀⠀⣠⣶⣾⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣄⠀⠀⠀ 
@@ -595,7 +595,8 @@ class Evaluator():
         ⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⣽⣿⡏⠁⠀⠀⢸⣿⡇⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⢹⣿⡆⠀⠀⠀⣸⣿⠇⠀⠀⠀ 
         ⠀⠀⠀⠀⠀⠀⠀⢿⣿⣦⣄⣀⣠⣴⣿⣿⠁⠀⠈⠻⣿⣿⣿⣿⡿⠏⠀⠀⠀⠀ 
-        ⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀'''
+        ⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        '''
         print(a)
 
     def sixseven(self):
