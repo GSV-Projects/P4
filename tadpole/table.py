@@ -255,7 +255,7 @@ class Table():
     
     # Returns the first row in the table
     # Returns: 'tbl'
-    def first(self):
+    def first_row(self):
         self._validate_table()
 
         row = {col: vals[0] for col, vals in self.columns.items()}
@@ -263,11 +263,34 @@ class Table():
 
     # Returns the last row in the table
     # Returns: 'tbl'
-    def last(self):
+    def last_row(self):
         self._validate_table()
 
         row = {col: vals[-1] for col, vals in self.columns.items()}
         return row
+    
+    # Returns the row given from the index
+    # Returns: 'tbl'
+    def get_row(self, index):
+        self._validate_table()
+        
+        # Ensure given 'index' parameter is an integer
+        if not isinstance(index, int):
+            raise Exception(f'Given index must be an integer, was given {index}')
+        
+        # Adjust to 0-based indexing
+        index = index - 1
+        
+        # Get amount of rows
+        num_rows = len(next(iter(self.columns.values())))
+        if index < 0 or index >= num_rows:
+            raise Exception(f'Index {index + 1} is out of bounds for table with {num_rows} rows')
+        
+        row = {col: [vals[index]] for col, vals in self.columns.items()}
+        return Table(row)
+        
+        
+
     
     # Sort whole table from one column, 
     #   numerically for numbers or alphabetically for strings.
@@ -334,19 +357,10 @@ class Table():
         rounded_col = []
         rounded_col = [round(v) if v != NA else v for v in col]
         return rounded_col
-
-    # Returns a column requested by string name
-    # Returns: array 
-    def get_col(self, column):
-        self._validate_table()
-        self._validate_column(column)
-    
-        col = self.columns[column]
-        return col
     
     # Returns the first column of a table
     # Returns: array 
-    def get_first(self):
+    def first_col(self):
         self._validate_table()
 
         key_list = list(self.columns.keys())
@@ -355,12 +369,21 @@ class Table():
 
     # Returns the last column of a table
     # Returns: array 
-    def get_last(self):
+    def last_col(self):
         self._validate_table()
     
         key_list = list(self.columns.keys())
         last = key_list[len(key_list) - 1]
         return self.columns[last]
+    
+        # Returns a column requested by string name
+    # Returns: array 
+    def get_col(self, column):
+        self._validate_table()
+        self._validate_column(column)
+    
+        col = self.columns[column]
+        return col
     
     # Returns array of all keys in a table
     # Returns: array
@@ -531,7 +554,7 @@ class Table():
 
     # Numeral difference from min to max value
     # Returns: float
-    def span(self, column):
+    def range(self, column):
         self._validate_column(column)
         self._validate_not_empty(column)
         self._validate_number(column, "span")
