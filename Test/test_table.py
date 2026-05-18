@@ -36,23 +36,23 @@ def test_getcol():
     assert result == [1.0, NA, 3.0]
     
 # Function that returns the first column of a given table.
-def test_getfirst():
+def test_firstcol():
     #Arrange 
     t = Table({"col1": [1.0, NA, 3.0], "col2": ["red", "green", "yellow"]})
 
     #Act
-    result = t.get_first()
+    result = t.first_col()
 
     #Assert
     assert result == [1.0, NA, 3.0]
     
 # Function that returns the last column of a given table.
-def test_getlast():
+def test_lastcol():
     #Arrange 
     t = Table({"col1": [1.0, NA, 3.0], "col2": ["red", "green", "yellow"]})
 
     #Act
-    result = t.get_last()
+    result = t.last_col()
 
     #Assert
     assert result == ["red", "green", "yellow"]
@@ -190,12 +190,12 @@ def test_max():
     assert result == 7.0
 
 # Test whether the function successfully returns the range between highest and lowest value.
-def test_span():
+def range():
     #Arrange 
     t = Table({"col1": [1.0, 7.0, 3.0], "col2": ["red", "green", "yellow"]})
 
     #Act
-    result = t.span("col1")
+    result = t.range("col1")
 
     #Assert
     assert result == 6
