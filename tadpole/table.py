@@ -682,9 +682,8 @@ class Table():
         if not callable(expr):
             raise Exception(f"Expected a callable function/expression, got {type(expr).__name__}")
         
-        # Set up a row and try calling the function on the given row
-        row = {col: 0.0 for col, vals in self.columns.items()}
-        
+        # Set up the first row which entry is NOT NA and try calling the function on the given row
+        row = {col: next((v for v in vals if v is not NA), None) for col, vals in self.columns.items()}
         try:
             result = expr(row)
         except Exception as e:
