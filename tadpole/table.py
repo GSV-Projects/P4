@@ -61,7 +61,7 @@ class Table():
         # Return pandas dataframe
         return df
     
-    # Function that reads CSV with pandas from a filepath
+    # Function that reads CSV with pandas library from a filepath
     def read_from_file(self, path):
         self._validate_filepath(path)
 
