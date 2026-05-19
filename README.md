@@ -25,7 +25,7 @@ python -m pytest
 ```
 
 ## List of predefined functions
-Below a list of all predefined functions for this iteration can be seen. For each, the return type of the function is indicated:
+Below a list of all predefined functions for this iteration can be seen. These are called using the dot notation "." on a table. For each, the return type of the function is indicated:
 ```python
     "read" :        ('tbl'),    
     "readfill" :    ('tbl'),
