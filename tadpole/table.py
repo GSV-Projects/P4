@@ -181,15 +181,15 @@ class Table():
         
         return new_table
 
-    # Returns the cleaned versoin of the same table, 
-    #   excluding the rows with NA or a given value for *all columns*.
+    # Returns the cleaned version of the same table, excluding the rows with NA,
+    #   but including those with the given value or fulfilling an expression for *all columns*.
     # Returns: 'tbl'
-    def filter(self, param = None):
-        # Reroute arg as either a value or an expr,
+    def filter_all(self, param = None):
+        # Reroute param as either a value or an expr,
         #   as only one of either can be called at a time.
         expr = None
         value = None
-        if callable(param): expr = param
+        if callable(param): expr = param # Param is callable if evaluator dot rule deems it a lambda expression
         else: value = param
 
         self._validate_uniform()
@@ -203,15 +203,19 @@ class Table():
             # Extract the row, we are currently considering
             row = {col: vals[i] for col, vals in self.columns.items()}
 
-            # If any of the values in the row are NA or a given filter param, goto next i
-            if any(v is NA or v == value for v in row.values()):
+            # If any of the values in the row are NA, goto next i
+            if any(v is NA for v in row.values()):
                 continue
-            # If an expr is given, and expr(row) returns False, goto next i
-            if expr is not None and expr(row): # expr(row) is a lambda, returning a bool
-                continue
-            # Otherwise, all is good, paste row into our new_table
-            for col, v in row.items():
-                new_table[col].append(v)
+
+            # If the value of the column matches the given value, append row
+            if any(v == value for v in row.values()):
+                for col, v in row.items():
+                    new_table[col].append(v)
+            
+            # If an expr is given, and expr(row) returns True, goto next i
+            if expr is not None and expr(row):
+                for col, v in row.items():
+                    new_table[col].append(v)
     
         return new_table
     
@@ -223,7 +227,7 @@ class Table():
         #   as only one of either can be called at a time.
         expr = None
         value = None
-        if callable(param): expr = param
+        if callable(param): expr = param # Param is callable if evaluator dot rule deems it a lambda expression
         else: value = param
 
         self._validate_column(column)
@@ -238,18 +242,19 @@ class Table():
             # Extract the row, we are currently considering
             row = {col: vals[i] for col, vals in self.columns.items()}
 
-            # If any of the values in the row are NA or a given filter param, goto next i
+            # If the values in the row is NA, goto next i
             if row[column] is NA:
                 continue
-            # If a value was given and equal to the value in the given column for current row, goto next i 
+
+            # If a value was given and equal to the value in the given column for current row, append row 
             if value is not None and row[column] == value:
-                continue
-            # If an expr is given, and expr(row) returns False, goto next i
-            if expr is not None and expr(row[column]): # expr(row) is a lambda, returning a bool
-                continue
-            # Otherwise, all is good, paste row into our new_table
-            for col, v in row.items():
-                new_table[col].append(v)
+                for col, v in row.items():
+                    new_table[col].append(v)
+
+            # If an expr is given, and expr(row) evaluates to true, append row
+            if expr is not None and expr(row): # expr(row) is a lambda, returning a bool. NB: It is a lamba function if the param is an expression.
+                for col, v in row.items():
+                    new_table[col].append(v)
     
         return new_table
     
@@ -654,7 +659,8 @@ class Table():
         except Exception as e:
             raise Exception(f"Expression raised an error when called: {e}")    
         
-        # Case for frequency and filter, that exprest the expr to return a bool
+        # Case for frequency and filters, that expects the expr to return a bool.
+        #   Other functions that call this, where is_bool = None, may evaluate to other types than bool.
         if is_bool and not isinstance(result, bool):
             raise Exception(f"Expression must return a boolean, got {type(result).__name__}")
 

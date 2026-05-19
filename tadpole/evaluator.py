@@ -23,7 +23,7 @@ class Evaluator():
             "append":       Table.append,
             "remove":       Table.remove,
             "mutate":       Table.mutate,
-            "filter" :      Table.filter,
+            "filterall" :   Table.filter_all,
             "filtercol":    Table.filter_col,
             "firstrow":     Table.first_row,
             "getrow":       Table.get_row,
@@ -62,8 +62,8 @@ class Evaluator():
                 # Evaluation of statements
                 self.SEval(line, self.env_v, self.env_p)
 
-        #print("Evaluator Env_P:", self.env_p)
-        #print("Evaluator Env_V:", self.env_v)
+        print("Evaluator Env_P:", self.env_p)
+        print("Evaluator Env_V:", self.env_v)
 
 # Function evaluations
     # Function used to determine which evaluation method to be called
