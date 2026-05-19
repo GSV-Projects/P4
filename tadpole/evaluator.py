@@ -62,8 +62,8 @@ class Evaluator():
                 # Evaluation of statements
                 self.SEval(line, self.env_v, self.env_p)
 
-        print("Evaluator Env_P:", self.env_p)
-        print("Evaluator Env_V:", self.env_v)
+        #print("Evaluator Env_P:", self.env_p)
+        #print("Evaluator Env_V:", self.env_v)
 
 # Function evaluations
     # Function used to determine which evaluation method to be called
