@@ -132,7 +132,7 @@ def test_filterall():
     result = t.filter_all(lambda row: row["col1"] == 1)
 
     # Assert
-    assert result == {"col1": [1.0, 1.0]}
+    assert result.columns == {"col1": [1.0, 1.0]}
 
 # Function that filters values given an expression, out of the column.
 def test_filtercol():
@@ -144,7 +144,7 @@ def test_filtercol():
     result = t.filter_col("col1", lambda row: row["col1"] < 3)
 
     # Assert
-    assert result == {"col1": [1.0, 2.0, 1.0], 
+    assert result.columns == {"col1": [1.0, 2.0, 1.0], 
                       "col2": [NA, 5, 7]}
 
 def test_cell():
@@ -343,7 +343,7 @@ def test_append():
     result = t.append(new_col, "col3")
 
     #Assert
-    assert result == {"col1": [1.0, NA, 3.0], "col2": ["red", "green", "yellow"], "col3": [1,2,3]}
+    assert result.columns == {"col1": [1.0, NA, 3.0], "col2": ["red", "green", "yellow"], "col3": [1,2,3]}
     
 # Ensures remove successfully removes a column from an existing table.
 def test_remove():
@@ -354,7 +354,7 @@ def test_remove():
     result = t.remove("col2")
 
     #Assert
-    assert result == {"col1": [1.0, NA, 3.0]}
+    assert result.columns == {"col1": [1.0, NA, 3.0]}
 
 # Ensures mutate successfully creates a new column from the given expression/lambda expression.
 def test_mutate():
@@ -365,7 +365,7 @@ def test_mutate():
     result = t.mutate("col1", lambda row: row["col1"] + 2, "sum")
 
     # Assert
-    assert result == {
+    assert result.columns == {
         "col1": [1.0, 2.0, 3.0],
         "col2": [4.0, 5.0, 6.0],
         "sum": [3.0, 4.0, 5.0]
