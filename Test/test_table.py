@@ -134,6 +134,16 @@ def test_filter():
     # Assert
     assert result == {"col1": [2.0, 3.0]}
 
+def test_cell():
+    # Arrange
+    t = Table({"col1": [1.0, 2.0, 3.0, 1.0]})
+
+    # Act
+    result = t.cell("col1", 2)
+
+    # Assert
+    assert result == 2.0
+
 # Test for whether the median is returned.
 def test_median():
     #Arrange 

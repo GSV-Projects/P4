@@ -30,6 +30,7 @@ class Evaluator():
             "lastrow":      Table.last_row,
             "sort" :        Table.sort,
             "round":        Table.round_table,
+            "cell":         Table.cell,
             "getcol":       Table.get_col,
             "firstcol":     Table.first_col,
             "lastcol":      Table.last_col,
