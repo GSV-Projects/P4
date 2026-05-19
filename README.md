@@ -12,7 +12,7 @@
 Tadpole is a GPL designed for university students with little to no programming experience. The language consists of a parser/lexer, build with Lark, a type-checker and evaluator. Included in the language is a set of predefined functions for extracting and manipulating data from files in CSV format.
 
 ## How To Run The Program
-To start coding in Tadpole, perform one of the following steps:
+To start coding in Tadpole, perform one of the following steps while in a virtual environment (venv):
 ```python
 clone -> pip install -r requirements.txt -> python -m filename.tad 
 clone -> pip install -e m -> tadpole filename.tad
