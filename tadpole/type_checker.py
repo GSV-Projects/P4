@@ -23,7 +23,7 @@ class Typechecker():
             "append":       ('tbl'),    
             "remove":       ('tbl'),    
             "mutate":       ('tbl'),    
-            "filter" :      ('tbl'),
+            "filterall" :   ('tbl'),
             "filtercol":    ('tbl'),
             "firstrow":     ('tbl'),
             "lastrow":      ('tbl'),

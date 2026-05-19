@@ -124,15 +124,28 @@ def test_frequency():
     assert result == 1
 
 # Function that filters values given an expression, out of the column.
-def test_filter():
+def test_filterall():
     # Arrange
     t = Table({"col1": [1.0, 2.0, 3.0, 1.0]})
 
     # Act
-    result = t.filter(lambda row: row["col1"] == 1)
+    result = t.filter_all(lambda row: row["col1"] == 1)
 
     # Assert
-    assert result == {"col1": [2.0, 3.0]}
+    assert result == {"col1": [1.0, 1.0]}
+
+# Function that filters values given an expression, out of the column.
+def test_filtercol():
+    # Arrange
+    t = Table({"col1": [1.0, 2.0, 3.0, 1.0],
+               "col2": [NA, 5, 6, 7]})
+
+    # Act
+    result = t.filter_col("col1", lambda row: row["col1"] < 3)
+
+    # Assert
+    assert result == {"col1": [1.0, 2.0, 1.0], 
+                      "col2": [NA, 5, 7]}
 
 def test_cell():
     # Arrange
@@ -311,7 +324,6 @@ def test_lencol():
     
 # Function that ensures NA values are replaced with given value.
 def test_replaceNAvalues():
-    pass
     # Arrange
     t = Table({"col1": [1.0, NA, 3.0], "col2": ["red", "green", "yellow"]})
     

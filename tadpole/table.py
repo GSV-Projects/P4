@@ -91,6 +91,7 @@ class Table():
     def clean_values(self):
         for column in self.columns:
             self.columns[column] = [self.replace_nan(v) for v in self.columns[column]]
+
         return self
 
     # Replaces missing values with our own literal 'NA'
@@ -98,17 +99,22 @@ class Table():
     def replace_nan(self, value):
         if value in ('nan', 'NaN', 'na', 'NAN', 'NA', None, '', 'N/A') or value != value:  # value != value catches float NaN
             return NA
+        
         return value
     
     # Returns a column with NA values replaced with the given value
     # Returns: array 
     def replace_na_values(self, column, value):
         self._validate_column(column)
+
         col = self.columns[column]
         col_type = next((type(v) for v in col if v != NA), None)
+
         if not isinstance(value, col_type):
             raise Exception(f"Column '{column}' expects values of type '{col_type.__name__}', but received '{type(value).__name__}'")
+        
         new_col = [value if v == NA else v for v in col]
+
         return new_col
     
     # Rename the key of a given column
@@ -119,10 +125,12 @@ class Table():
     
         if column not in self.columns:
             raise Exception(f"Column '{column}' does not exist")
+        
         new_table = copy.deepcopy(self.columns)
         new_table = {
             key if k == column else k: v 
             for k, v in new_table.items()}
+        
         return Table(new_table)
     
     # Appends a given array to the table, with the given name
@@ -141,7 +149,7 @@ class Table():
             # Else, use given name
             new_table.update({key : array})
         
-        return new_table
+        return Table(new_table)
 
     # Removes a given column from the table
     # Returns: 'tbl'
@@ -155,7 +163,8 @@ class Table():
                 pass
             else:
                 new_table.update({col : self.columns[col]})
-        return new_table
+
+        return Table(new_table)
     
     # Manipulate existing column as given, 
     #   and append as a new column, possibly with a given key.
@@ -168,6 +177,7 @@ class Table():
         new_table = dict(self.columns)
         num_rows = len(next(iter(self.columns.values())))
         new_col = []
+
         # For reach row we want, contruct the original rows, and call expr on them
         for i in range(num_rows):
             row = {col: vals[i] for col, vals in self.columns.items()}
@@ -176,20 +186,21 @@ class Table():
         # If no key was given, create a key "colx" where x is its number 
         if key is None:
             key = f"col{len(new_table) + 1}"
+
         # Otherwise it'll just use the given key
         new_table.update({key: new_col})
         
-        return new_table
+        return Table(new_table)
 
-    # Returns the cleaned version of the same table, 
-    #   excluding the rows with NA or a given value for *all columns*.
+    # Returns the cleaned version of the same table, excluding the rows with NA,
+    #   but including those with the given value or fulfilling an expression for *all columns*.
     # Returns: 'tbl'
-    def filter(self, param = None):
-        # Reroute arg as either a value or an expr,
+    def filter_all(self, param = None):
+        # Reroute param as either a value or an expr,
         #   as only one of either can be called at a time.
         expr = None
         value = None
-        if callable(param): expr = param
+        if callable(param): expr = param # Param is callable if evaluator dot rule deems it a lambda expression
         else: value = param
 
         self._validate_uniform()
@@ -203,17 +214,21 @@ class Table():
             # Extract the row, we are currently considering
             row = {col: vals[i] for col, vals in self.columns.items()}
 
-            # If any of the values in the row are NA or a given filter param, goto next i
-            if any(v is NA or v == value for v in row.values()):
+            # If any of the values in the row are NA, goto next i
+            if any(v is NA for v in row.values()):
                 continue
-            # If an expr is given, and expr(row) returns False, goto next i
-            if expr is not None and expr(row): # expr(row) is a lambda, returning a bool
-                continue
-            # Otherwise, all is good, paste row into our new_table
-            for col, v in row.items():
-                new_table[col].append(v)
+
+            # If the value of the column matches the given value, append row
+            if any(v == value for v in row.values()):
+                for col, v in row.items():
+                    new_table[col].append(v)
+            
+            # If an expr is given, and expr(row) returns True, goto next i
+            if expr is not None and expr(row):
+                for col, v in row.items():
+                    new_table[col].append(v)
     
-        return new_table
+        return Table(new_table)
     
     # Returns the cleaned version of the same table,
     #   excluding the rows with NA or a given value for a *given column*.
@@ -223,7 +238,7 @@ class Table():
         #   as only one of either can be called at a time.
         expr = None
         value = None
-        if callable(param): expr = param
+        if callable(param): expr = param # Param is callable if evaluator dot rule deems it a lambda expression
         else: value = param
 
         self._validate_column(column)
@@ -238,20 +253,21 @@ class Table():
             # Extract the row, we are currently considering
             row = {col: vals[i] for col, vals in self.columns.items()}
 
-            # If any of the values in the row are NA or a given filter param, goto next i
+            # If the values in the row is NA, goto next i
             if row[column] is NA:
                 continue
-            # If a value was given and equal to the value in the given column for current row, goto next i 
+
+            # If a value was given and equal to the value in the given column for current row, append row 
             if value is not None and row[column] == value:
-                continue
-            # If an expr is given, and expr(row) returns False, goto next i
-            if expr is not None and expr(row[column]): # expr(row) is a lambda, returning a bool
-                continue
-            # Otherwise, all is good, paste row into our new_table
-            for col, v in row.items():
-                new_table[col].append(v)
-    
-        return new_table
+                for col, v in row.items():
+                    new_table[col].append(v)
+
+            # If an expr is given, and expr(row) evaluates to true, append row
+            if expr is not None and expr(row): # expr(row) is a lambda, returning a bool. NB: It is a lamba function if the param is an expression.
+                for col, v in row.items():
+                    new_table[col].append(v)
+
+        return Table(new_table)
     
     # Given a column and index, returns the given cell
     # Returns: int / float / str / bool
@@ -274,7 +290,8 @@ class Table():
         self._validate_table()
 
         row = {col: vals[0] for col, vals in self.columns.items()}
-        return row
+
+        return Table(row)
 
     # Returns the last row in the table
     # Returns: 'tbl'
@@ -282,7 +299,8 @@ class Table():
         self._validate_table()
 
         row = {col: vals[-1] for col, vals in self.columns.items()}
-        return row
+
+        return Table(row)
     
     # Returns the row given from the index
     # Returns: 'tbl'
@@ -302,10 +320,8 @@ class Table():
             raise Exception(f'Index {index + 1} is out of bounds for table with {num_rows} rows')
         
         row = {col: [vals[index]] for col, vals in self.columns.items()}
-        return Table(row)
-        
-        
 
+        return Table(row)
     
     # Sort whole table from one column, 
     #   numerically for numbers or alphabetically for strings.
@@ -330,6 +346,7 @@ class Table():
      
         # Rebuild the table in new order
         new = {k: [v[i] for i in sorted_indices] for k, v in new_table.items()}
+
         return Table(new)
 
     # Round a column to whole integers and return the whole
@@ -342,6 +359,8 @@ class Table():
         col = self.columns[column]
         new_columns = dict(self.columns)
         new_columns[column] = [round(v) if v != NA else v for v in col]
+        print("new_columns: ", type(Table(new_columns)))
+
         return Table(new_columns)       
          
     # array - Given a column, returns an array of the column sorted.
@@ -371,6 +390,7 @@ class Table():
         col = self.columns[column]
         rounded_col = []
         rounded_col = [round(v) if v != NA else v for v in col]
+
         return rounded_col
     
     # Returns the first column of a table
@@ -380,6 +400,7 @@ class Table():
 
         key_list = list(self.columns.keys())
         first = key_list[0]
+
         return self.columns[first]
 
     # Returns the last column of a table
@@ -389,6 +410,7 @@ class Table():
     
         key_list = list(self.columns.keys())
         last = key_list[len(key_list) - 1]
+
         return self.columns[last]
     
         # Returns a column requested by string name
@@ -398,6 +420,7 @@ class Table():
         self._validate_column(column)
     
         col = self.columns[column]
+
         return col
     
     # Returns array of all keys in a table
@@ -425,6 +448,7 @@ class Table():
         self._validate_not_empty(column)
     
         col = self.columns[column]
+
         return col[0]
     
     # Returns the last element in a column of the table 
@@ -435,6 +459,7 @@ class Table():
 
         col = self.columns[column]
         last = len(col) - 1
+
         return col[last]
     
     # number - Returns the mean of all values in a given column
@@ -445,6 +470,7 @@ class Table():
         self._validate_number(column, "mean")
     
         col = self.columns[column]
+
         return sum(col) / len(col)
 
     # Total sum of all elements in column
@@ -455,6 +481,7 @@ class Table():
         self._validate_number(column, "sum")
 
         col = self.columns[column]
+
         return sum(col)
     
     # How often some value occurs within a column
@@ -478,6 +505,7 @@ class Table():
             if expr is not None and expr({column: v}): count += 1 
             # If value was used, increment for each element that fulfills
             elif expr is None and v == value: count += 1 
+
         return count
     
     # Number at 50% of column 
@@ -495,6 +523,7 @@ class Table():
             # Length is even, return the average of the two elements around the middle
             halfway = math.floor(col_len/2)
             value = (self.columns[column][halfway] + self.columns[column][halfway - 1]) / 2
+
             return value
 
     # Number at 25% of column 
@@ -518,6 +547,7 @@ class Table():
             # Length is even, return the average of the two elements around the middle
             quarterway = math.floor(lower_len/2)
             value = (lower_half_array[quarterway] + lower_half_array[quarterway - 1]) / 2
+
             return value
 
     # Number at 75% og column 
@@ -536,8 +566,8 @@ class Table():
             upper_half_array = self.columns[column][mid_idx + 1:]
         else:
             upper_half_array = self.columns[column][mid_idx:]
-        upper_len = len(upper_half_array)
 
+        upper_len = len(upper_half_array)
         if upper_len % 2:
             # Length is uneven, return the exact middle element
             return upper_half_array[math.floor(upper_len/2)]
@@ -545,6 +575,7 @@ class Table():
             # Length is even, return the average of the two elements around the middle
             quarterway = math.floor(upper_len/2)
             value = (upper_half_array[quarterway] + upper_half_array[quarterway - 1]) / 2
+
             return value
 
     # Minimum value in column
@@ -555,6 +586,7 @@ class Table():
         self._validate_number(column, "min")
     
         col = self.columns[column]
+
         return min(col)
 
     # Maximum value in column
@@ -565,6 +597,7 @@ class Table():
         self._validate_number(column, "max")
     
         col = self.columns[column]
+
         return max(col)
 
     # Numeral difference from min to max value
@@ -575,6 +608,7 @@ class Table():
         self._validate_number(column, "span")
     
         col = self.columns[column]
+
         return max(col) - min(col)
     
     # Returns the value of the squared deviation from the mean
@@ -588,6 +622,7 @@ class Table():
         col = self.columns[column]
         mean = self.mean(column)
         deviations = []
+
         # For each column, square the difference.
         #   The sum of all these is the variance.
         for val in col:
@@ -662,14 +697,15 @@ class Table():
         if not callable(expr):
             raise Exception(f"Expected a callable function/expression, got {type(expr).__name__}")
         
-        # Set up a row and try calling the function on the given row
-        row = {col: vals[0] for col, vals in self.columns.items()}
+        # Set up the first row which entry is NOT NA and try calling the function on the given row
+        row = {col: next((v for v in vals if v is not NA), None) for col, vals in self.columns.items()}
         try:
             result = expr(row)
         except Exception as e:
             raise Exception(f"Expression raised an error when called: {e}")    
         
-        # Case for frequency and filter, that exprest the expr to return a bool
+        # Case for frequency and filters, that expects the expr to return a bool.
+        #   Other functions that call this, where is_bool = None, may evaluate to other types than bool.
         if is_bool and not isinstance(result, bool):
             raise Exception(f"Expression must return a boolean, got {type(result).__name__}")
 
