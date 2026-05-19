@@ -61,7 +61,7 @@ class Table():
         # Return pandas dataframe
         return df
     
-    # Function that reads CSV with pandas from a filepath
+    # Function that reads CSV with pandas library from a filepath
     def read_from_file(self, path):
         self._validate_filepath(path)
 
@@ -230,7 +230,7 @@ class Table():
     
         return Table(new_table)
     
-    # Returns the cleaned versoin of the same table,
+    # Returns the cleaned version of the same table,
     #   excluding the rows with NA or a given value for a *given column*.
     # Returns: 'tbl'
     def filter_col(self, column, param = None):
@@ -268,6 +268,21 @@ class Table():
                     new_table[col].append(v)
 
         return Table(new_table)
+    
+    # Given a column and index, returns the given cell
+    # Returns: int / float / str / bool
+    def cell(self, column, index):
+        self._validate_table()
+        self._validate_column(column)
+    
+        # Adjust index to indexing from 1
+        index = index - 1
+        col = self.columns[column]
+        if index < 0 or index > len(col)-1:
+            raise Exception(f'Index: {index+1} out of bounds, must be between 1 and {len(col)}')
+        
+        # Return entry in cell of given column
+        return col[index]
     
     # Returns the first row in the table
     # Returns: 'tbl'

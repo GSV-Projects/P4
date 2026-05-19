@@ -39,6 +39,7 @@ class Typechecker():
             "length":       (int),      
             "head" :        ((int, float, str, bool)),
             "tail" :        ((int, float, str, bool)),
+            "cell":        ((int, float, str, bool)),
             "mean" :        (float),      
             "sum" :         (float),    
             "frequency" :   (int),    
