@@ -39,10 +39,10 @@ def run():
     # AST is parsed through the typechecker
     Typechecker().check_p(ast)
 
-    # Interpreter is defined as the class evaluator
+    # evaluator is defined as the class Evaluator
     evaluator = Evaluator()
 
-    # The AST is parsed through the interpreter
+    # The AST is parsed through the evaluator
     evaluator.PEval(ast)
 
 
