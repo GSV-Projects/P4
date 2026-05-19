@@ -23,7 +23,7 @@ class Evaluator():
             "append":       Table.append,
             "remove":       Table.remove,
             "mutate":       Table.mutate,
-            "filter" :      Table.filter,
+            "filterall" :   Table.filter_all,
             "filtercol":    Table.filter_col,
             "firstrow":     Table.first_row,
             "getrow":       Table.get_row,
