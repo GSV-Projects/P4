@@ -15,7 +15,7 @@ Tadpole is a GPL designed for university students with little to no programming 
 To start coding in Tadpole, perform one of the following steps while in a virtual environment (venv):
 ```python
 clone -> pip install -r requirements.txt -> python -m filename.tad 
-clone -> pip install -e m -> tadpole filename.tad
+clone -> pip install -e . -> tadpole filename.tad
 pip install git+https://github.com/GSV-Projects/P4.git@"release_version" -> tadpole filename.tadvv
 ```
 To run all tests in the program:
