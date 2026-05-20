@@ -5,6 +5,7 @@ import urllib.request
 import os
 import copy
 from tadpole.utils.NAliteral import NA
+from tadpole.utils.exceptions import TadpoleException
 from urllib.parse import urlparse
 
 class Table():
@@ -13,6 +14,19 @@ class Table():
     
     def __repr__(self):
         return f"{self.columns}"
+    
+    def get_pos(self, node):
+    
+        # Token has the attribute "line" - See Lark token documentation
+        if isinstance(node, Token):
+            return node.line
+
+        # If its not a token but tree, go through tree until a token is found to get line
+        if hasattr(node, "children"):
+            for child in node.children:
+                line = self.get_pos(child)
+                if line is not None:
+                    return line
 
     # Method that reads from a URL and saves it in the table object
     # Returns: 'tbl'
@@ -111,7 +125,7 @@ class Table():
         col_type = next((type(v) for v in col if v != NA), None)
 
         if not isinstance(value, col_type):
-            raise Exception(f"Column '{column}' expects values of type '{col_type.__name__}', but received '{type(value).__name__}'")
+            raise TadpoleException(f"Column '{column}' expects values of type '{col_type.__name__}', but received '{type(value).__name__}'")
         
         new_col = [value if v == NA else v for v in col]
 
@@ -124,7 +138,7 @@ class Table():
         self._validate_key(key)
     
         if column not in self.columns:
-            raise Exception(f"Column '{column}' does not exist")
+            raise TadpoleException(f"Column '{column}' does not exist")
         
         new_table = copy.deepcopy(self.columns)
         new_table = {
@@ -279,7 +293,7 @@ class Table():
         index = index - 1
         col = self.columns[column]
         if index < 0 or index > len(col)-1:
-            raise Exception(f'Index: {index+1} out of bounds, must be between 1 and {len(col)}')
+            raise TadpoleException(f'Index: {index+1} out of bounds, must be between 1 and {len(col)}')
         
         # Return entry in cell of given column
         return col[index]
@@ -309,7 +323,7 @@ class Table():
         
         # Ensure given 'index' parameter is an integer
         if not isinstance(index, int):
-            raise Exception(f'Given index must be an integer, was given {index}')
+            raise TadpoleException(f'Given index must be an integer, was given {index}')
         
         # Adjust to 0-based indexing
         index = index - 1
@@ -317,7 +331,7 @@ class Table():
         # Get amount of rows
         num_rows = len(next(iter(self.columns.values())))
         if index < 0 or index >= num_rows:
-            raise Exception(f'Index {index + 1} is out of bounds for table with {num_rows} rows')
+            raise TadpoleException(f'Index {index + 1} is out of bounds for table with {num_rows} rows')
         
         row = {col: [vals[index]] for col, vals in self.columns.items()}
 
@@ -331,7 +345,7 @@ class Table():
         self._validate_not_empty(column)
         decr_keys = ('decr', 'decrease', 'd', True)
         if o not in decr_keys and o != None:
-            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true but received: {o}')
+            raise TadpoleException(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true but received: {o}')
         
         new_table = copy.deepcopy(self.columns)
         col = new_table[column]
@@ -371,7 +385,7 @@ class Table():
 
         decr_keys = ('decr', 'decrease', 'd', True)
         if o not in decr_keys and o != None:
-            raise Exception(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true but received: {o}')
+            raise TadpoleException(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true but received: {o}')
     
         if(o in decr_keys):
             # Decreasing order
@@ -647,29 +661,29 @@ class Table():
     # Ensure the column exists in the table
     def _validate_column(self, column):
         if column not in self.columns:
-            raise Exception(f'Column "{column}" does not exist in table. Available columns: {list(self.columns.keys())}')
+            raise TadpoleException(f'Column "{column}" does not exist in table. Available columns: {list(self.columns.keys())}')
         
     # Ensure table is not empty
     def _validate_table(self):
         if not self.columns:
-            raise Exception(f'Cannot find keys of columns, as table is empty')
+            raise TadpoleException(f'Cannot find keys of columns, as table is empty')
 
     # Ensure column in not empty or all NA
     def _validate_not_empty(self, column):
         col = self.columns[column]
         # Check if col is [], None or only contains NA
         if not col or all(cell is NA for cell in col):
-            raise Exception(f'Column {column} is empty or only consists of {NA}')
+            raise TadpoleException(f'Column {column} is empty or only consists of {NA}')
     
     # Ensure the column only contains numbers
     def _validate_number(self, column, method, passNA = None):
         col = self.columns[column]
         # Check for NA specifically
         if (not all(c != NA for c in col)) and passNA != True:
-            raise Exception(f'Column {column} may not contain {NA} values to use function {method}') 
+            raise TadpoleException(f'Column {column} may not contain {NA} values to use function {method}') 
         # Check that theyre all numbers
         if not all(isinstance(c, (int, float)) for c in col):
-            raise Exception(f'Column {column} must consist only of integers or floats to use function {method}') 
+            raise TadpoleException(f'Column {column} must consist only of integers or floats to use function {method}') 
         
     # Ensure all columns in a table are the same length
     def _validate_uniform(self):
@@ -678,7 +692,7 @@ class Table():
         # set() method turns array into set. If there are more than 
         #   one element in the set, there are several lengths, therefore:
         if len(set(num_entries)) != 1: 
-            raise Exception (f'Columns in the same table must be of the same length, current lengths: {num_entries}')
+            raise TadpoleException (f'Columns in the same table must be of the same length, current lengths: {num_entries}')
         
     # Ensures the array sent is the same length as the columns of the table
     def _validate_length(self, array):
@@ -689,20 +703,20 @@ class Table():
 
         # If the column and array do not have matching lengths, throw an error
         if column_entries != array_entries:
-            raise Exception (f'Column must be of the same length as in the table, current lengths: {column_entries} : {array_entries}')
+            raise TadpoleException (f'Column must be of the same length as in the table, current lengths: {column_entries} : {array_entries}')
 
     # Ensure the expression sent is viable and returns a boolean
     def _validate_expression(self, expr, is_bool = None):
         # Check if the lambda can even be called
         if not callable(expr):
-            raise Exception(f"Expected a callable function/expression, got {type(expr).__name__}")
+            raise TadpoleException(f"Expected a callable function/expression, got {type(expr).__name__}")
         
         # Set up the first row which entry is NOT NA and try calling the function on the given row
         row = {col: next((v for v in vals if v is not NA), None) for col, vals in self.columns.items()}
         try:
             result = expr(row)
-        except Exception as e:
-            raise Exception(f"Expression raised an error when called: {e}")    
+        except TadpoleException as e:
+            raise TadpoleException(f"Expression raised an error when called: {e}")    
         
         # Case for frequency and filters, that expects the expr to return a bool.
         #   Other functions that call this, where is_bool = None, may evaluate to other types than bool.

@@ -9,3 +9,9 @@ class WrongFileTypeError(TadpoleException):
 
 class TadpoleSyntaxError(TadpoleException):
     pass
+
+class TypecheckerException(TadpoleException):
+    pass
+
+class EvaluatorException(TadpoleException):
+    pass
