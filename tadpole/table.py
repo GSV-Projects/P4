@@ -500,7 +500,7 @@ class Table():
     
     # How often some value occurs within a column
     # Returns: float
-    def frequency(self, column, param = None):
+    def frequency(self, column, param):
         # Reroute arg as either a value or an expr,
         #   as only one of either can be called at a time.
         expr = None
