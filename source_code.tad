@@ -2,11 +2,18 @@
 
 
 Mads = "dumb";
-a = NA and true;
-print("Mads er:");
+b = 3;
+print("Mads er:);
 print(Mads);
 print("67");
 
-if (a) then {
 
+function myfunc (int h) returns int {
+return 3;
 }
+
+
+
+c = myfunc(b);
+a = 10;
+b = 0;

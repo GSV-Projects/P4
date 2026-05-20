@@ -1,6 +1,6 @@
 from tadpole.parsertransformer import MyTrans
 from tadpole.utils.exceptions import *
-from lark import UnexpectedToken
+from lark import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 import os
 
 
@@ -36,11 +36,27 @@ def parse(parser, code):
 
     try:
         return parser.parse(code)
+    
+    # Unexpected character exception
+    except UnexpectedCharacters as e:
+        raise TadpoleSyntaxError(
+            f"Unexpected character at line {e.line}\n"
+            f"{e.get_context(code)}"
+            f"Character: {repr(e.char)}"
+        )
+
+    # Unexpected token exception
     except UnexpectedToken as e:
         raise TadpoleSyntaxError(
-            f"Syntax error at line {e.line}, column {e.column}\n"
+            f"Unexpected token at line {e.line}\n"
             f"{e.get_context(code)}"
             f"Unexpected: {e.token}\n"
             f"Expected one of: {e.expected}"
-        ) 
+        )
 
+    # End of line exception - Should never get this with our current grammar
+    except UnexpectedEOF as e:
+        raise TadpoleSyntaxError(
+            f"Unexpected end of input\n"
+            f"{e.get_context(code)}"
+        )

@@ -53,6 +53,20 @@ class Evaluator():
             "variance":     Table.variance,
             "stddev":       Table.std_dev,
         }
+    
+    # Auxiliary function to get line number in case of exception
+    def get_pos(self, node):
+    
+        # Token has the attribute "line" - See Lark token documentation
+        if isinstance(node, Token):
+            return node.line
+
+        # If its not a token but tree, go through tree until a token is found to get line
+        if hasattr(node, "children"):
+            for child in node.children:
+                line = self.get_pos(child)
+                if line is not None:
+                    return line
 
     # Evaluate the programs definition and statements
     def PEval(self, p):
@@ -93,7 +107,8 @@ class Evaluator():
         #   The value for this key is the function closure above.
         func_ident = tree.children[0].value
         if (func_ident in self.env_p):
-            raise EvaluatorException(f"Function '{func_ident}' already defined")
+            line = self.get_pos(tree)
+            raise EvaluatorException(f"Error on line: {line} -Function '{func_ident}' already defined")
         else:
             self.env_p[func_ident] = func_tuple
 
@@ -112,7 +127,8 @@ class Evaluator():
         #   The value for this key is the function closure above.
         func_ident = tree.children[0].value
         if (func_ident in self.env_p):
-            raise EvaluatorException(f"Function '{func_ident}' already defined")
+            line = self.get_pos(tree)
+            raise EvaluatorException(f"Error on line: {line} -Function '{func_ident}' already defined")
         else:
             self.env_p[func_ident] = func_tuple
 
@@ -142,7 +158,8 @@ class Evaluator():
 
         # Guard to check if value being assinged is only NA. This is only allowed if i.e. "x = 5 + NA;"
         if v is NA and tree.children[1] is Token:
-            raise EvaluatorException(f"Cannot assign NA to variable: '{identifier}'. Only possible if another type is in the expression such as: x = 5 + NA;")
+            line = self.get_pos(tree)
+            raise EvaluatorException(f"Error on line: {line} - Cannot assign NA to variable: '{identifier}'. Only possible if another type is in the expression such as: x = 5 + NA;")
 
         # Update the variable environment
         env_v[identifier] = v
@@ -179,7 +196,8 @@ class Evaluator():
     def SEval_if(self, tree, env_v, env_p):
         v = self.Eval(tree.children[0], env_v)
         if v is NA:
-            raise EvaluatorException("Condition evaluated to NA. Condition must evaluate to true or false")
+            line = self.get_pos(tree)
+            raise EvaluatorException(f"Error on line: {line} - Condition evaluated to NA. Condition must evaluate to true or false")
         elif v == True:
             self.SEval(tree.children[1], env_v, env_p) # Will evaluate SEval_then
         elif v == False and len(tree.children) == 3:
@@ -209,14 +227,16 @@ class Evaluator():
         v = self.Eval(tree.children[2], env_v)
 
         if (v is NA):
-            raise EvaluatorException(f'Index must be an integer to index the array')
+            line = self.get_pos(tree)
+            raise EvaluatorException(f'Error on line: {line} - Index must be an integer to index the array')
 
         # Check for out-of-bounds
         if (i > 0 and i <= len(arr)):
             arr[i-1] = v
             env_v[identifier] = arr
         else:
-            raise EvaluatorException(f"Index out of bounds, must be between: '{1}'-'{len(arr)}'")
+            line = self.get_pos(tree)
+            raise EvaluatorException(f"Error on line: {line} - Index out of bounds, must be between: '{1}'-'{len(arr)}'")
 
     # Statement for calling of void functions (not apart of an expression)
     def SEval_call(self, tree, caller_env_v, env_p):
@@ -312,7 +332,8 @@ class Evaluator():
             return NA
         else:
             if (v2 == 0):
-                raise EvaluatorException(f"Division by zero not allowed")
+                line = self.get_pos(tree)
+                raise EvaluatorException(f"Error on line: {line} - Division by zero not allowed")
             return v1 / v2
 
     # Modulo (with zero guard)
@@ -323,7 +344,8 @@ class Evaluator():
             return NA
         else:
             if (v2 == 0):
-                raise EvaluatorException("Modulo by zero is undefined")
+                line = self.get_pos(tree)
+                raise EvaluatorException(f"Error on line: {line} - Modulo by zero is undefined")
             else:
                 return v1 % v2
     
@@ -443,11 +465,13 @@ class Evaluator():
         i = self.Eval(tree.children[1], env)
 
         if (i is NA):
-            raise EvaluatorException(f"Index cannot be NA, must be an integer between: '{1}'-'{len(arr)}'")
+            line = self.get_pos(tree)
+            raise EvaluatorException(f"Error on line: {line} - Index cannot be NA, must be an integer between: '{1}'-'{len(arr)}'")
         elif (i > 0 and i <= len(arr)):
             return arr[math.floor(i-1)] # Gather element while adjusting for python zero indexing
         else:
-            raise EvaluatorException(f"Index out of bounds, must be between: '{1}'-'{len(arr)}'")
+            line = self.get_pos(tree)
+            raise EvaluatorException(f"Error on line: {line} - Index out of bounds, must be between: '{1}'-'{len(arr)}'")
         
     # Calling of functions with returns (apart of an expression i.e. x = foo();)
     def Eval_call(self, tree, caller_env_v):
@@ -480,8 +504,9 @@ class Evaluator():
         parameters = [] # Will hold all params for the called method
 
         if (method_name not in self.env_pd):
-            raise EvaluatorException(f'Tried to call function {method_name}, which does not exist')
-        
+            line = self.get_pos(tree)
+            raise EvaluatorException(f'Error on line: {line} -Tried to call function {method_name}, which does not exist')
+
         # Set of possible operations that can be read when passing expressinos as parameters
         expressions = {"equal", "neq", "less", "leq", "greater", "geq", "and", "or", "not", 
                        "add", "sub", "mult", "divide", "mod", "exp"}
@@ -526,7 +551,8 @@ class Evaluator():
         # Guard to make sure all lenghts of the columns in the table are equal
         lengths = [len(v) for v in columns.values()]
         if len(set(lengths)) > 1: # set() convers the array into a set, thus not containing duplicates
-            raise EvaluatorException("Table columns must all have the same length")
+            line = self.get_pos(tree)
+            raise EvaluatorException(f"Error on line: {line} -Table columns must all have the same length")
     
         # Creates an instance of our Table structure using the class Table and returns it
         return Table(columns)
@@ -578,11 +604,13 @@ class Evaluator():
             # The NA literal is a singleton instance of the NAliteral class
             #   This means we can use "is" NA to check if a value is NA, as all NA values point to the same object in memory
             return NA
-        raise EvaluatorException(f"Unknown type '{token.type}', must be either INT, FLOAT, STRING, FALSE, TRUE, NA or tbl")
+        line = self.get_pos(token)
+        raise EvaluatorException(f"Error on line: {line} - Unknown type '{token.type}', must be either INT, FLOAT, STRING, FALSE, TRUE, NA or tbl")
 
     # Error function: if the method name taken from the AST doesn't correspond to an actual function in the evaluator
     def eval_unknown(self, node, env):
-        raise EvaluatorException(f'Unknown language construct "{node.data}"')
+            line = self.get_pos(node)
+            raise EvaluatorException(f'Error on line: {line} -Unknown language construct "{node.data}"')
     
     def amogus(self):
         a = '''
@@ -629,3 +657,4 @@ class Evaluator():
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠄⠹⢅⣀⠹⠒⠊⠀⠀⠀⠠
         '''
         print(a)
+

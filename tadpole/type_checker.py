@@ -55,6 +55,21 @@ class Typechecker():
             "stddev":       (float)
         }
 
+    # Auxiliary function to get line number in case of exception
+    def get_pos(self, node):
+    
+        # Token has the attribute "line" - See Lark token documentation
+        if isinstance(node, Token):
+            return node.line
+
+        # If its not a token but tree, go through tree until a token is found to get line
+        if hasattr(node, "children"):
+            for child in node.children:
+                line = self.get_pos(child)
+                if line is not None:
+                    return line
+
+
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
     def read_token(self, token, env):
         if token.type == 'IDENT':
@@ -71,7 +86,8 @@ class Typechecker():
             return 'tbl'
         if token.type == 'NA':
             return na_type
-        raise TypecheckerException(f"Unknown type '{token.type}', must be either INT, FLOAT, STRING, FALSE, TRUE, NA or tbl")
+        line = self.get_pos(token)
+        raise TypecheckerException(f"Error on line {line} - Unknown type '{token.type}', must be either INT, FLOAT, STRING, FALSE, TRUE, NA or tbl")
 
  # --- Check program ---
     def check_p(self, c):
@@ -94,7 +110,8 @@ class Typechecker():
                 func_id, signature = self.get_fun(child, env, RL)
                 
                 if func_id in self.ftable:
-                    raise TypecheckerException(f"Definition '{func_id}' already exists")
+                    line = self.get_pos(child)
+                    raise TypecheckerException(f"Error on line {line} - Definition '{func_id}' already exists")
                 
                 # Functions are added to the global ftable.
                 self.ftable[func_id] = signature
@@ -142,7 +159,8 @@ class Typechecker():
     
     # check method to fall back on, if the given node is unknown
     def check_unknown(self, node, env, RL):
-        raise TypecheckerException(f'Unknown language construct "{node.data}"')
+        line = self.get_pos(node)
+        raise TypecheckerException(f'Error on line {line} - Unknown language construct "{node.data}"')
 
     # --- directory --- # Rerouting, making similar checks re-use relevant methods
     def check_add(self, node, env, RL):     return self.check_additive(node, env, RL)
@@ -172,7 +190,8 @@ class Typechecker():
     # Checking if an identifier exists in the specified environment
     def check_IDENT(self, node, env):
         if (node.value not in env):
-            raise TypecheckerException(f'{node.value} not defined')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - {node.value} not defined')
         else: 
             return env[node.value]
 
@@ -187,7 +206,8 @@ class Typechecker():
         
         # Do not assign an ident, that has no value and therefore no type
         if (t1 == None or t1 is na_type):
-            raise TypecheckerException(f'Cannot assign variable {left.value} as void or NA. Only possible if another type is in the expression such as: x = 5 + NA;')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Cannot assign variable {left.value} as void or NA. Only possible if another type is in the expression such as: x = 5 + NA;')
 
         # If not already in the local vtable, place it there (can be global)
         if (left.value not in env):
@@ -199,7 +219,8 @@ class Typechecker():
             #if not (isinstance(env[left.value], dict) and t1 == 'tbl') and env[left.value] != t1:
             #    raise Exception(f'{left.value} is of type {env[left.value]} and cannot be declared as type {t1}')
             if (env[left.value] != t1): 
-                raise TypecheckerException(f'{left.value} is of type {env[left.value]} and cannot be declared as type {t1}')  
+                line = self.get_pos(node)
+                raise TypecheckerException(f'Error on line {line} - {left.value} is of type {env[left.value]} and cannot be declared as type {t1}')  
         # Else, the environment is local and the reassignment of a type is approved
         else:
             env[left.value] = t1
@@ -218,7 +239,8 @@ class Typechecker():
             return self.infer_numeric_type(t1,t2)
         # In case one or both are neither int nor float, raise exception
         else:
-            raise TypecheckerException(f'Values {left.value} and {right.value} must both be of type int or float')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Values {left.value} and {right.value} must both be of type int or float')
 
     def check_div(self, node, env, RL):
         # Validates division operations
@@ -233,7 +255,8 @@ class Typechecker():
         if self.numeric_compatible(t1,t2):
             return float
         else: # Otherswise, raise exception
-            raise TypecheckerException(f'Values {left.value} and {right.value} must both be of type int or float')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Values {left.value} and {right.value} must both be of type int or float')
         
     def check_comparison(self, node, env, RL):
         # Validates statements classified as comparative, all of which are treated the same
@@ -248,7 +271,8 @@ class Typechecker():
         if self.comparison_compatible(t1,t2):
             return bool
         else: # Otherwise, raise exception
-            raise TypecheckerException(f'Values {left.value} and {right.value} must both be of type int or float, or only string')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Values {left.value} and {right.value} must both be of type int or float, or only string')
 
     def check_logical(self, node, env, RL):
         # Validates logical statements, all of which are treated the same
@@ -267,7 +291,8 @@ class Typechecker():
         elif (t1 == bool and t2 == t1 is na_type):
             return bool
         else:
-            raise TypecheckerException(f'Values {left.value} and {right.value} must be of type bool')        
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Values {left.value} and {right.value} must be of type bool')        
 
     def comparison_compatible(self, t1, t2):
         # Check if both expressions are NA. If so determining type is ambigious an NA doesn't have a real type
@@ -290,7 +315,8 @@ class Typechecker():
 
         # The statements to be negated, must be a bool, otherwise, raise exception
         if (t1 != bool): 
-            raise TypecheckerException(f'To use the "not"-operator, {node.children[0]} must be a bool')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - To use the "not"-operator, {node.children[0]} must be a bool')
         return bool
 
     def check_neg(self, node, env, RL):
@@ -304,14 +330,17 @@ class Typechecker():
         elif t1 == float:
             return float
         else:
-            raise TypecheckerException(f'{node.children[0]} must be of type int or float to negate the value')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - {node.children[0]} must be of type int or float to negate the value')
 
     def check_array(self, node, env, RL):
         # Validates an element of type array
 
+
+
         # If the array has no contents, raise exception, saying we cannot yet evaluate the type, as there is nothing to evaluate
-        if len(node.children) == 0:
-            raise TypecheckerException("No type for an empty array")
+        if len(node.children) == 0:  
+            raise TypecheckerException(f"No type for an empty array")
 
         # Otherwise, moving on, store the type of the very first element in the array
         type_of_array = self.first_valid_type(node.children, env, RL)
@@ -323,7 +352,8 @@ class Typechecker():
             return [type_of_array] 
         # Otherwise, raise exception
         else: 
-            raise TypecheckerException(f'Not all elements of array are of the same type! Element {array_check_count} is not of type {type_of_array}')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Not all elements of array are of the same type! Element {array_check_count} is not of type {type_of_array}')
 
     def check_array_type(self, node, env, RL):
         # Validates cases of using one of the datatypes as an array variant.
@@ -346,7 +376,8 @@ class Typechecker():
         if type_idx == int:
             return type_id[0]
         else: 
-            raise TypecheckerException(f'Index must be an integer to index the array')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Index must be an integer to index the array')
 
   
     def check_table(self, node, env, RL):
@@ -383,7 +414,8 @@ class Typechecker():
         vtable_local = self.build_vt(paramsnode, env, RL)
 
         if len(body.children) == 0:
-            raise TypecheckerException("Function can't have an empty body")
+            line = self.get_pos(node)
+            raise TypecheckerException(f"Error on line {line} - Function can't have an empty body")
             
         self.check(body, vtable_local, RL) # Checks the body of the function with the local variable enviroment
         RL["R"] = None
@@ -401,12 +433,14 @@ class Typechecker():
 
         # This check makes sure that we are inside a non-void function before trying to return
         if (RL["R"] == None):
-            raise TypecheckerException(f'Not possible to use return outside of a function or inside of a void function')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Not possible to use return outside of a function or inside of a void function')
 
         # Check if the return type matches with "R" in enviroment "RL".
         #   This enviroment tracks if we are currently inside a function and what the function is supposed to return.
         if (t1 != RL["R"] and t1 is not na_type):
-            raise TypecheckerException(f'The return statement returns value of type {t1.__name__}, but the function expects to return value of type {RL["R"].__name__}')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - The return statement returns value of type {t1.__name__}, but the function expects to return value of type {RL["R"].__name__}')
         return t1
     
     def check_call(self, node, env, RL):
@@ -417,14 +451,16 @@ class Typechecker():
             return
 
         if (f_id not in self.ftable):
-            raise TypecheckerException(f'Function {f_id} is not defined')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Function {f_id} is not declared')
 
         # Get info on current function
         formal_params, return_type = self.ftable[f_id] 
         actual_params = node.children[1:]
 
         if len(formal_params) != len(actual_params):
-            raise TypecheckerException("Amount of function parameters do not match the amount of passed parameters to the function")
+            line = self.get_pos(node)
+            raise TypecheckerException(f"Error on line {line} - Amount of function parameters do not match the amount of passed parameters to the function")
 
         # For every parameter, check if formal and actual are of the same type
         for i in range(len(formal_params)):
@@ -432,7 +468,8 @@ class Typechecker():
             t2 = formal_params[i]
             
             if t1 != t2 and t1 is not na_type:
-                raise TypecheckerException(f'Formal and actual parameters of function "{f_id}" not of same type. Actual: {t1.__name__}, Formal: {t2.__name__}')
+                line = self.get_pos(node)
+                raise TypecheckerException(f'Error on line {line} - Formal and actual parameters of function "{f_id}" not of same type. Actual: {t1.__name__}, Formal: {t2.__name__}')
             
         return return_type
     
@@ -443,7 +480,8 @@ class Typechecker():
         left = node.children[0]
 
         if self.vtable[left.value] != 'tbl':
-            raise TypecheckerException(f'"{left.value}" is of type {self.vtable[left.value]}, must be a table of type: tbl')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - "{left.value}" is of type {self.vtable[left.value]}, must be a table of type: tbl')
 
         # Get formal info on current child and return it
         return_type = self.ptable[right] 
@@ -454,7 +492,8 @@ class Typechecker():
         # Raises an exception if we aren't in a loop currently
         # This can be seen using the key "L" in the enviroment "RL"
         if RL["L"] == False:
-            raise TypecheckerException(f'Cannot use stop outside a loop')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Cannot use stop outside a loop')
 
     def check_if(self, node, env, RL):
         # Checks the boolean condition in the if-statement
@@ -462,7 +501,8 @@ class Typechecker():
 
         # Raise exception if the condition is not a boolean
         if t1 != bool:
-            raise TypecheckerException(f'{node.children[0]} must be a boolean expression')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - {node.children[0]} must be a boolean expression')
 
         # Set the body of the if-statement to be everything after the conditional statement
         body = node.children[1:]
@@ -485,7 +525,8 @@ class Typechecker():
         t1 = self.check(node.children[0], env, RL)
 
         if t1 != bool:
-            raise TypecheckerException(f'{node.children[0]} must be a boolean expression')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - {node.children[0]} must be a boolean expression')
 
         body = node.children[1:]
 
@@ -508,10 +549,12 @@ class Typechecker():
         type_ass = self.check(node.children[2], env, RL) 
 
         if type_idx != int:
-            raise TypecheckerException(f'Index must be an integer to index the array')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Index must be an integer to index the array')
 
         if type_id[0] != type_ass and type_ass is not na_type:
-            raise TypecheckerException (f'Trying to assign {type_ass} to an array of type {type_id[0]}')
+            line = self.get_pos(node)
+            raise TypecheckerException(f'Error on line {line} - Trying to assign {type_ass} to an array of type {type_id[0]}')
         
     # Helper functions for NA values
     def numeric_compatible(self, t1, t2):

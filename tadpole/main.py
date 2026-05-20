@@ -60,6 +60,8 @@ def main():
     # Catching other exceptions, should never run
     except Exception as e:
         print(f"python exception\n{e}")
+        print(f"\n{e.__class__.__name__}:\n")
+        print(e, "\n")
         sys.exit(1)
 
 
