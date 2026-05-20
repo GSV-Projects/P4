@@ -3,7 +3,7 @@
 
 Mads = "dumb";
 b = 3;
-print("Mads er:);
+print("Mads er:");
 print(Mads);
 print("67");
 
