@@ -2,8 +2,11 @@
 
 
 Mads = "dumb";
-
-
+a = NA and true;
 print("Mads er:");
 print(Mads);
 print("67");
+
+if (a) then {
+
+}

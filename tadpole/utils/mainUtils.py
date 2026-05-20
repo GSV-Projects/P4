@@ -38,7 +38,9 @@ def parse(parser, code):
         return parser.parse(code)
     except UnexpectedToken as e:
         raise TadpoleSyntaxError(
-            f"Syntax error on line {e.line}\n"
+            f"Syntax error at line {e.line}, column {e.column}\n"
             f"{e.get_context(code)}"
+            f"Unexpected: {e.token}\n"
+            f"Expected one of: {e.expected}"
         ) 
 

@@ -51,24 +51,10 @@ def main():
     try:
         run()
 
-    # Catching syntax errors
-    except TadpoleSyntaxError as e:
-        print(e)
-        sys.exit(1)
-
-    # Catching exception if file can't be found
-    except TadpoleFileError as e:
-        print(e)
-        sys.exit(1)
-
-    # Catching exception if file is not of type .tad
-    except WrongFileTypeError as e:
-        print(e)
-        sys.exit(1)
-
     # Catching other Tadpole exceptions
     except TadpoleException as e:
-        print(f"Tadpole Error\n{e}")
+        print(f"\n{e.__class__.__name__}:\n")
+        print(e, "\n")
         sys.exit(1)
 
     # Catching other exceptions, should never run
