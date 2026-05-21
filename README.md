@@ -25,7 +25,7 @@ python -m pytest
 ```
 
 ## List of predefined functions
-Below a list of all predefined functions for this iteration can be seen. These are called using the dot notation "." on a table. For each, the return type of the function is indicated. The first parameter for each function is table, which is automatically sent when the dot "." notation is used on a table:
+Below a list of all predefined functions for this iteration can be seen. These are called using the dot notation "." on a table. For each, the return type of the function is indicated. Parameters written in **bold** are optional parameters The first parameter for each function is table, which is automatically sent when the dot "." notation is used on a table:
 | Function Name | Description | Parameter | Returns |
 |---|---|---|---|
 | read | Function that reads from either a URL or filepath to a file in CSV format and inserts into a table. | Table, URL/filepath | Table |
