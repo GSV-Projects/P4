@@ -16,7 +16,7 @@ To start coding in Tadpole, perform one of the following steps while in a virtua
 ```python
 clone -> pip install -r requirements.txt -> python -m filename.tad 
 clone -> pip install -e . -> tadpole filename.tad
-pip install git+https://github.com/GSV-Projects/P4.git@"release_version" -> tadpole filename.tadvv
+pip install git+https://github.com/GSV-Projects/P4.git@"release_version" -> tadpole filename.tad
 ```
 To run all tests in the program:
 ```python
