@@ -56,7 +56,6 @@ class Evaluator():
     
     # Auxiliary function to get line number in case of exception
     def get_pos(self, node):
-    
         # Token has the attribute "line" - See Lark token documentation
         if isinstance(node, Token):
             return node.line
