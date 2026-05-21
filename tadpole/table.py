@@ -4,6 +4,7 @@ import pandas as pd
 import urllib.request
 import os
 import copy
+from lark import Token
 from tadpole.utils.NAliteral import NA
 from tadpole.utils.exceptions import TadpoleException
 from urllib.parse import urlparse
@@ -15,8 +16,8 @@ class Table():
     def __repr__(self):
         return f"{self.columns}"
     
+    # Auxiliary function to get line number in case of exception
     def get_pos(self, node):
-    
         # Token has the attribute "line" - See Lark token documentation
         if isinstance(node, Token):
             return node.line
@@ -343,9 +344,9 @@ class Table():
     def sort(self, column, o = None):
         self._validate_column(column)
         self._validate_not_empty(column)
-        decr_keys = ('decr', 'decrease', 'd', True)
+        decr_keys = ('decr', 'decrease', 'd')
         if o not in decr_keys and o != None:
-            raise TadpoleException(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true but received: {o}')
+            raise TadpoleException(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease" or "d" but received: {o}')
         
         new_table = copy.deepcopy(self.columns)
         col = new_table[column]
@@ -383,9 +384,9 @@ class Table():
         self._validate_column(column)
         self._validate_not_empty(column)
 
-        decr_keys = ('decr', 'decrease', 'd', True)
+        decr_keys = ('decr', 'decrease', 'd')
         if o not in decr_keys and o != None:
-            raise TadpoleException(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease", "d" or true but received: {o}')
+            raise TadpoleException(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease" or "d" but received: {o}')
     
         if(o in decr_keys):
             # Decreasing order

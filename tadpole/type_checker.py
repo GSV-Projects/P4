@@ -57,7 +57,6 @@ class Typechecker():
 
     # Auxiliary function to get line number in case of exception
     def get_pos(self, node):
-    
         # Token has the attribute "line" - See Lark token documentation
         if isinstance(node, Token):
             return node.line
@@ -68,7 +67,6 @@ class Typechecker():
                 line = self.get_pos(child)
                 if line is not None:
                     return line
-
 
     # For atomic terms, we identify the type of a standalone token, or a leaf in the tree
     def read_token(self, token, env):
