@@ -45,8 +45,8 @@ Below a list of all predefined functions for this iteration can be seen. These a
 | round | Function that rounds a column to whole integers and returns the whole table | Table, Column | Table |
 | roundcol | Function that rounds a column and returns it as an array | Table, Column | Array |
 | getcol | Function that given a column name, returns the column as an array | Table, Column | Array |
-| getfirst | Function that returns the first column of a table as an array | Table | Array |
-| getlast | Function that returns the last column of a table as an array | Table | Array |
+| firstcol | Function that returns the first column of a table as an array | Table | Array |
+| lastcol | Function that returns the last column of a table as an array | Table | Array |
 | keys | Function that returns an array of all key values of a table | Table | Array |
 | length | Function that returns an integer indicating the length of columns | Table, Column | Integer |
 | cell | Function that returns the value in a cell given a column and an index | Table, Column, Index | Integer / Float / String / Bool |
