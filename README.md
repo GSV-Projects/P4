@@ -41,7 +41,7 @@ Below a list of all predefined functions for this iteration can be seen. These a
 | lastrow | Function that returns the last row, which consists of all columns with only the last cell | Table | Table |
 | getrow | Function that, given an index, returns the given row, consisting of all columns and their cell on the given index | Table, Index | Table |
 | sort | Function that sorts a whole table in increasing order from one column, rearranging all columns, so entries are still aligned. If a third parameter is given as `d`, `decr` or `decreasing`, it sorts in decreasing order. | Table, Column, **Order** | Table |
-| sort | Function that given a column returns a sorted array of the column in increasing order. If third parameter is given as `d`, `decr` or `decreasing`, it sorts in decreasing order | Table, Column, **Order** | Array |
+| sortcol | Function that given a column returns a sorted array of the column in increasing order. If third parameter is given as `d`, `decr` or `decreasing`, it sorts in decreasing order | Table, Column, **Order** | Array |
 | round | Function that rounds a column to whole integers and returns the whole table | Table, Column | Table |
 | roundcol | Function that rounds a column and returns it as an array | Table, Column | Array |
 | getcol | Function that given a column name, returns the column as an array | Table, Column | Array |
