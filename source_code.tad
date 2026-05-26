@@ -1,19 +1,1 @@
 
-
-
-Mads = "dumb";
-b = 3;
-print("Mads er:");
-print(Mads);
-print("67");
-
-
-function myfunc (int h) returns int {
-return 3;
-}
-
-
-
-c = myfunc(b);
-a = 10;
-b = 0;
