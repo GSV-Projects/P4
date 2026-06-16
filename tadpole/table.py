@@ -237,12 +237,14 @@ class Table():
             if any(v == value for v in row.values()):
                 for col, v in row.items():
                     new_table[col].append(v)
+            
             # If an expr is given, and expr(row) returns True, goto next i
-            elif expr is not None and expr(row):
+            if expr is not None and expr(row):
                 for col, v in row.items():
                     new_table[col].append(v)
+            
             # If no expr or value is given to be filtered out, append row.
-            else:
+            if value is None and expr is None:
                 for col, v in row.items():
                     new_table[col].append(v)
     
@@ -279,12 +281,14 @@ class Table():
             if value is not None and row[column] == value:
                 for col, v in row.items():
                     new_table[col].append(v)
+            
             # If an expr is given, and expr(row) evaluates to true, append row
-            elif expr is not None and expr(row): # expr(row) is a lambda, returning a bool. NB: It is a lamba function if the param is an expression.
+            if expr is not None and expr(row): # expr(row) is a lambda, returning a bool. NB: It is a lamba function if the param is an expression.
                 for col, v in row.items():
                     new_table[col].append(v)
+            
             # If no expr or value is given to be filtered out, append row.
-            else:
+            if value is None and expr is None:
                 for col, v in row.items():
                     new_table[col].append(v)
 
