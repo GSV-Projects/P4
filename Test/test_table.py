@@ -331,7 +331,7 @@ def test_replaceNAvalues():
     result = t.replace_na_values("col1", 2.0)
     
     # Assert
-    assert result == [1.0, 2.0, 3.0]
+    assert result.columns["col1"] == [1.0, 2.0, 3.0]
 
 # Ensures append successfully appends a column to an existing table.
 def test_append():
