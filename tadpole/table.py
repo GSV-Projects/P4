@@ -732,28 +732,28 @@ class Table():
         # Case for frequency and filters, that expects the expr to return a bool.
         #   Other functions that call this, where is_bool = None, may evaluate to other types than bool.
         if is_bool and not isinstance(result, bool):
-            raise Exception(f"Expression must return a boolean, got {type(result).__name__}")
+            raise TadpoleException(f"Expression must return a boolean, got {type(result).__name__}")
 
     # Ensure key name is a valid identifier
     def _validate_key(self, key):
         if not key.isidentifier():
-            raise Exception(f'Attempted to use an invalid key, {key}, for column')
+            raise TadpoleException(f'Attempted to use an invalid key, {key}, for column')
         if key in self.columns:
-            raise Exception(f'Key: {key} already exists in this table')
+            raise TadpoleException(f'Key: {key} already exists in this table')
     
     # Ensure URL is viable and working
     def _validate_url(self, url):
         if url == "":
-            raise Exception("URL cannot be empty")
+            raise TadpoleException("URL cannot be empty")
         try: # Establish connection to check validity of URL
             urllib.request.urlopen(url, timeout=5) 
         except urllib.error.URLError as e:
-            raise Exception(f"Incorrect URL: '{url}") # If error occurs, URL is incorrect
+            raise TadpoleException(f"Incorrect URL: '{url}") # If error occurs, URL is incorrect
         
     # Ensure filepath is viable
     def _validate_filepath(self, path):
         if path == "":
-            raise Exception("Path cannot be empty")
+            raise TadpoleException("Path cannot be empty")
         # Use 'os' library to check that a filepath leads to a file and not a directory
         if not os.path.isfile(path):
-            raise Exception(f"No file found at path: '{path}'")
+            raise TadpoleException(f"No file found at path: '{path}'")
