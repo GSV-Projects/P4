@@ -1,4 +1,3 @@
-
 import math
 import pandas as pd
 import urllib.request
@@ -8,13 +7,14 @@ from lark import Token
 from tadpole.utils.NAliteral import NA
 from tadpole.utils.exceptions import TadpoleException
 from urllib.parse import urlparse
+from tabulate import tabulate
 
 class Table():
     def __init__(self, columns):
         self.columns = columns
     
-    def __repr__(self):
-        return f"{self.columns}"
+    def __str__(self):
+        return tabulate(self.columns, headers="keys", tablefmt="fancy_outline")
     
     # Auxiliary function to get line number in case of exception
     def get_pos(self, node):
@@ -129,8 +129,9 @@ class Table():
             raise TadpoleException(f"Column '{column}' expects values of type '{col_type.__name__}', but received '{type(value).__name__}'")
         
         new_col = [value if v == NA else v for v in col]
+        self.columns[column] = new_col
 
-        return new_col
+        return Table(self.columns)
     
     # Rename the key of a given column
     # Returns: 'tbl'
@@ -143,8 +144,7 @@ class Table():
         
         new_table = copy.deepcopy(self.columns)
         new_table = {
-            key if k == column else k: v 
-            for k, v in new_table.items()}
+            key if k == column else k: v for k, v in new_table.items()}
         
         return Table(new_table)
     
@@ -709,7 +709,7 @@ class Table():
     def _validate_length(self, array):
         # Get key to index and get length of a column
         keys = self.keys()
-        column_entries = len(self.columns[keys[1]])
+        column_entries = len(self.columns[keys[0]])
         array_entries = len(array)
 
         # If the column and array do not have matching lengths, throw an error

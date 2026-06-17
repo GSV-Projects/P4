@@ -278,9 +278,7 @@ class Evaluator():
     # Evaluation of the body of a function
     def SEval_body(self, tree, env_v, env_p):
         for child in tree.children:
-            result = self.SEval(child, env_v, env_p)
-            if (child.data == "return") or isinstance(result, (int, str, float, bool)):
-                return result
+            self.SEval(child, env_v, env_p)
 
 # Expression evaluation
     def Eval(self, tree, env):
@@ -653,7 +651,6 @@ class Evaluator():
 ⠀⠀⢸⠀⠈⠭⡀⢈⣡⠔⢶⠁⣹⢩⠃⠀⢀⠀⢸⠀⠀⠀⣑⣠⣤⠀⠙⡦⣀⠜
 ⠀⠀⠀⠣⠀⢂⠞⠱⠴⣈⡸⠰⢇⠘⠀⠰⡭⠷⢝⡤⣂⣄⠒⢤⡐⠀⠀⡇⠀⠀
 ⠀⠀⠀⠀⠱⠄⣀⢜⢁⡠⠥⠊⠀⠀⠀⠀⠡⡘⡄⠐⡂⠘⢌⡀⠉⠂⡸⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠄⠹⢅⣀⠹⠒⠊⠀⠀⠀⠠
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠄⠹⢅⣀⠹⠒⠊⠀⠀⠀
         '''
         print(a)
-

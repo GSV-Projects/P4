@@ -9,7 +9,8 @@ dependencies = [
     "lark",
     "lark[interegular]",
     "pydot",
-    "pyparsing"
+    "pyparsing",
+    "tabulate"
 ]
 
 # Optional dependencies for devs
