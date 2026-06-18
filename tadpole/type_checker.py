@@ -334,8 +334,6 @@ class Typechecker():
     def check_array(self, node, env, RL):
         # Validates an element of type array
 
-
-
         # If the array has no contents, raise exception, saying we cannot yet evaluate the type, as there is nothing to evaluate
         if len(node.children) == 0:  
             raise TypecheckerException(f"No type for an empty array")
@@ -345,13 +343,21 @@ class Typechecker():
         array_check_count = 0
 
         # Compare the first element to the rest, ensuring they are all the same as the first or NA
-        if (all((self.check(x, env, RL) == type_of_array) or (self.check(x, env, RL) == na_type) and (array_check_count := array_check_count + 1) for x in node.children)):
+        result = True
+        for x in node.children:
+            t = self.check(x, env, RL)
+            if t == type_of_array or t == na_type:
+                array_check_count += 1
+            else:
+                array_check_count += 1
+                result = False
+        if result:
             # return as array of type [T], NOT simply T
             return [type_of_array] 
         # Otherwise, raise exception
         else: 
             line = self.get_pos(node)
-            raise TypecheckerException(f'Error on line {line} - Not all elements of array are of the same type! Element {array_check_count} is not of type {type_of_array}')
+            raise TypecheckerException(f'Error on line {line} - Not all elements of array are of the same type! Element {node.children[array_check_count-1]} is not of type {type_of_array}')
 
     def check_array_type(self, node, env, RL):
         # Validates cases of using one of the datatypes as an array variant.
