@@ -227,7 +227,7 @@ class Table():
 
         for i in range(num_rows):
             # Extract the row, we are currently considering
-            row = {col: vals[i] for col, vals in self.columns.items()}
+            row = {col: vals[i] for col, vals in self.columns.items()} # Actual row in the dictionary
 
             # If any of the values in the row are NA, goto next i
             if any(v is NA for v in row.values()):
@@ -299,6 +299,10 @@ class Table():
     def cell(self, column, index):
         self._validate_table()
         self._validate_column(column)
+
+        # Ensure given 'index' parameter is an integer
+        if not isinstance(index, int):
+            raise TadpoleException(f'Given index must be an integer, was given {index}')
     
         # Adjust index to indexing from 1
         index = index - 1
@@ -355,6 +359,7 @@ class Table():
         self._validate_column(column)
         self._validate_not_empty(column)
         decr_keys = ('decr', 'decrease', 'd')
+
         if o not in decr_keys and o != None:
             raise TadpoleException(f'Final parameter declares use of decreasing order, possible keys: "decr", "decrease" or "d" but received: {o}')
         
@@ -384,9 +389,8 @@ class Table():
         col = self.columns[column]
         new_columns = dict(self.columns)
         new_columns[column] = [round(v) if v != NA else v for v in col]
-        print("new_columns: ", type(Table(new_columns)))
 
-        return Table(new_columns)       
+        return Table(new_columns)
          
     # array - Given a column, returns an array of the column sorted.
     #   Sorted numerically for numbers and alphabetically for strings.
@@ -510,7 +514,7 @@ class Table():
         return sum(col)
     
     # How often some value occurs within a column
-    # Returns: float
+    # Returns: int
     def frequency(self, column, param):
         # Reroute arg as either a value or an expr,
         #   as only one of either can be called at a time.

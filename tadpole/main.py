@@ -6,7 +6,6 @@ from tadpole.type_checker import Typechecker
 from tadpole.utils.mainUtils import *
 import sys
 
-
 def run():
     # --- The code to be executed ---
 
@@ -35,7 +34,7 @@ def run():
     # Prints the AST
     print("AST: \n", ast.pretty())
     print("output: \n")
-
+    
     # AST is parsed through the typechecker
     Typechecker().check_p(ast)
 
