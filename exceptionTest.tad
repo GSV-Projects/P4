@@ -1,2 +1,18 @@
+function linear_search([int] array, int size, float target) returns int {
+    i = 1;
+    while (i < size) do {
+        if (array[i] == target) then {
+            return i;
+        }
+        i = i + 1;
+    }
+    
+    return -1;
+}
 
-a = "Det her er for at vise error handling demo";
+
+numbers = [10, 20, 30, 40, 50];
+search_target = 30;
+
+result = linear_search(numbers, 5, search_target);
+print(result);
