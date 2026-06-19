@@ -1,0 +1,19 @@
+
+
+
+
+
+function read_and_filter(string url) returns tbl {
+    mytab = {};
+    mytab = mytab.read(url);
+    print("Table read from csv");
+    print(mytab);
+
+    print("filtering");
+    mytab = mytab.filterall();
+    return mytab;
+}
+
+
+
+print(read_and_filter("https://raw.githubusercontent.com/GSV-Projects/P4/refs/heads/main/Test/read_test2.csv"));

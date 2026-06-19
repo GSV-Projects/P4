@@ -483,7 +483,7 @@ class Typechecker():
         right = node.children[1].children[0]
         left = node.children[0]
 
-        if self.vtable[left.value] != 'tbl':
+        if env[left.value] != 'tbl':
             line = self.get_pos(node)
             raise TypecheckerException(f'Error on line {line} - "{left.value}" is of type {self.vtable[left.value]}, must be a table of type: tbl')
 
